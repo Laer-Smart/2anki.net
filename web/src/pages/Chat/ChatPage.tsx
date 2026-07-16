@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import ChatPanel, { type Message } from '../../components/ChatPanel/ChatPanel';
 import { del, get, patch } from '../../lib/backend/api';
 import styles from './ChatPage.module.css';
@@ -42,11 +43,14 @@ interface PanelSeed {
 }
 
 export default function ChatPage() {
+  const { t } = useTranslation('chat');
   const [searchParams] = useSearchParams();
   const cameFromUpload = searchParams.get('from') === 'upload';
   const uploadFilename = searchParams.get('filename');
   const prefilledPrompt = cameFromUpload
-    ? `I tried to convert ${uploadFilename ?? 'this file'} and got stuck. What can I do?`
+    ? t('page.prefilledPrompt', {
+        filename: uploadFilename ?? t('page.prefilledPromptFallback'),
+      })
     : '';
 
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
@@ -117,7 +121,7 @@ export default function ChatPage() {
           validSlug == null ? null : (data.templateSlug as ChatCardTemplate),
       });
     } catch {
-      setLoadError("Couldn't load this conversation.");
+      setLoadError(t('page.loadError'));
     }
   }
 
@@ -143,11 +147,11 @@ export default function ChatPage() {
       const response = await patch(`/api/chat/conversations/${id}`, { title });
       if (!response.ok) {
         setConversations(previous);
-        setLoadError("Couldn't rename this conversation.");
+        setLoadError(t('page.renameError'));
       }
     } catch {
       setConversations(previous);
-      setLoadError("Couldn't rename this conversation.");
+      setLoadError(t('page.renameError'));
     }
   }
 
@@ -164,11 +168,11 @@ export default function ChatPage() {
       if (response == null) return;
       if (!response.ok) {
         setConversations(previous);
-        setLoadError("Couldn't delete this conversation.");
+        setLoadError(t('page.deleteError'));
       }
     } catch {
       setConversations(previous);
-      setLoadError("Couldn't delete this conversation.");
+      setLoadError(t('page.deleteError'));
     }
   }
 
@@ -209,14 +213,14 @@ export default function ChatPage() {
               <line x1="3" y1="12" x2="21" y2="12" />
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
-            Past chats
+            {t('page.pastChats')}
           </button>
           <button
             type="button"
             className={styles.mobileBarNew}
             onClick={handleNewConversation}
           >
-            New chat
+            {t('page.newChat')}
           </button>
         </div>
         {loadError != null && (

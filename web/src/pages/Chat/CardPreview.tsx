@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { TemplateSelector } from '../../components/ChatPanel/TemplateSelector';
 import DownloadIcon from '../../components/icons/DownloadIcon';
 import {
@@ -60,6 +61,7 @@ function sanitizeFilename(name: string): string {
 }
 
 function McqRow({ card }: { card: ChatCard }) {
+  const { t } = useTranslation('chat');
   const options = card.options ?? [];
   const correctIndex = card.correctIndex ?? -1;
   return (
@@ -82,7 +84,7 @@ function McqRow({ card }: { card: ChatCard }) {
             {i === correctIndex && (
               <span
                 className={styles.cardPreviewMcqOptionCheck}
-                aria-label="Correct answer"
+                aria-label={t('cardPreview.correctAnswer')}
               >
                 ✓
               </span>
@@ -125,9 +127,12 @@ export default function CardPreview({
   onAddTags,
   isTagging,
 }: CardPreviewProps) {
+  const { t } = useTranslation('chat');
   const [expanded, setExpanded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>('idle');
-  const [deckNameDraft, setDeckNameDraft] = useState('Untitled deck');
+  const [deckNameDraft, setDeckNameDraft] = useState(() =>
+    t('cardPreview.untitledDeck')
+  );
   const [savedName, setSavedName] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -185,7 +190,7 @@ export default function CardPreview({
     }
   }
 
-  const cardLabel = displayCards.length === 1 ? 'card' : 'cards';
+  const cardLabel = t('cardPreview.card', { count: displayCards.length });
   const switchLabel = template == null ? null : templateSwitchLabel(template);
 
   return (
@@ -214,7 +219,7 @@ export default function CardPreview({
             className={styles.cardPreviewAddTags}
             onClick={onAddTags}
           >
-            Add tags
+            {t('cardPreview.addTags')}
           </button>
         )}
 
@@ -222,11 +227,11 @@ export default function CardPreview({
           <button
             type="button"
             className={styles.cardPreviewSave}
-            aria-label="Download deck"
+            aria-label={t('cardPreview.downloadDeck')}
             onClick={openNaming}
           >
             <DownloadIcon width={13} height={13} />
-            Download deck
+            {t('cardPreview.downloadDeck')}
           </button>
         )}
 
@@ -240,8 +245,8 @@ export default function CardPreview({
               onChange={(e) => setDeckNameDraft(e.target.value)}
               onKeyDown={handleKeyDown}
               maxLength={MAX_DECK_NAME_LENGTH}
-              placeholder="Name this deck"
-              aria-label="Deck name"
+              placeholder={t('cardPreview.nameThisDeck')}
+              aria-label={t('cardPreview.deckName')}
             />
             <button
               type="button"
@@ -249,20 +254,23 @@ export default function CardPreview({
               onClick={commitSave}
               disabled={deckNameDraft.trim().length === 0}
             >
-              Save
+              {t('cardPreview.save')}
             </button>
             <button
               type="button"
               className={styles.renameCancel}
               onClick={cancelNaming}
             >
-              Cancel
+              {t('cardPreview.cancel')}
             </button>
             {showHint && (
               <p className={styles.renameHint}>
-                {cards.length} {cardLabel}. Saves as{' '}
-                {sanitizeFilename(deckNameDraft.trim()) || 'Untitled deck'}.apkg
-                once you click Save.
+                {t('cardPreview.renameHint', {
+                  count: cards.length,
+                  filename:
+                    sanitizeFilename(deckNameDraft.trim()) ||
+                    t('cardPreview.untitledDeck'),
+                })}
               </p>
             )}
           </div>
@@ -270,13 +278,15 @@ export default function CardPreview({
 
         {saveState === 'saved' && savedName != null && (
           <div className={styles.savedLine}>
-            <span className={styles.savedFile}>Saved as {savedName}.apkg</span>
+            <span className={styles.savedFile}>
+              {t('cardPreview.savedAs', { name: savedName })}
+            </span>
             <button
               type="button"
               className={styles.savedAgainBtn}
               onClick={openNaming}
             >
-              Save again
+              {t('cardPreview.saveAgain')}
             </button>
           </div>
         )}
@@ -286,9 +296,9 @@ export default function CardPreview({
         <div
           className={`${styles.cardPreviewColumnLabels} ${hideBackColumn && !hasTags ? styles.cardPreviewColumnLabelsSingle : ''} ${!hideBackColumn && hasTags ? styles.cardPreviewColumnLabelsThree : ''}`}
         >
-          <span>Front</span>
-          {!hideBackColumn && <span>Back</span>}
-          {hasTags && <span>Tags</span>}
+          <span>{t('cardPreview.front')}</span>
+          {!hideBackColumn && <span>{t('cardPreview.back')}</span>}
+          {hasTags && <span>{t('cardPreview.tags')}</span>}
         </div>
       )}
 
@@ -316,24 +326,30 @@ export default function CardPreview({
               >
                 <div className={styles.cardPreviewFront}>
                   {(!hideBackColumn || hasTags) && (
-                    <span className={styles.cardPreviewMobileLabel}>Front</span>
+                    <span className={styles.cardPreviewMobileLabel}>
+                      {t('cardPreview.front')}
+                    </span>
                   )}
                   {card.front}
                 </div>
                 {!hideBackColumn && (
                   <div className={styles.cardPreviewBack}>
-                    <span className={styles.cardPreviewMobileLabel}>Back</span>
+                    <span className={styles.cardPreviewMobileLabel}>
+                      {t('cardPreview.back')}
+                    </span>
                     {card.back}
                   </div>
                 )}
                 {hasTags && (
                   <div className={styles.cardPreviewTags}>
-                    <span className={styles.cardPreviewMobileLabel}>Tags</span>
+                    <span className={styles.cardPreviewMobileLabel}>
+                      {t('cardPreview.tags')}
+                    </span>
                     {isTagging ? (
                       <span
                         className={styles.cardPreviewTagSkeleton}
                         role="status"
-                        aria-label="Adding tags"
+                        aria-label={t('cardPreview.addingTags')}
                       />
                     ) : (
                       <TagChips tags={card.tags ?? []} />
@@ -351,7 +367,9 @@ export default function CardPreview({
             className={styles.cardPreviewExpandBtn}
             onClick={() => setExpanded((v) => !v)}
           >
-            {expanded ? 'Show fewer' : `Show all ${displayCards.length} cards`}
+            {expanded
+              ? t('cardPreview.showFewer')
+              : t('cardPreview.showAll', { count: displayCards.length })}
           </button>
         )}
       </>

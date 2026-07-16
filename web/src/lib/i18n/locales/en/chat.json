@@ -1,0 +1,102 @@
+{
+  "page": {
+    "prefilledPrompt": "I tried to convert {{filename}} and got stuck. What can I do?",
+    "prefilledPromptFallback": "this file",
+    "loadError": "Couldn't load this conversation.",
+    "renameError": "Couldn't rename this conversation.",
+    "deleteError": "Couldn't delete this conversation.",
+    "pastChats": "Past chats",
+    "newChat": "New chat"
+  },
+  "sidebar": {
+    "newChat": "New chat",
+    "empty": "No conversations yet. Start one below.",
+    "closeConversations": "Close conversations",
+    "conversations": "Conversations",
+    "conversationTitle": "Conversation title",
+    "optionsFor": "Options for {{title}}",
+    "rename": "Rename",
+    "delete": "Delete",
+    "justNow": "just now"
+  },
+  "message": {
+    "showLess": "Show less",
+    "showFull": "Show full message",
+    "userMessage": "User message"
+  },
+  "composer": {
+    "writingCards": "Writing your cards",
+    "thinking": "Thinking",
+    "dropToAttach": "Drop to attach",
+    "dropHint": "PDF or image, up to 10 MB each",
+    "uploading": "Uploading",
+    "uploadFailed": "Upload failed",
+    "retry": "Retry",
+    "remove": "Remove {{name}}",
+    "attachFiles": "Attach files",
+    "studyingPlaceholder": "What are you studying?",
+    "messageInput": "Message input",
+    "sendMessage": "Send message",
+    "region": "Chat composer with file drop zone",
+    "scrollToBottom": "Scroll to bottom"
+  },
+  "heading": {
+    "withFile": "What would you like to do with this file?",
+    "studying": "What are you studying?"
+  },
+  "usage": {
+    "messagesLeftOne": "1 message left this month — your next send uses it",
+    "messagesLeft": "{{count}} of {{limit}} messages left this month"
+  },
+  "limitPanel": {
+    "text": "You've used all {{count}} messages this month. Resets {{date}}.",
+    "seePlans": "See plans"
+  },
+  "errors": {
+    "cantAttachOne": "Can't attach {{name}}. Only PDF and image files work here.",
+    "cantAttachMany": "Can't attach {{count}} files. Only PDF and image files work here.",
+    "oversize": "{{name}} is {{size}}. The per-file limit is 10 MB.",
+    "totalSize": "That's {{size}} total. A message can carry up to 25 MB across all files.",
+    "send": "Couldn't send this message. Try again.",
+    "conversationGone": "This conversation is gone. Start a new one.",
+    "rebuild": "Couldn't rebuild your cards. Try again.",
+    "addTags": "Couldn't add tags. Try again.",
+    "deckGenerate": "Couldn't generate the deck. Try again."
+  },
+  "tags": {
+    "success_one": "Tags added to {{count}} card",
+    "success_other": "Tags added to {{count}} cards"
+  },
+  "cardPreview": {
+    "correctAnswer": "Correct answer",
+    "addTags": "Add tags",
+    "downloadDeck": "Download deck",
+    "nameThisDeck": "Name this deck",
+    "deckName": "Deck name",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saveAgain": "Save again",
+    "untitledDeck": "Untitled deck",
+    "savedAs": "Saved as {{name}}.apkg",
+    "renameHint_one": "{{count}} card. Saves as {{filename}}.apkg once you click Save.",
+    "renameHint_other": "{{count}} cards. Saves as {{filename}}.apkg once you click Save.",
+    "front": "Front",
+    "back": "Back",
+    "tags": "Tags",
+    "addingTags": "Adding tags",
+    "showFewer": "Show fewer",
+    "showAll": "Show all {{count}} cards",
+    "card_one": "card",
+    "card_other": "cards"
+  },
+  "codeBlock": {
+    "copyCode": "Copy code",
+    "copied": "Copied",
+    "copy": "Copy"
+  },
+  "templateSelector": {
+    "noteTypeAria": "Note type: {{label}}",
+    "noteTypeLabel": "Note Type: {{label}}",
+    "listboxLabel": "Note type"
+  }
+}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import sharedStyles from '../../../styles/shared.module.css';
 import searchStyles from '../SearchPage.module.css';
 
@@ -14,17 +15,18 @@ function SearchBar({
   onSearchClicked,
   inProgress,
 }: Readonly<SearchBarProps>) {
+  const { t } = useTranslation('search');
   return (
     <div>
       <label className={sharedStyles.srOnly} htmlFor="notion-search-input">
-        Search Notion
+        {t('searchBar.label')}
       </label>
       <input
         id="notion-search-input"
         value={value}
         type="text"
         className={searchStyles.searchInput}
-        placeholder="Search Notion"
+        placeholder={t('searchBar.placeholder')}
         aria-busy={inProgress}
         data-searching={inProgress ? 'true' : 'false'}
         onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {

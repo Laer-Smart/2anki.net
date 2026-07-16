@@ -1,0 +1,58 @@
+{
+  "page": {
+    "titleConnected": "Notion",
+    "titleGetStarted": "Erste Schritte",
+    "subtitleConnected": "Finde eine Seite und wandle sie in einen Anki-Stapel um.",
+    "subtitleDisconnected": "Verbinde deinen Notion-Workspace oder lade Dateien hoch, um Anki-Stapel zu erstellen.",
+    "switchWorkspace": "Workspace wechseln"
+  },
+  "limit": {
+    "title": "Du hast diesen Monat alle {{limit}} Karten genutzt",
+    "body": "{{used}} / {{limit}} Karten · Auffrischung am {{resetsOn}}, dann kommen deine kostenlosen Karten zurück",
+    "startingCheckout": "Checkout wird gestartet",
+    "getDayPass": "Day Pass holen — $4",
+    "seePlans": "Tarife ansehen"
+  },
+  "connect": {
+    "title": "Verbinde deinen Notion-Workspace",
+    "body": "Durchsuche und konvertiere Seiten direkt. Wir lesen nur die Seiten, die du mit 2anki teilst.",
+    "connectButton": "Mit Notion verbinden",
+    "fallbackText": "Oder lade eine Datei hoch, die du aus Notion exportiert hast.",
+    "uploadFile": "Datei hochladen"
+  },
+  "searchBar": {
+    "label": "Notion durchsuchen",
+    "placeholder": "Notion durchsuchen"
+  },
+  "results": {
+    "scopeWorkspace": "in „{{workSpace}}“",
+    "scopeGeneric": "in deinem Notion-Workspace",
+    "noMatch": "Keine Seiten passen zu „{{query}}“ {{scope}}",
+    "noneFound": "Keine Seiten gefunden {{scope}}",
+    "emptyBodyPrefix": "Versuche einen anderen Suchbegriff oder stelle sicher, dass die Seite mit der 2anki-Integration geteilt ist — siehe ",
+    "sharingLink": "Notions Freigabeeinstellungen",
+    "emptyBodySuffix": "."
+  },
+  "entry": {
+    "remaking": "Dein Stapel wird neu erstellt — ",
+    "added": "Zu deinen Downloads hinzugefügt — ",
+    "view": "ansehen",
+    "paywallText": "Kostenloser Tarif — eine Konvertierung gleichzeitig.",
+    "upgrade": "Upgrade",
+    "paywallSuffix": " oder warte.",
+    "conflict": "Diese Seite wird bereits konvertiert.",
+    "error": "Diese Seite konnte nicht eingereiht werden. Versuch es erneut.",
+    "inProgress": "In Arbeit",
+    "convertToAnki": "In Anki konvertieren",
+    "convert": "Konvertieren",
+    "openInNotion": "{{title}} in Notion öffnen",
+    "preview": "Vorschau von {{title}}",
+    "configureRules": "Regeln für {{title}} konfigurieren"
+  },
+  "flashcardType": {
+    "new": "Neu"
+  },
+  "icon": {
+    "alt": "Symbol"
+  }
+}

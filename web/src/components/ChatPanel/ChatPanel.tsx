@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { get, patch, post, postMultipart } from '../../lib/backend/api';
 import {
   type ChatCardTemplate,
@@ -244,10 +245,11 @@ function UserMessage({
   expanded: boolean;
   onToggleExpand: () => void;
 }) {
+  const { t } = useTranslation('chat');
   const isLong =
     message.content.length > 600 || message.content.split('\n').length > 12;
   return (
-    <div className={styles.userRow} aria-label="User message">
+    <div className={styles.userRow} aria-label={t('message.userMessage')}>
       <div
         className={`${styles.userBubble} ${isLong && !expanded ? styles.userBubbleClamped : ''}`}
       >
@@ -260,7 +262,7 @@ function UserMessage({
           onClick={onToggleExpand}
           aria-expanded={expanded}
         >
-          {expanded ? 'Show less' : 'Show full message'}
+          {expanded ? t('message.showLess') : t('message.showFull')}
         </button>
       )}
     </div>
@@ -333,6 +335,7 @@ function StreamingMessage({
   streamingText: string;
   isCardStreaming: boolean;
 }) {
+  const { t } = useTranslation('chat');
   if (streamingText.length > 0) {
     return (
       <div className={styles.assistantRow}>
@@ -340,15 +343,21 @@ function StreamingMessage({
           {visibleStreamingText(streamingText)}
         </AssistantMarkdown>
         {isCardStreaming && (
-          <span className={styles.makingCards}>Writing your cards</span>
+          <span className={styles.makingCards}>
+            {t('composer.writingCards')}
+          </span>
         )}
       </div>
     );
   }
 
   return (
-    <div className={styles.thinkingPill} aria-label="Thinking" role="status">
-      <span className={styles.srOnly}>Thinking</span>
+    <div
+      className={styles.thinkingPill}
+      aria-label={t('composer.thinking')}
+      role="status"
+    >
+      <span className={styles.srOnly}>{t('composer.thinking')}</span>
     </div>
   );
 }
@@ -384,6 +393,7 @@ function ComposerPill({
   onDrop,
   textareaRef: externalTextareaRef,
 }: ComposerProps) {
+  const { t } = useTranslation('chat');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const internalRef = useRef<HTMLTextAreaElement>(null);
   const textareaRef = externalTextareaRef ?? internalRef;
@@ -409,7 +419,7 @@ function ComposerPill({
   return (
     <div
       role="region"
-      aria-label="Chat composer with file drop zone"
+      aria-label={t('composer.region')}
       className={`${styles.composerPill} ${isDragging ? styles.composerPillDragging : ''}`}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
@@ -417,9 +427,11 @@ function ComposerPill({
     >
       {isDragging && (
         <div className={styles.dropOverlay}>
-          <span className={styles.dropOverlayTitle}>Drop to attach</span>
+          <span className={styles.dropOverlayTitle}>
+            {t('composer.dropToAttach')}
+          </span>
           <span className={styles.dropOverlaySub}>
-            PDF or image, up to 10 MB each
+            {t('composer.dropHint')}
           </span>
         </div>
       )}
@@ -444,7 +456,9 @@ function ComposerPill({
                   >
                     <span className={styles.spinnerSmall} />
                   </span>
-                  <span className={styles.chipSize}>Uploading</span>
+                  <span className={styles.chipSize}>
+                    {t('composer.uploading')}
+                  </span>
                 </>
               )}
               {chip.state === 'failed' && (
@@ -452,7 +466,7 @@ function ComposerPill({
                   <span
                     className={`${styles.chipSize} ${styles.chipSizeError}`}
                   >
-                    Upload failed
+                    {t('composer.uploadFailed')}
                   </span>
                   {onRetryFile != null && (
                     <button
@@ -460,7 +474,7 @@ function ComposerPill({
                       className={styles.chipRetry}
                       onClick={() => onRetryFile(chip.id)}
                     >
-                      Retry
+                      {t('composer.retry')}
                     </button>
                   )}
                 </>
@@ -473,7 +487,7 @@ function ComposerPill({
               <button
                 type="button"
                 className={styles.chipRemove}
-                aria-label={`Remove ${chip.file.name}`}
+                aria-label={t('composer.remove', { name: chip.file.name })}
                 onClick={() => onRemoveFile(chip.id)}
               >
                 ×
@@ -486,7 +500,7 @@ function ComposerPill({
         <button
           type="button"
           className={styles.attachBtn}
-          aria-label="Attach files"
+          aria-label={t('composer.attachFiles')}
           disabled={disabled || attachedFiles.length >= MAX_FILE_COUNT}
           onClick={() => fileInputRef.current?.click()}
         >
@@ -511,10 +525,10 @@ function ComposerPill({
           value={inputValue}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="What are you studying?"
+          placeholder={t('composer.studyingPlaceholder')}
           disabled={disabled}
           rows={1}
-          aria-label="Message input"
+          aria-label={t('composer.messageInput')}
         />
         <input
           ref={fileInputRef}
@@ -536,7 +550,7 @@ function ComposerPill({
           className={`${styles.sendBtn} ${canSend ? styles.sendBtnActive : ''}`}
           onClick={onSubmit}
           disabled={!canSend}
-          aria-label="Send message"
+          aria-label={t('composer.sendMessage')}
         >
           <svg
             width="16"
@@ -569,6 +583,7 @@ export default function ChatPanel({
   onConversationNotFound,
   onTemplateChange,
 }: ChatPanelProps) {
+  const { t } = useTranslation('chat');
   const { data: userLocals, refetch: refetchUserLocals } = useUserLocals();
   const hasConsented = userLocals?.user?.chat_consent_at != null;
   const [showConsentModal, setShowConsentModal] = useState(false);
@@ -685,11 +700,11 @@ export default function ChatPanel({
     if (disallowed.length > 0) {
       if (disallowed.length === 1) {
         setNetworkError(
-          `Can't attach ${disallowed[0].name}. Only PDF and image files work here.`
+          t('errors.cantAttachOne', { name: disallowed[0].name })
         );
       } else {
         setNetworkError(
-          `Can't attach ${disallowed.length} files. Only PDF and image files work here.`
+          t('errors.cantAttachMany', { count: disallowed.length })
         );
       }
       return;
@@ -698,7 +713,10 @@ export default function ChatPanel({
     const oversized = files.find((f) => f.size > MAX_FILE_BYTES);
     if (oversized != null) {
       setNetworkError(
-        `${oversized.name} is ${formatFileSize(oversized.size)}. The per-file limit is 10 MB.`
+        t('errors.oversize', {
+          name: oversized.name,
+          size: formatFileSize(oversized.size),
+        })
       );
       return;
     }
@@ -707,7 +725,7 @@ export default function ChatPanel({
     const newTotal = files.reduce((s, f) => s + f.size, currentTotal);
     if (newTotal > MAX_TOTAL_BYTES) {
       setNetworkError(
-        `That's ${formatFileSize(newTotal)} total. A message can carry up to 25 MB across all files.`
+        t('errors.totalSize', { size: formatFileSize(newTotal) })
       );
       return;
     }
@@ -771,7 +789,7 @@ export default function ChatPanel({
       try {
         response = await postMultipart('/api/chat/message', formData);
       } catch {
-        setNetworkError("Couldn't send this message. Try again.");
+        setNetworkError(t('errors.send'));
         setIsLoading(false);
         return;
       }
@@ -784,7 +802,7 @@ export default function ChatPanel({
           templateSlug: activeTemplate,
         });
       } catch {
-        setNetworkError("Couldn't send this message. Try again.");
+        setNetworkError(t('errors.send'));
         setIsLoading(false);
         return;
       }
@@ -794,13 +812,13 @@ export default function ChatPanel({
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
       };
-      setNetworkError(data.error ?? "Couldn't send this message. Try again.");
+      setNetworkError(data.error ?? t('errors.send'));
       setIsLoading(false);
       return;
     }
 
     if (response.body == null) {
-      setNetworkError("Couldn't send this message. Try again.");
+      setNetworkError(t('errors.send'));
       setIsLoading(false);
       return;
     }
@@ -840,7 +858,7 @@ export default function ChatPanel({
         return;
       }
       if (err.type === 'conversation_not_found') {
-        setNetworkError('This conversation is gone. Start a new one.');
+        setNetworkError(t('errors.conversationGone'));
         setActiveConversationId(null);
         onConversationNotFound?.();
         return;
@@ -849,7 +867,7 @@ export default function ChatPanel({
         setShowConsentModal(true);
         return;
       }
-      setNetworkError("Couldn't send this message. Try again.");
+      setNetworkError(t('errors.send'));
     };
 
     const dispatchSseEvent = (eventType: string, data: string) => {
@@ -861,7 +879,7 @@ export default function ChatPanel({
     try {
       await consumeSseEvents(response.body, dispatchSseEvent);
     } catch {
-      setNetworkError("Couldn't send this message. Try again.");
+      setNetworkError(t('errors.send'));
     } finally {
       setIsLoading(false);
       setStreamingText('');
@@ -870,7 +888,7 @@ export default function ChatPanel({
 
   function handleSaveAsDeck(cards: ChatCard[], deckName: string) {
     downloadDeck(cards, deckName, activeTemplate).catch(() => {
-      setNetworkError("Couldn't generate the deck. Try again.");
+      setNetworkError(t('errors.deckGenerate'));
     });
   }
 
@@ -889,12 +907,12 @@ export default function ChatPanel({
         conversationId: activeConversationId,
       });
       if (!response.ok) {
-        setNetworkError("Couldn't add tags. Try again.");
+        setNetworkError(t('errors.addTags'));
         return;
       }
       const result = (await response.json()) as { tags: string[][] };
       if (!Array.isArray(result.tags)) {
-        setNetworkError("Couldn't add tags. Try again.");
+        setNetworkError(t('errors.addTags'));
         return;
       }
       setMessages((prev) =>
@@ -910,11 +928,10 @@ export default function ChatPanel({
         })
       );
       const taggedCount = cardsToTag.length;
-      const cardWord = taggedCount === 1 ? 'card' : 'cards';
-      setSuccessMessage(`Tags added to ${taggedCount} ${cardWord}`);
+      setSuccessMessage(t('tags.success', { count: taggedCount }));
       window.setTimeout(() => setSuccessMessage(null), TAG_SUCCESS_DISMISS_MS);
     } catch {
-      setNetworkError("Couldn't add tags. Try again.");
+      setNetworkError(t('errors.addTags'));
     } finally {
       setTaggingIdx(null);
     }
@@ -956,7 +973,7 @@ export default function ChatPanel({
         { templateSlug: newSlug }
       );
     } catch {
-      setNetworkError("Couldn't rebuild your cards. Try again.");
+      setNetworkError(t('errors.rebuild'));
       setIsLoading(false);
       setRegeneratingIdx(null);
       return;
@@ -966,7 +983,7 @@ export default function ChatPanel({
       const data = (await response.json().catch(() => ({}))) as {
         error?: string;
       };
-      setNetworkError(data.error ?? "Couldn't rebuild your cards. Try again.");
+      setNetworkError(data.error ?? t('errors.rebuild'));
       setIsLoading(false);
       setRegeneratingIdx(null);
       return;
@@ -1007,7 +1024,7 @@ export default function ChatPanel({
         return;
       }
       if (err.type === 'conversation_not_found') {
-        setNetworkError('This conversation is gone. Start a new one.');
+        setNetworkError(t('errors.conversationGone'));
         setActiveConversationId(null);
         onConversationNotFound?.();
         return;
@@ -1016,7 +1033,7 @@ export default function ChatPanel({
         setShowConsentModal(true);
         return;
       }
-      setNetworkError("Couldn't rebuild your cards. Try again.");
+      setNetworkError(t('errors.rebuild'));
     };
 
     const dispatchRegenEvent = (eventType: string, data: string) => {
@@ -1028,7 +1045,7 @@ export default function ChatPanel({
     try {
       await consumeSseEvents(response.body, dispatchRegenEvent);
     } catch {
-      setNetworkError("Couldn't rebuild your cards. Try again.");
+      setNetworkError(t('errors.rebuild'));
     } finally {
       setIsLoading(false);
       setRegeneratingIdx(null);
@@ -1109,9 +1126,7 @@ export default function ChatPanel({
         {showEmptyState ? (
           <div className={styles.emptyState}>
             <h1 className={styles.emptyHeading}>
-              {cameFromUpload
-                ? 'What would you like to do with this file?'
-                : 'What are you studying?'}
+              {cameFromUpload ? t('heading.withFile') : t('heading.studying')}
             </h1>
             <div className={styles.emptyComposer}>
               <ComposerPill {...composerProps} />
@@ -1123,8 +1138,11 @@ export default function ChatPanel({
                 messagesUsedThisMonth > 0 && (
                   <p className={styles.usageLine}>
                     {remainingMessages === 1
-                      ? '1 message left this month — your next send uses it'
-                      : `${remainingMessages} of ${monthlyLimit} messages left this month`}
+                      ? t('usage.messagesLeftOne')
+                      : t('usage.messagesLeft', {
+                          count: remainingMessages,
+                          limit: monthlyLimit,
+                        })}
                   </p>
                 )}
             </div>
@@ -1200,7 +1218,7 @@ export default function ChatPanel({
                 <button
                   type="button"
                   className={styles.scrollPill}
-                  aria-label="Scroll to bottom"
+                  aria-label={t('composer.scrollToBottom')}
                   onClick={scrollToBottom}
                 >
                   <svg
@@ -1225,11 +1243,13 @@ export default function ChatPanel({
               {limitReached && resetDate != null && (
                 <div className={styles.limitPanel}>
                   <span>
-                    You've used all {FREE_MONTHLY_LIMIT} messages this month.
-                    Resets {formatResetDate(resetDate)}.
+                    {t('limitPanel.text', {
+                      count: FREE_MONTHLY_LIMIT,
+                      date: formatResetDate(resetDate),
+                    })}
                   </span>
                   <a href="/pricing" className={styles.limitPanelLink}>
-                    See plans
+                    {t('limitPanel.seePlans')}
                   </a>
                 </div>
               )}
@@ -1239,8 +1259,11 @@ export default function ChatPanel({
                 messagesUsedThisMonth > 0 && (
                   <p className={styles.usageLine}>
                     {remainingMessages === 1
-                      ? '1 message left this month — your next send uses it'
-                      : `${remainingMessages} of ${monthlyLimit} messages left this month`}
+                      ? t('usage.messagesLeftOne')
+                      : t('usage.messagesLeft', {
+                          count: remainingMessages,
+                          limit: monthlyLimit,
+                        })}
                   </p>
                 )}
               {networkError != null && (

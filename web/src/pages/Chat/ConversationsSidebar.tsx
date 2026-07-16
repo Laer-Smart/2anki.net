@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import styles from './ConversationsSidebar.module.css';
 
 export interface ConversationSummary {
@@ -26,12 +28,12 @@ function focusableElements(root: HTMLElement): HTMLElement[] {
   ).filter((el) => !el.hasAttribute('disabled'));
 }
 
-function formatRelativeTime(iso: string): string {
+function formatRelativeTime(iso: string, t: TFunction): string {
   const then = new Date(iso).getTime();
   if (Number.isNaN(then)) return '';
   const diffMs = Date.now() - then;
   const minutes = Math.floor(diffMs / 60_000);
-  if (minutes < 1) return 'just now';
+  if (minutes < 1) return t('sidebar.justNow');
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h`;
@@ -53,6 +55,7 @@ export default function ConversationsSidebar({
   isOpen,
   onClose,
 }: Props) {
+  const { t } = useTranslation('chat');
   const [menuOpenFor, setMenuOpenFor] = useState<number | null>(null);
   const [renamingId, setRenamingId] = useState<number | null>(null);
   const [renameDraft, setRenameDraft] = useState('');
@@ -139,7 +142,7 @@ export default function ConversationsSidebar({
         <button
           type="button"
           className={styles.scrim}
-          aria-label="Close conversations"
+          aria-label={t('sidebar.closeConversations')}
           onClick={onClose}
         />
       )}
@@ -147,14 +150,14 @@ export default function ConversationsSidebar({
         ref={asideRef}
         id="conversations-sidebar"
         className={`${styles.sidebar} ${isOpen ? styles.sidebarOpen : ''}`}
-        aria-label="Conversations"
+        aria-label={t('sidebar.conversations')}
       >
         <button type="button" className={styles.newChatBtn} onClick={onNew}>
-          New chat
+          {t('sidebar.newChat')}
         </button>
 
         {conversations.length === 0 ? (
-          <p className={styles.empty}>No conversations yet. Start one below.</p>
+          <p className={styles.empty}>{t('sidebar.empty')}</p>
         ) : (
           <ul className={styles.list}>
             {conversations.map((c) => {
@@ -182,7 +185,7 @@ export default function ConversationsSidebar({
                           cancelRename();
                         }
                       }}
-                      aria-label="Conversation title"
+                      aria-label={t('sidebar.conversationTitle')}
                     />
                   ) : (
                     <button
@@ -193,7 +196,7 @@ export default function ConversationsSidebar({
                     >
                       <span className={styles.itemTitle}>{c.title}</span>
                       <span className={styles.itemMeta}>
-                        {formatRelativeTime(c.updatedAt)}
+                        {formatRelativeTime(c.updatedAt, t)}
                       </span>
                     </button>
                   )}
@@ -212,7 +215,7 @@ export default function ConversationsSidebar({
                             prev === c.id ? null : c.id
                           );
                         }}
-                        aria-label={`Options for ${c.title}`}
+                        aria-label={t('sidebar.optionsFor', { title: c.title })}
                         aria-haspopup="menu"
                         aria-expanded={menuOpenFor === c.id}
                       >
@@ -227,7 +230,7 @@ export default function ConversationsSidebar({
                             className={styles.menuItem}
                             onClick={() => startRename(c.id, c.title)}
                           >
-                            Rename
+                            {t('sidebar.rename')}
                           </button>
                           <button
                             type="button"
@@ -238,7 +241,7 @@ export default function ConversationsSidebar({
                               onDelete(c.id);
                             }}
                           >
-                            Delete
+                            {t('sidebar.delete')}
                           </button>
                         </div>
                       )}

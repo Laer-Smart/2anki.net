@@ -1,5 +1,6 @@
 import { Dispatch, SetStateAction, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ErrorHandlerType } from '../../../../components/errors/helpers/getErrorMessage';
 import DotsHorizontal from '../../../../components/icons/DotsHorizontal';
 import EyeIcon from '../../../../components/icons/EyeIcon';
@@ -36,6 +37,7 @@ const getType = (data: string | { object: string }): string | null => {
 
 function SearchObjectEntry(props: Readonly<Props>) {
   const { title, icon, url, id, type, setError } = props;
+  const { t } = useTranslation('search');
   const navigate = useNavigate();
   const location = useLocation();
   const [status, setStatus] = useState<ConvertStatus>('idle');
@@ -93,27 +95,22 @@ function SearchObjectEntry(props: Readonly<Props>) {
       <div className={styles.objectActions}>
         {status === 'queued' && (
           <span className={styles.convertStatus}>
-            {restarted
-              ? 'Re-making your deck — '
-              : 'Added to your downloads — '}
-            <Link to="/downloads">view</Link>
+            {restarted ? t('entry.remaking') : t('entry.added')}
+            <Link to="/downloads">{t('entry.view')}</Link>
           </span>
         )}
         {status === 'paywall' && (
           <span className={styles.convertStatus}>
-            Free plan — one conversion at a time.{' '}
-            <Link to="/pricing">Upgrade</Link> or wait.
+            {t('entry.paywallText')}{' '}
+            <Link to="/pricing">{t('entry.upgrade')}</Link>
+            {t('entry.paywallSuffix')}
           </span>
         )}
         {status === 'conflict' && (
-          <span className={styles.convertStatus}>
-            Already converting this page.
-          </span>
+          <span className={styles.convertStatus}>{t('entry.conflict')}</span>
         )}
         {status === 'error' && (
-          <span className={styles.convertStatus}>
-            Couldn&apos;t queue this page. Try again.
-          </span>
+          <span className={styles.convertStatus}>{t('entry.error')}</span>
         )}
         <button
           type="button"
@@ -121,10 +118,14 @@ function SearchObjectEntry(props: Readonly<Props>) {
           onClick={handleConvert}
           disabled={isConverting || isQueued}
           aria-label={
-            isConverting || isQueued ? 'In progress' : 'Convert to Anki'
+            isConverting || isQueued
+              ? t('entry.inProgress')
+              : t('entry.convertToAnki')
           }
         >
-          {isConverting || isQueued ? 'In progress' : 'Convert'}
+          {isConverting || isQueued
+            ? t('entry.inProgress')
+            : t('entry.convert')}
         </button>
         <div className={styles.secondaryActions}>
           <a
@@ -132,8 +133,8 @@ function SearchObjectEntry(props: Readonly<Props>) {
             target="_blank"
             rel="noreferrer"
             className={styles.iconLink}
-            aria-label={`Open ${title} in Notion`}
-            title={`Open ${title} in Notion`}
+            aria-label={t('entry.openInNotion', { title })}
+            title={t('entry.openInNotion', { title })}
           >
             <img
               src="/icons/Notion_app_logo.png"
@@ -149,8 +150,8 @@ function SearchObjectEntry(props: Readonly<Props>) {
                 : `/preview/${encodeURIComponent(id)}`
             }
             className={styles.iconLink}
-            aria-label={`Preview ${title}`}
-            title={`Preview ${title}`}
+            aria-label={t('entry.preview', { title })}
+            title={t('entry.preview', { title })}
           >
             <EyeIcon width={20} height={20} />
           </Link>
@@ -158,8 +159,8 @@ function SearchObjectEntry(props: Readonly<Props>) {
             type="button"
             className={styles.iconBtn}
             onClick={openRules}
-            aria-label={`Configure rules for ${title}`}
-            title={`Configure rules for ${title}`}
+            aria-label={t('entry.configureRules', { title })}
+            title={t('entry.configureRules', { title })}
           >
             <DotsHorizontal width={20} height={20} />
           </button>

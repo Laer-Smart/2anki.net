@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   CHAT_TEMPLATE_OPTIONS,
   type ChatCardTemplate,
@@ -16,6 +17,7 @@ export function TemplateSelector({
   onChange,
   disabled,
 }: TemplateSelectorProps) {
+  const { t } = useTranslation('chat');
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -43,11 +45,15 @@ export function TemplateSelector({
         className={styles.templatePill}
         aria-haspopup="listbox"
         aria-expanded={open}
-        aria-label={`Note type: ${activeOption.label}`}
+        aria-label={t('templateSelector.noteTypeAria', {
+          label: activeOption.label,
+        })}
         disabled={disabled}
         onClick={() => setOpen((v) => !v)}
       >
-        <span>Note Type: {activeOption.label}</span>
+        <span>
+          {t('templateSelector.noteTypeLabel', { label: activeOption.label })}
+        </span>
         <svg
           width="10"
           height="10"
@@ -65,7 +71,7 @@ export function TemplateSelector({
       {open && (
         <ul
           role="listbox"
-          aria-label="Note type"
+          aria-label={t('templateSelector.listboxLabel')}
           className={styles.templateMenu}
         >
           {CHAT_TEMPLATE_OPTIONS.map((opt) => (

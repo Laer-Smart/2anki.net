@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ErrorPresenter } from '../../components/errors/ErrorPresenter';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
 import { SkeletonList } from '../../components/Skeleton/Skeleton';
@@ -18,6 +19,7 @@ interface SearchPageProps {
 }
 
 export function SearchPage({ setError }: Readonly<SearchPageProps>) {
+  const { t } = useTranslation('search');
   const notionData = useNotionData(get2ankiApi());
   const { data: userLocals } = useUserLocals();
   const isAuthenticated = userLocals?.user?.id != null;
@@ -48,10 +50,12 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
     }
   };
 
-  const headerTitle = notionData.connected ? 'Notion' : 'Get started';
+  const headerTitle = notionData.connected
+    ? t('page.titleConnected')
+    : t('page.titleGetStarted');
   const headerSubtitle = notionData.connected
-    ? 'Find a page and convert it into an Anki deck.'
-    : 'Connect your Notion workspace or upload files to create Anki decks.';
+    ? t('page.subtitleConnected')
+    : t('page.subtitleDisconnected');
 
   let content;
   if (notionData.loading) {
@@ -87,11 +91,10 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
           </svg>
         </span>
         <p className={searchStyles.limitLockTitle}>
-          You&apos;ve used all {limit} cards this month
+          {t('limit.title', { limit })}
         </p>
         <p className={searchStyles.limitLockBody}>
-          {used} / {limit} cards · resets {resetsOn}, when your free cards come
-          back
+          {t('limit.body', { used, limit, resetsOn })}
         </p>
         <div className={searchStyles.limitLockActions}>
           <button
@@ -100,13 +103,15 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
             onClick={handleDayPass}
             disabled={dayPassPending}
           >
-            {dayPassPending ? 'Starting checkout' : 'Get Day Pass — $4'}
+            {dayPassPending
+              ? t('limit.startingCheckout')
+              : t('limit.getDayPass')}
           </button>
           <Link
             to="/limit?ref=notion-limit-wall"
             className={searchStyles.limitLockSecondary}
           >
-            See plans
+            {t('limit.seePlans')}
           </Link>
         </div>
       </div>
@@ -142,7 +147,7 @@ export function SearchPage({ setError }: Readonly<SearchPageProps>) {
             href={notionData.connectionLink}
             className={searchStyles.workspaceSwitch}
           >
-            Switch workspace
+            {t('page.switchWorkspace')}
           </a>
         </div>
       )}
