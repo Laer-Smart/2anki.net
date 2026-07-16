@@ -1,0 +1,224 @@
+{
+  "steps": {
+    "dropFile": {
+      "title": "Trascina il tuo file",
+      "body": "Un export di Notion, un PDF, un file Word, Markdown o un export di Quizlet."
+    },
+    "buildsDeck": {
+      "title": "2anki crea il tuo mazzo",
+      "body": "Di solito pochi secondi. I file più grandi richiedono un minuto."
+    },
+    "openInAnki": {
+      "title": "Aprilo in Anki",
+      "body": "Fai doppio clic sul file .apkg. Le tue carte sono pronte da studiare."
+    }
+  },
+  "sections": {
+    "howItWorks": "Come funziona",
+    "supportedFormats": "Formati supportati",
+    "whatYouGet": "Cosa ottieni davvero in Anki",
+    "commonQuestions": "Domande frequenti",
+    "related": "Correlati"
+  },
+  "hero": {
+    "freeQuota": "Gratis · fino a 1 000 carte per importazione",
+    "orPrefix": "oppure ",
+    "signUpFree": "registrati gratis",
+    "tryUnlimited": "prova Unlimited gratis per 1 ora"
+  },
+  "footer": {
+    "readyPrefix": "Pronto a provarlo? ",
+    "dropLink": "Trascina un file in cima a questa pagina."
+  },
+  "hub": {
+    "h1": "Converti qualsiasi cosa in Anki",
+    "subhead": "Scegli la tua sorgente. Ogni convertitore trasforma i tuoi appunti, file o flashcard in un mazzo .apkg pulito da studiare in Anki.",
+    "groups": {
+      "note-apps": "App per appunti",
+      "flashcard-apps": "App per flashcard",
+      "files": "File",
+      "language-tools": "Strumenti per le lingue"
+    }
+  },
+  "answers": {
+    "faqHeading": "Domande frequenti",
+    "convert-notion-to-anki": {
+      "h1": "Come convertire Notion in flashcard Anki",
+      "intro": "Notion conserva i tuoi appunti. Anki li trasforma in un sistema di ripasso. 2anki colma il divario — ottieni un mazzo .apkg da qualsiasi pagina di Notion in meno di un minuto."
+    },
+    "notion-to-anki-sync": {
+      "h1": "Sincronizzazione automatica da Notion ad Anki",
+      "intro": "Auto Sync tiene d'occhio le tue pagine di Notion connesse e invia le modifiche ai tuoi mazzi Anki ogni 5 minuti. Modifica un toggle in Notion; la carta si aggiorna in Anki prima della tua prossima sessione di ripasso."
+    },
+    "pdf-to-anki": {
+      "h1": "Come convertire un PDF in flashcard Anki",
+      "intro": "Carica un PDF su 2anki e scarica un mazzo .apkg. Funziona con slide di lezioni, capitoli di libri di testo e qualsiasi PDF con un livello di testo."
+    },
+    "quizlet-to-anki": {
+      "h1": "Come passare da Quizlet ad Anki",
+      "intro": "Quizlet conserva i tuoi set. Anki ti offre un vero algoritmo di ripetizione dilazionata. 2anki converte un export di Quizlet in un mazzo .apkg che puoi aprire direttamente in Anki."
+    },
+    "fsrs-explained": {
+      "h1": "FSRS in Anki — cos'è e perché il tuo prossimo ripasso sembra sbagliato",
+      "intro": "FSRS è il moderno algoritmo di ripetizione dilazionata che Anki include dalla versione 23.10 (novembre 2023). È ancora opzionale — SM-2 resta il predefinito — ma è ampiamente consigliato dalla community e il manuale di Anki lo presenta come più accurato di SM-2. FSRS prevede per quanto tempo ricorderai una carta e programma il prossimo ripasso nel momento in cui la probabilità di ricordarla scende al 90%. Per una carta a cui rispondi facilmente, quel momento può essere a un anno o più di distanza — che è l'origine della domanda \"perché il mio prossimo ripasso è tra 17 mesi\" che riempie r/Anki ogni settimana."
+    },
+    "lecture-notes-to-anki": {
+      "h1": "Come trasformare gli appunti delle lezioni in flashcard Anki",
+      "intro": "I tuoi appunti delle lezioni sono già da qualche parte — PDF di slide, un documento Word o Google, una pagina di Notion o una foto scattata a lezione. 2anki legge ognuno di questi e ti dà un mazzo .apkg da aprire in Anki. Scegli la sorgente che corrisponde ai tuoi appunti e inizia a ripassare lo stesso giorno."
+    },
+    "word-to-anki": {
+      "h1": "Come convertire un documento Word in Anki",
+      "intro": "Se i tuoi appunti sono in un documento Word, non devi ricrearli a mano come carte. Carica il file .docx su 2anki e scarica un mazzo .apkg che si apre in Anki. Titoli, immagini e formattazione vengono mantenuti."
+    },
+    "image-occlusion-anki": {
+      "h1": "Come creare carte a occlusione di immagini in Anki",
+      "intro": "Le carte a occlusione di immagini nascondono una parte di un diagramma e ti chiedono di ricordare cosa c'è sotto — il modo più veloce per memorizzare anatomia, strutture, mappe e figure con etichette. Carica un'immagine su 2anki, maschera le parti che vuoi verificare e scarica un mazzo Anki."
+    },
+    "google-docs-to-anki": {
+      "h1": "Come convertire Google Docs in flashcard Anki",
+      "intro": "Google Docs non si connette direttamente a 2anki, ma non devi riscrivere nulla. Scarica il tuo documento come Word (.docx) o Markdown, carica il file e scarica un mazzo .apkg che si apre in Anki. Titoli, immagini e formattazione vengono mantenuti."
+    },
+    "handwritten-notes-to-anki": {
+      "h1": "Come trasformare gli appunti scritti a mano in flashcard Anki",
+      "intro": "Gli appunti scritti a mano sono difficili da ripassare e impossibili da cercare. Fotografa una pagina, caricala su 2anki e lo strumento da foto a mazzo la legge con l'AI e prepara carte che rivedi prima di scaricare. Ottieni un mazzo .apkg che si apre in Anki."
+    },
+    "textbook-to-anki": {
+      "h1": "Come trasformare il capitolo di un libro di testo in flashcard Anki",
+      "intro": "Il capitolo di un libro di testo è tanto materiale da trasformare in carte a mano. Carica il capitolo come PDF e 2anki ne legge il testo in carte domanda-risposta, mantiene le figure e ti dà un mazzo .apkg. Converti un capitolo alla volta così ogni mazzo resta ripassabile."
+    },
+    "kindle-highlights-to-anki": {
+      "h1": "Come convertire le evidenziazioni Kindle in flashcard Anki",
+      "intro": "Ogni evidenziazione che fai su un Kindle viene salvata in un unico file chiamato My Clippings.txt. 2anki legge quel file e trasforma ogni passaggio in una carta, così le righe che hai segnato durante la lettura diventano un mazzo da ripassare in Anki. Ottieni un .apkg che apri con un doppio clic."
+    },
+    "language-app-to-anki": {
+      "h1": "Come spostare le tue flashcard da un'app per le lingue ad Anki",
+      "intro": "Le app per le lingue sono brave a raccogliere vocaboli ma deboli sul ripasso a lungo termine. Anki ti offre un vero algoritmo di ripetizione dilazionata. Da qualunque app tu sia partito, il percorso è lo stesso: esporta un file, caricalo su 2anki e scarica un mazzo .apkg da studiare su qualsiasi dispositivo. Ecco come ogni app comune si inserisce in questo percorso."
+    },
+    "obsidian-to-anki": {
+      "h1": "Come convertire gli appunti di Obsidian in flashcard Anki",
+      "intro": "Gli appunti di Obsidian sono semplici file Markdown, il che significa che si convertono in Anki senza un plugin. Carica un file .md su 2anki e scarica un mazzo .apkg che si apre in Anki. Punti elenco, coppie domanda-risposta, titoli e blocchi di codice vengono tutti mantenuti."
+    }
+  },
+  "pages": {
+    "ai-flashcard-generator": {
+      "h1": "Trasforma i tuoi appunti in carte Anki",
+      "subhead": "Appunti veri dentro, carte vere fuori. 2anki costruisce il tuo mazzo da ciò che carichi — non inventa mai i fatti."
+    },
+    "anki-to-notion": {
+      "h1": "Importa mazzi Anki in Notion con un clic.",
+      "subhead": "Carica un file .apkg. Ottieni ogni carta come toggle in una pagina di Notion che puoi studiare, cercare e modificare."
+    },
+    "goodnotes-to-anki": {
+      "h1": "Trasforma GoodNotes in flashcard Anki",
+      "subhead": "Esporta il tuo blocco come PDF, trascinalo qui e scarica un mazzo Anki."
+    },
+    "anki-for-japanese": {
+      "h1": "Da Notion ad Anki per il giapponese e lo studio delle lingue",
+      "subhead": "Trascina una pagina di Notion con frasi o vocaboli raccolti. Screenshot, audio e letture vengono mantenuti come li hai scritti."
+    },
+    "markdown-to-anki": {
+      "h1": "Trasforma gli appunti Markdown in carte Anki",
+      "subhead": "Trascina un file .md e scarica un mazzo — punti elenco e coppie D/R vengono mantenuti."
+    },
+    "mcat-anki": {
+      "h1": "Trasforma il tuo ripasso di contenuti MCAT in carte Anki che controlli tu",
+      "subhead": "Trascina un PDF o un export di Notion dei tuoi appunti di ripasso — amminoacidi, reazioni di chimica organica, termini di psicologia e sociologia. 2anki crea carte pulite dal tuo materiale, non da un'ipotesi."
+    },
+    "anki-from-medical-lecture-slides": {
+      "h1": "Trasforma le slide delle lezioni in carte Anki",
+      "subhead": "Carica un PDF delle tue slide — i titoli diventano nomi dei mazzi, i punti elenco diventano carte."
+    },
+    "nclex-anki": {
+      "h1": "Trasforma i tuoi appunti di ripasso NCLEX in carte Anki che controlli tu",
+      "subhead": "Trascina un PDF o un export di Notion dei tuoi appunti Saunders, UWorld o ATI — valori di laboratorio, suffissi dei farmaci, priorità e delega. 2anki crea carte pulite dal tuo materiale, non da un'ipotesi."
+    },
+    "notion-to-anki": {
+      "h1": "Da Notion ad Anki — gratis, senza add-on",
+      "subhead": "Connetti Notion una volta, incolla il link di qualsiasi pagina, ottieni un mazzo .apkg. Nessun software da installare."
+    },
+    "nursing-flashcards": {
+      "h1": "Flashcard Anki dalle slide e dagli appunti delle lezioni di infermieristica",
+      "subhead": "Trascina un PDF o un export di Notion. 2anki estrae i termini, i farmaci e le procedure."
+    },
+    "pdf-to-anki": {
+      "h1": "Crea flashcard Anki da un PDF",
+      "subhead": "Trascina un PDF ed estraiamo il testo che puoi trasformare in carte."
+    },
+    "powerpoint-to-anki": {
+      "h1": "Crea flashcard Anki da un PowerPoint",
+      "subhead": "Trascina un file .pptx e 2anki legge il testo delle tue slide e crea un mazzo Anki che puoi modificare."
+    },
+    "quizlet-to-anki": {
+      "h1": "Sposta il tuo set Quizlet su Anki",
+      "subhead": "Esporta da Quizlet, trascina il file qui e scarica un mazzo Anki."
+    },
+    "step1-anki": {
+      "h1": "Trasforma le tue annotazioni di First Aid e gli appunti delle lezioni in carte per lo Step 1 che controlli tu",
+      "subhead": "Anki è la spina dorsale della preparazione allo Step 1. Carica le tue pagine annotate di First Aid, gli schemi di Pathoma o i PDF delle lezioni e ottieni carte pulite e ad alto rendimento — costruite dal tuo materiale, mai inventate."
+    },
+    "usmle-anki": {
+      "h1": "Mazzi USMLE Step 1 e Step 2 dai tuoi appunti",
+      "subhead": "Carica slide di lezioni, export di First Aid o qualsiasi PDF. Carte ad alto rendimento, pronte per la ripetizione dilazionata."
+    },
+    "convert-notion-to-anki": {
+      "h1": "Da Notion ad Anki — trasforma i tuoi appunti in flashcard",
+      "subhead": "Connetti Notion una volta, incolla il link di qualsiasi pagina, ottieni un mazzo .apkg. I toggle diventano carte. Nessun add-on, nessun copia-incolla."
+    },
+    "convert-pdf-to-anki": {
+      "h1": "Converti PDF in Anki — flashcard da slide di lezioni e capitoli di libri di testo",
+      "subhead": "Trascina un PDF di una lezione, un export di slide o il capitolo di un libro di testo e scarica un mazzo .apkg. 2anki legge il testo in carte domanda-risposta, ripiega su carte-immagine quando una pagina non ha testo e può scrivere carte con l'AI quando il PDF è denso."
+    },
+    "convert-markdown-to-anki": {
+      "h1": "Da Markdown ad Anki — converti file .md e appunti Obsidian",
+      "subhead": "Trascina un file .md e scarica un mazzo — punti elenco, coppie D/R e blocchi di codice vengono tutti mantenuti."
+    },
+    "convert-csv-to-anki": {
+      "h1": "Da CSV ad Anki — importa fogli di calcolo come mazzi di flashcard",
+      "subhead": "Trascina un file .csv e ottieni un mazzo .apkg. La colonna A diventa il fronte, tutto ciò che segue A confluisce nel retro. Funziona anche con gli export di Excel."
+    },
+    "convert-html-to-anki": {
+      "h1": "Da HTML ad Anki — trasforma pagine web in mazzi di flashcard",
+      "subhead": "Trascina un file .html e scarica un mazzo .apkg. Titoli, punti elenco e tabelle vengono tutti mantenuti."
+    },
+    "convert-apkg-to-csv": {
+      "h1": "Da mazzo Anki a CSV — esporta le carte in un foglio di calcolo",
+      "subhead": "Trascina un file .apkg e scarica un CSV. Fronte, retro e tag di ogni carta in un unico foglio di calcolo che puoi modificare."
+    },
+    "convert-notion-tables-to-anki": {
+      "h1": "Da tabelle di Notion ad Anki — una riga, una carta",
+      "subhead": "Incolla una pagina di Notion con una tabella. La colonna 1 diventa il fronte, la colonna 2 diventa il retro."
+    },
+    "convert-brainscape-to-anki": {
+      "h1": "Sposta le tue flashcard Brainscape su Anki",
+      "subhead": "Esporta il tuo mazzo Brainscape come CSV, trascinalo qui e ottieni un mazzo .apkg che si apre pulito in Anki."
+    },
+    "convert-lingvist-to-anki": {
+      "h1": "Sposta le tue flashcard Lingvist su Anki",
+      "subhead": "Esporta i tuoi vocaboli Lingvist come CSV, trascinalo qui e ottieni un mazzo .apkg. Le tue parole e traduzioni vengono mantenute come carte base."
+    },
+    "convert-studystack-to-anki": {
+      "h1": "Sposta le tue flashcard StudyStack su Anki",
+      "subhead": "Esporta il tuo StudyStack come CSV, trascinalo qui e ottieni un mazzo .apkg. Termini e definizioni diventano carte base pronte da ripassare in Anki."
+    },
+    "convert-pleco-to-anki": {
+      "h1": "Sposta le tue flashcard Pleco su Anki",
+      "subhead": "Esporta il tuo dizionario utente Pleco come file .txt, trascinalo qui e ottieni un mazzo .apkg. Hanzi, pinyin e definizioni vengono mantenuti come carte base."
+    },
+    "convert-zorbi-to-anki": {
+      "h1": "Sposta le tue flashcard Zorbi su Anki",
+      "subhead": "Esporta il tuo mazzo Zorbi come CSV, trascinalo qui e ottieni un mazzo .apkg. Domande e risposte diventano carte base Anki."
+    },
+    "convert-language-reactor-to-anki": {
+      "h1": "Sposta i tuoi salvataggi di Language Reactor su Anki",
+      "subhead": "Trascina lo zip di export da Language Reactor — le tue frasi salvate, immagini e audio vengono mantenute come un .apkg pulito da studiare su qualsiasi dispositivo."
+    },
+    "convert-epub-to-anki": {
+      "h1": "Da evidenziazioni EPUB ad Anki — dalle evidenziazioni degli ebook alle carte",
+      "subhead": "Trascina un .epub senza DRM e scarica un .apkg. Ogni passaggio che hai evidenziato diventa una carta, con il titolo del libro e l'autore sul retro."
+    },
+    "convert-kindle-to-anki": {
+      "h1": "Da evidenziazioni Kindle ad Anki — da My Clippings.txt a un mazzo",
+      "subhead": "Copia My Clippings.txt dal tuo Kindle, trascinalo qui e scarica un .apkg. Ogni passaggio che hai evidenziato — e ogni nota che hai scritto — diventa una carta."
+    }
+  }
+}

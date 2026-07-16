@@ -1,0 +1,58 @@
+{
+  "page": {
+    "titleConnected": "Notion",
+    "titleGetStarted": "Inizia",
+    "subtitleConnected": "Trova una pagina e convertila in un mazzo Anki.",
+    "subtitleDisconnected": "Connetti il tuo workspace Notion o carica file per creare mazzi Anki.",
+    "switchWorkspace": "Cambia workspace"
+  },
+  "limit": {
+    "title": "Hai usato tutte le {{limit}} carte di questo mese",
+    "body": "{{used}} / {{limit}} carte · si rinnovano il {{resetsOn}}, quando tornano le tue carte gratuite",
+    "startingCheckout": "Avvio del pagamento",
+    "getDayPass": "Ottieni il Day Pass — $4",
+    "seePlans": "Vedi i piani"
+  },
+  "connect": {
+    "title": "Connetti il tuo workspace Notion",
+    "body": "Cerca e converti le pagine direttamente. Leggiamo solo le pagine che condividi con 2anki.",
+    "connectButton": "Connetti a Notion",
+    "fallbackText": "Oppure carica un file esportato da Notion.",
+    "uploadFile": "Carica un file"
+  },
+  "searchBar": {
+    "label": "Cerca in Notion",
+    "placeholder": "Cerca in Notion"
+  },
+  "results": {
+    "scopeWorkspace": "in “{{workSpace}}”",
+    "scopeGeneric": "nel tuo workspace Notion",
+    "noMatch": "Nessuna pagina corrisponde a “{{query}}” {{scope}}",
+    "noneFound": "Nessuna pagina trovata {{scope}}",
+    "emptyBodyPrefix": "Prova un altro termine di ricerca, oppure assicurati che la pagina sia condivisa con l'integrazione 2anki — vedi le ",
+    "sharingLink": "impostazioni di condivisione di Notion",
+    "emptyBodySuffix": "."
+  },
+  "entry": {
+    "remaking": "Sto ricreando il tuo mazzo — ",
+    "added": "Aggiunto ai tuoi download — ",
+    "view": "visualizza",
+    "paywallText": "Piano gratuito — una conversione alla volta.",
+    "upgrade": "Fai l'upgrade",
+    "paywallSuffix": " oppure aspetta.",
+    "conflict": "Questa pagina è già in conversione.",
+    "error": "Non siamo riusciti a mettere in coda questa pagina. Riprova.",
+    "inProgress": "In corso",
+    "convertToAnki": "Converti in Anki",
+    "convert": "Converti",
+    "openInNotion": "Apri {{title}} in Notion",
+    "preview": "Anteprima di {{title}}",
+    "configureRules": "Configura le regole per {{title}}"
+  },
+  "flashcardType": {
+    "new": "Nuovo"
+  },
+  "icon": {
+    "alt": "icona"
+  }
+}
