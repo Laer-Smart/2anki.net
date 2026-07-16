@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
 import {
   Link,
   useNavigate,
@@ -62,16 +63,16 @@ const advancedDeckOptions = [
   'column_list',
   'child_database',
 ];
-const advancedDeckLabels: Record<string, string> = {
-  toggle: 'Toggle',
-  heading_1: 'Heading 1',
-  heading_2: 'Heading 2',
-  heading_3: 'Heading 3',
-  bulleted_list_item: 'Bulleted list',
-  numbered_list_item: 'Numbered list',
-  quote: 'Quote',
-  column_list: 'Columns',
-  child_database: 'Database inside a page',
+const advancedDeckLabelKeys: Record<string, string> = {
+  toggle: 'rules.labelToggle',
+  heading_1: 'rules.labelHeading1',
+  heading_2: 'rules.labelHeading2',
+  heading_3: 'rules.labelHeading3',
+  bulleted_list_item: 'rules.labelBulletedList',
+  numbered_list_item: 'rules.labelNumberedList',
+  quote: 'rules.labelQuote',
+  column_list: 'rules.labelColumns',
+  child_database: 'rules.labelDatabaseInPage',
 };
 const allowedDeckTypes = new Set([...deckOptions, ...advancedDeckOptions]);
 
@@ -113,14 +114,20 @@ function snapshot(rules: NewRule, tags: string, email: boolean) {
 }
 
 export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
+  const { t } = useTranslation('tools');
   const { id = '' } = useParams<{ id: string }>();
   const [params] = useSearchParams();
   const navigate = useNavigate();
 
   const titleParam = params.get('title');
-  const headingTitle = titleParam ? `Rules for ${titleParam}` : 'Rules';
-  const parent = titleParam ?? 'this page';
+  const headingTitle = titleParam
+    ? t('rules.headingWithTitle', { title: titleParam })
+    : t('rules.heading');
+  const parent = titleParam ?? t('rules.thisPage');
   const type = params.get('type');
+  const advancedDeckLabels: Record<string, string> = Object.fromEntries(
+    Object.entries(advancedDeckLabelKeys).map(([key, value]) => [key, t(value)])
+  );
   const returnTo = params.get('returnTo') ?? '/notion';
 
   const [rules, setRules] = useState<NewRule>(defaultRules);
@@ -223,9 +230,7 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
 
   const confirmDiscard = () => {
     if (!hasUnsavedChanges()) return true;
-    return globalThis.confirm(
-      'You have unsaved changes. Leave without saving?'
-    );
+    return globalThis.confirm(t('rules.unsavedConfirm'));
   };
 
   const handleBack = () => {
@@ -282,7 +287,7 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
         ? await get2ankiApi().deleteFavorite(id)
         : await get2ankiApi().addFavorite(id, type);
       if (!ok) {
-        throw new Error('Failed to update favorite');
+        throw new Error(t('rules.failedFavorite'));
       }
       setFavorite(next);
     } catch (error) {
@@ -292,9 +297,10 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
     }
   };
 
-  let backLabel = '← Back';
-  if (returnTo === '/notion') backLabel = '← Back to Notion';
-  else if (returnTo.startsWith('/preview/')) backLabel = '← Back to preview';
+  let backLabel = t('rules.back');
+  if (returnTo === '/notion') backLabel = t('rules.backToNotion');
+  else if (returnTo.startsWith('/preview/'))
+    backLabel = t('rules.backToPreview');
 
   return (
     <>
@@ -316,10 +322,7 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
                 <h1 className={sharedStyles.title} data-hj-suppress>
                   {headingTitle}
                 </h1>
-                <p className={sharedStyles.subtitle}>
-                  Settings for this Notion page. Block rules decide what becomes
-                  a deck or card. Card options shape the deck itself.
-                </p>
+                <p className={sharedStyles.subtitle}>{t('rules.subtitle')}</p>
               </div>
               <button
                 type="button"
@@ -328,10 +331,14 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
                 disabled={isTogglingFavorite || isLoading}
                 aria-pressed={favorite}
                 aria-label={
-                  favorite ? 'Remove from favorites' : 'Favorite this page'
+                  favorite
+                    ? t('rules.removeFromFavorites')
+                    : t('rules.favoriteThisPage')
                 }
                 title={
-                  favorite ? 'Remove from favorites' : 'Favorite this page'
+                  favorite
+                    ? t('rules.removeFromFavorites')
+                    : t('rules.favoriteThisPage')
                 }
               >
                 <span aria-hidden="true">{favorite ? '★' : '☆'}</span>
@@ -346,28 +353,26 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
           )}
           {!isLoading && loadFailed && (
             <div className={`${styles.optionGroup} ${styles.loadingCard}`}>
-              <p>
-                Couldn&apos;t load rules for this page. Check your connection
-                and try again.
-              </p>
+              <p>{t('rules.loadError')}</p>
             </div>
           )}
           {!isLoading && !loadFailed && (
             <>
               <section className={styles.optionGroup}>
                 <div className={styles.groupHeader}>
-                  <h2 className={styles.groupHeading}>Decks and sub-decks</h2>
-                  <FieldHint text="Pick which Notion block types create a new deck, and which nest inside as sub-decks." />
+                  <h2 className={styles.groupHeading}>
+                    {t('rules.decksAndSubdecks')}
+                  </h2>
+                  <FieldHint text={t('rules.decksHint')} />
                 </div>
-                <p className={styles.groupHint}>
-                  By default, Notion pages and databases become decks. The
-                  blocks below nest inside as sub-decks.
-                </p>
+                <p className={styles.groupHint}>{t('rules.decksIntro')}</p>
 
                 <div className={styles.section}>
                   <div className={styles.labelRow}>
-                    <span className={styles.sectionLabel}>Deck boundaries</span>
-                    <FieldHint text="Notion block types that start a new deck. Defaults to page and database." />
+                    <span className={styles.sectionLabel}>
+                      {t('rules.deckBoundaries')}
+                    </span>
+                    <FieldHint text={t('rules.deckBoundariesHint')} />
                   </div>
                   <RuleDefinition
                     value={rules.deck_is}
@@ -387,14 +392,12 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
                     <span className={styles.advancedCaret} aria-hidden="true">
                       ›
                     </span>
-                    Advanced deck types
-                    <FieldHint text="Turn extra Notion blocks into their own decks. Most pages don't need this — pages and databases already become decks." />
+                    {t('rules.advancedDeckTypes')}
+                    <FieldHint text={t('rules.advancedHint')} />
                   </summary>
                   <div className={styles.advancedBody}>
                     <p className={styles.advancedHint}>
-                      Each block type you turn on splits its content into a
-                      separate deck. This changes how this page is organized in
-                      Anki. Turn one on only if you want that split.
+                      {t('rules.advancedBody')}
                     </p>
                     <RuleDefinition
                       value={rules.deck_is}
@@ -404,9 +407,7 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
                     />
                     {hasAdvancedDeckType(rules.deck_is) && (
                       <p className={styles.advancedWarning}>
-                        Heads up — saving with these on will re-split this page
-                        into more decks the next time it converts. Turn them off
-                        to keep one deck per page.
+                        {t('rules.advancedWarning')}
                       </p>
                     )}
                   </div>
@@ -414,8 +415,10 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
 
                 <div className={styles.section}>
                   <div className={styles.labelRow}>
-                    <span className={styles.sectionLabel}>Sub-decks</span>
-                    <FieldHint text="Notion block types that nest inside a deck as a sub-deck." />
+                    <span className={styles.sectionLabel}>
+                      {t('rules.subDecks')}
+                    </span>
+                    <FieldHint text={t('rules.subDecksHint')} />
                   </div>
                   <RuleDefinition
                     value={rules.sub_deck_is}
@@ -427,8 +430,10 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
 
               <section className={styles.optionGroup}>
                 <div className={styles.groupHeader}>
-                  <h2 className={styles.groupHeading}>Flashcards</h2>
-                  <FieldHint text="Notion blocks that become individual cards." />
+                  <h2 className={styles.groupHeading}>
+                    {t('rules.flashcards')}
+                  </h2>
+                  <FieldHint text={t('rules.flashcardsHint')} />
                 </div>
                 <RuleDefinition
                   value={rules.flashcard_is}
@@ -441,9 +446,9 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
               <section className={styles.optionGroup}>
                 <div className={styles.groupHeader}>
                   <h2 className={styles.groupHeading}>
-                    Tags and notifications
+                    {t('rules.tagsAndNotifications')}
                   </h2>
-                  <FieldHint text="How tags are detected and when 2anki emails you." />
+                  <FieldHint text={t('rules.tagsHint')} />
                 </div>
 
                 <div className={styles.section}>
@@ -452,15 +457,18 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
                       htmlFor="tags-format"
                       className={styles.sectionLabel}
                     >
-                      Tag format
+                      {t('rules.tagFormat')}
                     </label>
-                    <FieldHint text="The Notion styling that marks a block as a tag." />
+                    <FieldHint text={t('rules.tagFormatHint')} />
                   </div>
                   <TemplateSelect
                     data-hj-suppress
                     pickedTemplate={(name: string) => setTags(name)}
                     values={tagOptions.map((fco) => ({
-                      label: `Tags are ${fco}`,
+                      label:
+                        fco === 'heading'
+                          ? t('rules.tagsAreHeading')
+                          : t('rules.tagsAreStrikethrough'),
                       value: fco,
                     }))}
                     name="tags-format"
@@ -471,21 +479,21 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
                 <div className={styles.switchRow}>
                   <Switch
                     id="email-notification"
-                    title="Email the deck when it's ready"
+                    title={t('rules.emailWhenReady')}
                     checked={sendEmail}
                     onSwitched={() => setSendEmail((prev) => !prev)}
                   />
-                  <FieldHint text="Sends the .apkg as an attachment for decks under 24 MB. Larger decks always email a download link." />
+                  <FieldHint text={t('rules.emailHint')} />
                 </div>
               </section>
 
               <div className={styles.formHeader}>
                 <hr className={styles.divider} />
-                <h2 className={styles.formHeading}>Card options</h2>
+                <h2 className={styles.formHeading}>{t('rules.cardOptions')}</h2>
                 <p className={sharedStyles.smallDescription}>
-                  Change the deck name, templates, and conversion for this page
-                  only. <Link to="/card-options">Edit your defaults</Link> to
-                  change every page.
+                  {t('rules.cardOptionsDescPrefix')}{' '}
+                  <Link to="/card-options">{t('rules.editYourDefaults')}</Link>
+                  {t('rules.cardOptionsDescSuffix')}
                 </p>
               </div>
               <CardOptionsForm
@@ -503,7 +511,9 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
                   onClick={resetAll}
                   disabled={isSaving || isResetting}
                 >
-                  {isResetting ? 'Resetting' : 'Reset to defaults'}
+                  {isResetting
+                    ? t('rules.resetting')
+                    : t('rules.resetToDefaults')}
                 </button>
                 <button
                   type="button"
@@ -511,7 +521,7 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
                   onClick={handleBack}
                   disabled={isSaving}
                 >
-                  Cancel
+                  {t('rules.cancel')}
                 </button>
                 <button
                   type="button"
@@ -519,7 +529,7 @@ export default function RulesPage({ setErrorMessage }: Readonly<Props>) {
                   onClick={saveAll}
                   disabled={isSaving}
                 >
-                  {isSaving ? 'Saving' : 'Save changes'}
+                  {isSaving ? t('rules.saving') : t('rules.saveChanges')}
                 </button>
               </div>
             </>

@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './CanvasToolbar.module.css';
 
 export type ActiveTool = 'rect' | 'ellipse' | 'polygon';
@@ -44,6 +45,7 @@ export function CanvasToolbar({
   onZoomChange,
   onFitZoom,
 }: Readonly<Props>) {
+  const { t } = useTranslation('tools');
   const [zoomOpen, setZoomOpen] = useState(false);
   const zoomRef = useRef<HTMLDivElement>(null);
 
@@ -59,12 +61,16 @@ export function CanvasToolbar({
   }, [zoomOpen]);
 
   return (
-    <div className={styles.toolbar} role="toolbar" aria-label="Canvas tools">
+    <div
+      className={styles.toolbar}
+      role="toolbar"
+      aria-label={t('occlusion.canvasTools')}
+    >
       <button
         type="button"
         className={`${styles.btn} ${activeTool === 'rect' ? styles.btnActive : ''}`}
-        title="Rectangle tool"
-        aria-label="Rectangle tool"
+        title={t('occlusion.rectTool')}
+        aria-label={t('occlusion.rectTool')}
         onClick={() => onToolChange('rect')}
       >
         &#9633;
@@ -72,8 +78,8 @@ export function CanvasToolbar({
       <button
         type="button"
         className={`${styles.btn} ${activeTool === 'ellipse' ? styles.btnActive : ''}`}
-        title="Ellipse tool"
-        aria-label="Ellipse tool"
+        title={t('occlusion.ellipseTool')}
+        aria-label={t('occlusion.ellipseTool')}
         onClick={() => onToolChange('ellipse')}
       >
         &#9711;
@@ -81,8 +87,8 @@ export function CanvasToolbar({
       <button
         type="button"
         className={`${styles.btn} ${activeTool === 'polygon' ? styles.btnActive : ''}`}
-        title="Polygon tool"
-        aria-label="Polygon tool"
+        title={t('occlusion.polygonTool')}
+        aria-label={t('occlusion.polygonTool')}
         onClick={() => onToolChange('polygon')}
       >
         &#x2B20;
@@ -93,8 +99,10 @@ export function CanvasToolbar({
       <button
         type="button"
         className={`${styles.btn} ${masksHidden ? styles.btnActive : ''}`}
-        title={masksHidden ? 'Show masks' : 'Hide masks'}
-        aria-label={masksHidden ? 'Show masks' : 'Hide masks'}
+        title={masksHidden ? t('occlusion.showMasks') : t('occlusion.hideMasks')}
+        aria-label={
+          masksHidden ? t('occlusion.showMasks') : t('occlusion.hideMasks')
+        }
         onClick={onToggleMasks}
       >
         {masksHidden ? '\u{1F441}' : '\u{1F576}'}
@@ -105,8 +113,8 @@ export function CanvasToolbar({
       <button
         type="button"
         className={styles.btn}
-        title="Undo"
-        aria-label="Undo"
+        title={t('occlusion.undo')}
+        aria-label={t('occlusion.undo')}
         onClick={onUndo}
         disabled={!canUndo}
       >
@@ -115,8 +123,8 @@ export function CanvasToolbar({
       <button
         type="button"
         className={styles.btn}
-        title="Redo"
-        aria-label="Redo"
+        title={t('occlusion.redo')}
+        aria-label={t('occlusion.redo')}
         onClick={onRedo}
         disabled={!canRedo}
       >
@@ -128,8 +136,8 @@ export function CanvasToolbar({
       <button
         type="button"
         className={styles.btn}
-        title="Duplicate selected"
-        aria-label="Duplicate selected"
+        title={t('occlusion.duplicateSelected')}
+        aria-label={t('occlusion.duplicateSelected')}
         onClick={onDuplicate}
         disabled={!hasSelection}
       >
@@ -138,8 +146,8 @@ export function CanvasToolbar({
       <button
         type="button"
         className={styles.btn}
-        title="Delete selected"
-        aria-label="Delete selected"
+        title={t('occlusion.deleteSelected')}
+        aria-label={t('occlusion.deleteSelected')}
         onClick={onDelete}
         disabled={!hasSelection}
       >
@@ -152,8 +160,8 @@ export function CanvasToolbar({
         <button
           type="button"
           className={styles.zoomReadout}
-          title="Zoom level"
-          aria-label="Zoom level"
+          title={t('occlusion.zoomLevel')}
+          aria-label={t('occlusion.zoomLevel')}
           onClick={() => setZoomOpen((o) => !o)}
         >
           {Math.round(zoom * 100)}%
@@ -174,7 +182,7 @@ export function CanvasToolbar({
                   }
                 }}
               >
-                {opt.label}
+                {opt.value === 'fit' ? t('occlusion.zoomFit') : opt.label}
               </button>
             ))}
           </div>

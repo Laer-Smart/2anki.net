@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
@@ -87,15 +88,16 @@ function makePhotoId(): string {
 
 function validatePhoto(file: File): string | null {
   if (file.size > MAX_SIZE_BYTES) {
-    return 'Photo is over the 10 MB limit. Try a smaller image.';
+    return 'photo.overLimit';
   }
   if (file.type !== '' && !ALLOWED_TYPES.includes(file.type)) {
-    return 'Use a photo format like JPEG, PNG, WebP, GIF, or HEIC.';
+    return 'photo.badFormat';
   }
   return null;
 }
 
 export function PhotoToFlashcardsPage() {
+  const { t } = useTranslation('tools');
   const { data } = useUserLocals();
   const isPaying = isPayingUser(data?.locals);
 
@@ -153,12 +155,12 @@ export function PhotoToFlashcardsPage() {
     }
 
     if (accepted.length === 0) {
-      if (rejection != null) setError(rejection);
+      if (rejection != null) setError(t(rejection));
       resetInputs();
       return;
     }
 
-    if (rejection != null) setError(rejection);
+    if (rejection != null) setError(t(rejection));
     setUploadSource(source);
     setPhotos((current) => [...current, ...accepted]);
     setStatus('idle');
@@ -230,7 +232,7 @@ export function PhotoToFlashcardsPage() {
         error:
           decodeError instanceof Error
             ? decodeError.message
-            : 'Could not read the image',
+            : t('photo.readError'),
       };
     }
 
@@ -252,14 +254,14 @@ export function PhotoToFlashcardsPage() {
     });
 
     if (res.status === 404) {
-      return { error: "Photo to deck isn't available yet." };
+      return { error: t('photo.notAvailable') };
     }
     if (res.status === 401 || res.status === 403) {
-      return { error: 'Sign in to use photo to deck.' };
+      return { error: t('photo.signIn') };
     }
     if (res.status === 413) {
       return {
-        error: 'Photo is too large. Try a smaller or lower-resolution image.',
+        error: t('photo.tooLarge'),
       };
     }
     if (res.status === 429) {
@@ -271,14 +273,14 @@ export function PhotoToFlashcardsPage() {
       const used = body.used ?? limit;
       track('photo_quota_reached', { used, limit });
       return {
-        error: `Free plan is ${limit} photos per month. Upgrade for unlimited.`,
+        error: t('photo.quotaReached', { limit }),
       };
     }
     if (!res.ok) {
       const body = (await res
         .json()
         .catch(() => ({ message: res.statusText }))) as { message?: string };
-      return { error: body.message ?? "Couldn't read this photo. Try again." };
+      return { error: body.message ?? t('photo.genericReadError') };
     }
 
     const count = Number(res.headers.get('X-Card-Count') ?? '0');
@@ -293,14 +295,15 @@ export function PhotoToFlashcardsPage() {
     total: number
   ): string => {
     const trimmed = deckName.trim();
-    const fallback = photo.file.name.replace(/\.[^.]+$/, '') || 'Photo deck';
+    const fallback =
+      photo.file.name.replace(/\.[^.]+$/, '') || t('photo.deckFallback');
     if (trimmed.length === 0) return fallback;
     return total === 1 ? trimmed : `${trimmed} ${index + 1}`;
   };
 
   const handleConvert = async () => {
     if (photos.length === 0) {
-      setError('Add a photo first.');
+      setError(t('photo.addFirst'));
       return;
     }
     setError(null);
@@ -329,7 +332,7 @@ export function PhotoToFlashcardsPage() {
         setVerbatimEmptyState(true);
       }
     } catch {
-      setError('Something broke on our end. Try again in a moment.');
+      setError(t('photo.somethingBroke'));
       setStatus('idle');
     }
   };
@@ -337,27 +340,29 @@ export function PhotoToFlashcardsPage() {
   const renderConvertLabel = (): string => {
     if (status === 'reading') {
       return photoCount > 1
-        ? `Reading ${photoCount} photos`
-        : 'Reading your photo';
+        ? t('photo.readingPhotos', { count: photoCount })
+        : t('photo.readingPhoto');
     }
-    return photoCount > 1 ? `Get cards from ${photoCount} photos` : 'Get cards';
+    return photoCount > 1
+      ? t('photo.getCardsFromPhotos', { count: photoCount })
+      : t('photo.getCards');
   };
 
   const renderSuccessLabel = (): string => {
-    const cardWord = cardCount === 1 ? 'card' : 'cards';
+    const cards = t('photo.cardCount', { count: cardCount });
     if (photoCount > 1) {
-      return `${cardCount} ${cardWord} from ${photoCount} photos. Decks downloaded.`;
+      return t('photo.successMultiple', { cards, photoCount });
     }
-    return `${cardCount} ${cardWord} from your photo. Deck downloaded.`;
+    return t('photo.successSingle', { cards });
   };
 
   return (
-    <section className={pageStyles.page} aria-label="Photo to deck">
+    <section className={pageStyles.page} aria-label={t('photo.title')}>
       <header className={styles.pageHeader}>
-        <h1 className={styles.title}>Photo to deck</h1>
+        <h1 className={styles.title}>{t('photo.title')}</h1>
         <p className={styles.subtitle}>
-          Turn a photo of your notes, slides, or textbook into an Anki deck.
-          {!isPaying && ' Free plan: 5 photos per month.'}
+          {t('photo.subtitle')}
+          {!isPaying && t('photo.freePlanSuffix')}
         </p>
       </header>
 
@@ -365,38 +370,36 @@ export function PhotoToFlashcardsPage() {
         <div
           className={pageStyles.modeGroup}
           role="radiogroup"
-          aria-label="Conversion mode"
+          aria-label={t('photo.modeGroupLabel')}
         >
           <button
             type="button"
             role="radio"
-            aria-label="Generate cards"
+            aria-label={t('photo.generateLabel')}
             aria-checked={mode === 'generative'}
             className={`${pageStyles.modeCard} ${mode === 'generative' ? pageStyles.modeCardActive : ''}`}
             onClick={() => setMode('generative')}
           >
             <span className={pageStyles.modeCardTitle} aria-hidden>
-              Generate cards
+              {t('photo.generateLabel')}
             </span>
             <span className={pageStyles.modeCardHelper}>
-              Works on any notes, textbook pages, or slides — AI writes the
-              questions.
+              {t('photo.generateHelper')}
             </span>
           </button>
           <button
             type="button"
             role="radio"
-            aria-label="Copy existing questions"
+            aria-label={t('photo.copyLabel')}
             aria-checked={mode === 'verbatim'}
             className={`${pageStyles.modeCard} ${mode === 'verbatim' ? pageStyles.modeCardActive : ''}`}
             onClick={() => setMode('verbatim')}
           >
             <span className={pageStyles.modeCardTitle} aria-hidden>
-              Copy existing questions
+              {t('photo.copyLabel')}
             </span>
             <span className={pageStyles.modeCardHelper}>
-              Photo already has Q&amp;A or MCQs? Cards are copied exactly as
-              written.
+              {t('photo.copyHelper')}
             </span>
           </button>
         </div>
@@ -405,7 +408,7 @@ export function PhotoToFlashcardsPage() {
       <div className={styles.sectionCard} data-section-card>
         <div className={pageStyles.row}>
           <label className={pageStyles.deckNameLabel} htmlFor="photo-deck-name">
-            Deck name
+            {t('photo.deckName')}
           </label>
           <input
             id="photo-deck-name"
@@ -414,7 +417,8 @@ export function PhotoToFlashcardsPage() {
             onChange={(e) => setDeckName(e.target.value)}
             className={pageStyles.deckNameInput}
             placeholder={
-              photos[0]?.file.name.replace(/\.[^.]+$/, '') || 'Photo deck'
+              photos[0]?.file.name.replace(/\.[^.]+$/, '') ||
+              t('photo.deckFallback')
             }
           />
         </div>
@@ -425,7 +429,7 @@ export function PhotoToFlashcardsPage() {
             className={styles.btnPrimary}
             onClick={() => cameraInputRef.current?.click()}
           >
-            Take a photo
+            {t('photo.takePhoto')}
           </button>
           <input
             ref={cameraInputRef}
@@ -438,7 +442,7 @@ export function PhotoToFlashcardsPage() {
           />
         </div>
 
-        <p className={pageStyles.dropzoneLabel}>or pick from your photos</p>
+        <p className={pageStyles.dropzoneLabel}>{t('photo.orPick')}</p>
 
         <label
           className={pageStyles.dropzone}
@@ -450,20 +454,19 @@ export function PhotoToFlashcardsPage() {
           {photoCount === 0 ? (
             <>
               <span className={pageStyles.dropzoneTitle}>
-                Drop photos, paste, or click to add
+                {t('photo.dropTitle')}
               </span>
               <span className={pageStyles.dropzoneHint}>
-                JPEG, PNG, WebP, GIF, HEIC — up to 10 MB each. Add as many as
-                you need.
+                {t('photo.dropHint')}
               </span>
             </>
           ) : (
             <>
               <span className={pageStyles.dropzoneTitle}>
-                Add more — drop, paste, or click
+                {t('photo.addMoreTitle')}
               </span>
               <span className={pageStyles.dropzoneHint}>
-                {photoCount} {photoCount === 1 ? 'photo' : 'photos'} ready
+                {t('photo.photosReady', { count: photoCount })}
               </span>
             </>
           )}
@@ -481,7 +484,7 @@ export function PhotoToFlashcardsPage() {
         {photoCount > 0 && (
           <ul
             className={pageStyles.thumbnailStrip}
-            aria-label={`${photoCount} ${photoCount === 1 ? 'photo' : 'photos'} selected`}
+            aria-label={t('photo.photosSelected', { count: photoCount })}
           >
             {photos.map((photo) => (
               <li key={photo.id} className={pageStyles.thumbnail}>
@@ -493,7 +496,7 @@ export function PhotoToFlashcardsPage() {
                 <button
                   type="button"
                   className={pageStyles.thumbnailRemove}
-                  aria-label={`Remove ${photo.file.name}`}
+                  aria-label={t('photo.removePhoto', { name: photo.file.name })}
                   onClick={(e) => {
                     e.preventDefault();
                     removePhoto(photo.id);
@@ -514,7 +517,7 @@ export function PhotoToFlashcardsPage() {
               className={pageStyles.deckNameLabel}
               htmlFor="photo-card-count"
             >
-              How many cards?
+              {t('photo.howManyCards')}
             </label>
             <input
               id="photo-card-count"
@@ -526,10 +529,7 @@ export function PhotoToFlashcardsPage() {
               className={pageStyles.deckNameInput}
             />
           </div>
-          <p className={pageStyles.densityHint}>
-            3–5 for a quick pass, 6–10 for typical study, 11–20 for a dense
-            page. Applied to each photo.
-          </p>
+          <p className={pageStyles.densityHint}>{t('photo.densityHint')}</p>
         </div>
       )}
 
@@ -544,11 +544,9 @@ export function PhotoToFlashcardsPage() {
             />
             <span className={pageStyles.toggleSwitchTrack} aria-hidden />
           </span>
-          Show source image on the back of each card
+          {t('photo.showSourceImage')}
         </label>
-        <p className={pageStyles.densityHint}>
-          Helpful for diagrams, charts, and handwritten notes.
-        </p>
+        <p className={pageStyles.densityHint}>{t('photo.showSourceHint')}</p>
 
         <label className={pageStyles.checkboxRow}>
           <span className={pageStyles.toggleSwitch}>
@@ -570,21 +568,20 @@ export function PhotoToFlashcardsPage() {
             />
             <span className={pageStyles.toggleSwitchTrack} aria-hidden />
           </span>
-          Include multiple-choice questions
+          {t('photo.includeMcq')}
         </label>
         <p className={pageStyles.densityHint}>
           {isPaying ? (
-            'When the source looks like a quiz, the AI writes options A–D.'
+            t('photo.mcqPayingHint')
           ) : (
             <>
               <Link
                 to="/pricing?from=photo-mcq"
                 className={pageStyles.densityHintLink}
               >
-                Upgrade
-              </Link>{' '}
-              for multiple-choice cards — A–D options when the source looks like
-              a quiz.
+                {t('photo.upgrade')}
+              </Link>
+              {t('photo.mcqUpgradeHint')}
             </>
           )}
         </p>
@@ -600,15 +597,15 @@ export function PhotoToFlashcardsPage() {
 
       {verbatimEmptyState && (
         <div className={styles.notificationWarning}>
-          No questions found in this photo.{' '}
+          {t('photo.noQuestionsFound')}{' '}
           <button
             type="button"
             className={pageStyles.switchModeLink}
             onClick={switchToGenerative}
           >
-            Switch to Generate cards
-          </button>{' '}
-          to have them written for you.
+            {t('photo.switchToGenerate')}
+          </button>
+          {t('photo.switchSuffix')}
         </div>
       )}
 
@@ -619,7 +616,7 @@ export function PhotoToFlashcardsPage() {
           onClick={reset}
           disabled={photoCount === 0 && status === 'idle'}
         >
-          Clear
+          {t('photo.clear')}
         </button>
         <button
           type="button"

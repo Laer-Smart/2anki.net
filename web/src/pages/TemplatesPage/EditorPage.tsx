@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
 import {
@@ -58,9 +60,13 @@ function fingerprintStarter(s: NoteTypeStarter): string {
   });
 }
 
-function getSaveLabel(saving: boolean, shouldFork: boolean): string {
-  if (saving) return 'Saving…';
-  return shouldFork ? 'Save as copy' : 'Save';
+function getSaveLabel(
+  saving: boolean,
+  shouldFork: boolean,
+  t: TFunction<'tools'>
+): string {
+  if (saving) return t('templates.saving');
+  return shouldFork ? t('templates.saveAsCopy') : t('templates.save');
 }
 
 interface PresetPickerProps {
@@ -74,16 +80,16 @@ function PresetPicker({
   presets,
   onPick,
 }: Readonly<PresetPickerProps>) {
+  const { t } = useTranslation('tools');
   return (
     <div className={sharedStyles.page}>
       <Helmet>
-        <title>New note type — 2anki</title>
+        <title>{t('templates.newPageTitle')} — 2anki</title>
       </Helmet>
       <header className={sharedStyles.pageHeader}>
-        <h1 className={sharedStyles.title}>Start a new note type</h1>
+        <h1 className={sharedStyles.title}>{t('templates.startNew')}</h1>
         <p className={sharedStyles.subtitle}>
-          Pick a starting point. You can rename, edit, and reshape it before
-          saving.
+          {t('templates.startNewSubtitle')}
         </p>
       </header>
 
@@ -94,14 +100,16 @@ function PresetPicker({
         aria-labelledby="preset-starter-heading"
       >
         <h2 id="preset-starter-heading" className={editorStyles.presetHeading}>
-          From a starter
+          {t('templates.fromStarter')}
         </h2>
         {loading && (
-          <p className={editorStyles.presetEmpty}>Loading starters…</p>
+          <p className={editorStyles.presetEmpty}>
+            {t('templates.loadingStarters')}
+          </p>
         )}
         {!loading && presets.length === 0 && (
           <p className={editorStyles.presetEmpty}>
-            No starter templates available right now.
+            {t('templates.noStarters')}
           </p>
         )}
         {presets.length > 0 && (
@@ -128,7 +136,7 @@ function PresetPicker({
         aria-labelledby="preset-blank-heading"
       >
         <h2 id="preset-blank-heading" className={editorStyles.presetHeading}>
-          From scratch
+          {t('templates.fromScratch')}
         </h2>
         <div className={editorStyles.presetGrid}>
           <button
@@ -136,9 +144,11 @@ function PresetPicker({
             className={editorStyles.presetCard}
             onClick={() => onPick('basic')}
           >
-            <span className={editorStyles.presetName}>Blank Basic</span>
+            <span className={editorStyles.presetName}>
+              {t('templates.blankBasic')}
+            </span>
             <span className={editorStyles.presetDescription}>
-              Two fields (Front, Back), one card. Sensible default styles.
+              {t('templates.blankBasicDesc')}
             </span>
           </button>
           <button
@@ -146,16 +156,18 @@ function PresetPicker({
             className={editorStyles.presetCard}
             onClick={() => onPick('cloze')}
           >
-            <span className={editorStyles.presetName}>Blank Cloze</span>
+            <span className={editorStyles.presetName}>
+              {t('templates.blankCloze')}
+            </span>
             <span className={editorStyles.presetDescription}>
-              Cloze deletion with a Text + Extra field. One card per cloze.
+              {t('templates.blankClozeDesc')}
             </span>
           </button>
         </div>
       </section>
 
       <Link to="/templates" className={editorStyles.presetBack}>
-        ← Back to Note types
+        {t('templates.backToNoteTypesArrow')}
       </Link>
     </div>
   );
@@ -166,6 +178,7 @@ interface AIGenerateSectionProps {
 }
 
 function AIGenerateSection({ onGenerated }: Readonly<AIGenerateSectionProps>) {
+  const { t } = useTranslation('tools');
   const [prompt, setPrompt] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -179,7 +192,9 @@ function AIGenerateSection({ onGenerated }: Readonly<AIGenerateSectionProps>) {
       const result = await aiGenerateNoteType(prompt);
       onGenerated(result.starter);
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Could not generate');
+      setError(
+        err instanceof Error ? err.message : t('templates.couldNotGenerateShort')
+      );
       if (err instanceof AiQuotaExceededError) {
         setQuotaUpgradeUrl(err.upgradeUrl);
       }
@@ -194,19 +209,18 @@ function AIGenerateSection({ onGenerated }: Readonly<AIGenerateSectionProps>) {
       aria-labelledby="preset-ai-heading"
     >
       <h2 id="preset-ai-heading" className={editorStyles.presetHeading}>
-        Describe your note type
+        {t('templates.describeNoteType')}
       </h2>
       <p className={editorStyles.presetSubtitle}>
-        Tell us what fields you want. We'll draft a starting point you can edit
-        and preview.
+        {t('templates.describeSubtitle')}
       </p>
       <div className={editorStyles.aiPromptRow}>
         <input
           className={editorStyles.aiPromptInput}
           value={prompt}
           onChange={(event) => setPrompt(event.target.value)}
-          placeholder="Japanese vocabulary — kanji, hiragana reading, English meaning, pitch-accent diagram"
-          aria-label="Describe the note type"
+          placeholder={t('templates.aiPromptPlaceholder')}
+          aria-label={t('templates.aiPromptAria')}
           disabled={busy}
           onKeyDown={(event) => {
             if (event.key === 'Enter' && !busy && prompt.trim().length > 0) {
@@ -220,7 +234,7 @@ function AIGenerateSection({ onGenerated }: Readonly<AIGenerateSectionProps>) {
           onClick={onSubmit}
           disabled={busy || prompt.trim().length === 0}
         >
-          {busy ? 'Drafting…' : 'Draft it'}
+          {busy ? t('templates.drafting') : t('templates.draftIt')}
         </button>
       </div>
       {error && (
@@ -230,7 +244,7 @@ function AIGenerateSection({ onGenerated }: Readonly<AIGenerateSectionProps>) {
             <>
               {' '}
               <Link to={quotaUpgradeUrl} className={editorStyles.aiUpgradeLink}>
-                See pricing →
+                {t('templates.seePricing')}
               </Link>
             </>
           )}
@@ -256,6 +270,7 @@ interface EditorBodyProps {
 }
 
 function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
+  const { t } = useTranslation('tools');
   const navigate = useNavigate();
   const [draft, setDraft] = useState<NoteTypeStarter>(initialStarter);
   const [pane, setPane] = useState<Pane>('front');
@@ -334,7 +349,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
       }
     } catch (error: unknown) {
       setSaveError(
-        error instanceof Error ? error.message : 'Could not save template'
+        error instanceof Error ? error.message : t('templates.couldNotSave')
       );
     } finally {
       setSaving(false);
@@ -367,8 +382,8 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
       }));
       const reply =
         before === after
-          ? 'Nothing changed. Try a more specific instruction.'
-          : result.reply || 'Updated.';
+          ? t('templates.nothingChanged')
+          : result.reply || t('templates.updated');
       setChatHistory([
         ...historyBeforeUser,
         { role: 'user', content: instruction },
@@ -377,7 +392,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
       setLastAttempt(null);
     } catch (error: unknown) {
       setChatError(
-        error instanceof Error ? error.message : 'Claude could not respond'
+        error instanceof Error ? error.message : t('templates.claudeNoResponse')
       );
       if (error instanceof AiQuotaExceededError) {
         setChatUpgradeUrl(error.upgradeUrl);
@@ -422,7 +437,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
       setSaveError(
         error instanceof Error
           ? error.message
-          : 'Could not generate .apkg — try again.'
+          : t('templates.couldNotGenerate')
       );
     }
   };
@@ -441,20 +456,22 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
   const activeValue = activeValueByPane[pane];
   const setActiveValue = setActiveValueByPane[pane];
   const activeLanguage: 'html' | 'css' = pane === 'css' ? 'css' : 'html';
+  const sideLabel =
+    previewSide === 'back' ? t('templates.sideBack') : t('templates.sideFront');
 
   return (
     <div className={editorStyles.layout}>
       <header className={editorStyles.header}>
         <div className={editorStyles.headerLeft}>
           <Link to="/templates" className={editorStyles.backLink}>
-            ← Note types
+            {t('templates.noteTypesBack')}
           </Link>
           <input
             className={editorStyles.nameInput}
             value={draft.name}
             onChange={(event) => handleNameChange(event.target.value)}
-            placeholder="Template name"
-            aria-label="Template name"
+            placeholder={t('templates.templateNamePlaceholder')}
+            aria-label={t('templates.templateNameAria')}
           />
         </div>
         <div className={editorStyles.headerActions}>
@@ -464,14 +481,16 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
             </span>
           )}
           {savedAt && !saveError && (
-            <span className={editorStyles.savedHint}>Saved</span>
+            <span className={editorStyles.savedHint}>
+              {t('templates.saved')}
+            </span>
           )}
           <button
             type="button"
             className={sharedStyles.btnSecondary}
             onClick={handleDownload}
           >
-            Download .apkg
+            {t('templates.downloadApkg')}
           </button>
           <button
             type="button"
@@ -479,7 +498,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
             onClick={handleSave}
             disabled={saving}
           >
-            {getSaveLabel(saving, shouldFork)}
+            {getSaveLabel(saving, shouldFork, t)}
           </button>
         </div>
       </header>
@@ -489,20 +508,22 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
           className={editorStyles.descriptionInput}
           value={draft.description}
           onChange={(event) => handleDescriptionChange(event.target.value)}
-          placeholder="One-line description (optional)"
-          aria-label="Description"
+          placeholder={t('templates.oneLineDesc')}
+          aria-label={t('templates.descriptionAria')}
         />
       </div>
 
       <div className={editorStyles.fieldsSection}>
         <div className={editorStyles.fieldsHeader}>
-          <span className={editorStyles.fieldsLabel}>Fields</span>
+          <span className={editorStyles.fieldsLabel}>
+            {t('templates.fields')}
+          </span>
           <button
             type="button"
             className={`${sharedStyles.btnSecondary} ${sharedStyles.btnInline}`}
             onClick={() => setDraft((current) => addFieldOp(current))}
           >
-            + Add field
+            {t('templates.addField')}
           </button>
         </div>
         <div className={editorStyles.fieldsList}>
@@ -519,7 +540,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
                     renameFieldOp(current, index, event.target.value)
                   )
                 }
-                aria-label={`Field ${index + 1} name`}
+                aria-label={t('templates.fieldNameAria', { index: index + 1 })}
               />
               <input
                 className={editorStyles.fieldPreviewInput}
@@ -529,8 +550,12 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
                     setPreviewValueOp(current, field.name, event.target.value)
                   )
                 }
-                placeholder={`${field.name} preview value`}
-                aria-label={`${field.name} preview value`}
+                placeholder={t('templates.fieldPreviewPlaceholder', {
+                  name: field.name,
+                })}
+                aria-label={t('templates.fieldPreviewAria', {
+                  name: field.name,
+                })}
               />
               <button
                 type="button"
@@ -539,9 +564,9 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
                   setDraft((current) => removeFieldOp(current, index))
                 }
                 disabled={draft.noteType.flds.length <= 1}
-                aria-label={`Remove ${field.name}`}
+                aria-label={t('templates.removeFieldAria', { name: field.name })}
               >
-                Remove
+                {t('templates.remove')}
               </button>
             </div>
           ))}
@@ -553,7 +578,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
           <div
             className={editorStyles.tabs}
             role="tablist"
-            aria-label="Edit panes"
+            aria-label={t('templates.editPanes')}
           >
             {(['front', 'back', 'css'] as const).map((value) => (
               <button
@@ -564,9 +589,9 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
                 className={`${editorStyles.tab} ${pane === value ? editorStyles.tabActive : ''}`}
                 onClick={() => setPane(value)}
               >
-                {value === 'front' && 'Front'}
-                {value === 'back' && 'Back'}
-                {value === 'css' && 'Styling'}
+                {value === 'front' && t('templates.front')}
+                {value === 'back' && t('templates.back')}
+                {value === 'css' && t('templates.paneStyling')}
               </button>
             ))}
           </div>
@@ -575,25 +600,30 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
               language={activeLanguage}
               value={activeValue}
               onChange={setActiveValue}
-              ariaLabel={`${pane} editor`}
+              ariaLabel={t('templates.editorAria', { pane })}
             />
           </div>
         </div>
 
         <div className={editorStyles.previewPane}>
           <div className={editorStyles.previewLabel}>
-            Live preview &mdash; {previewSide}
+            {t('templates.livePreview', { side: sideLabel })}
           </div>
           <div className={editorStyles.previewFrameWrap}>
             <iframe
-              title={`${draft.name} ${previewSide} preview`}
+              title={t('templates.previewFrameTitle', {
+                name: draft.name,
+                side: sideLabel,
+              })}
               className={editorStyles.previewFrame}
               sandbox="allow-scripts"
               srcDoc={previewDoc}
             />
           </div>
           <div className={editorStyles.chatPanel}>
-            <div className={editorStyles.previewLabel}>Ask Claude</div>
+            <div className={editorStyles.previewLabel}>
+              {t('templates.askClaude')}
+            </div>
             <div
               className={editorStyles.chatHistory}
               aria-live="polite"
@@ -601,8 +631,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
             >
               {chatHistory.length === 0 && !chatBusy && (
                 <p className={editorStyles.chatEmpty}>
-                  Try: "Make the back darker", "Add a hint field", "Use a serif
-                  font for the question."
+                  {t('templates.chatEmpty')}
                 </p>
               )}
               {chatHistory.map((message, index) => (
@@ -618,7 +647,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
                 <div
                   className={`${editorStyles.chatBubble} ${editorStyles.chatBubbleAssistant} ${editorStyles.chatPending}`}
                 >
-                  Thinking…
+                  {t('templates.thinking')}
                 </div>
               )}
             </div>
@@ -632,7 +661,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
                       to={chatUpgradeUrl}
                       className={editorStyles.aiUpgradeLink}
                     >
-                      See pricing →
+                      {t('templates.seePricing')}
                     </Link>
                   </>
                 )}
@@ -645,7 +674,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
                       onClick={handleRetry}
                       disabled={chatBusy}
                     >
-                      Try again
+                      {t('templates.tryAgain')}
                     </button>
                   </>
                 )}
@@ -656,9 +685,9 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
                 className={editorStyles.chatInput}
                 value={chatInput}
                 onChange={(event) => setChatInput(event.target.value)}
-                placeholder="Ask Claude to change something"
+                placeholder={t('templates.chatInputPlaceholder')}
                 disabled={chatBusy}
-                aria-label="Ask Claude"
+                aria-label={t('templates.askClaude')}
                 onKeyDown={(event) => {
                   if (event.key === 'Enter' && !event.shiftKey) {
                     event.preventDefault();
@@ -672,7 +701,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
                 onClick={handleSendChat}
                 disabled={chatBusy || chatInput.trim().length === 0}
               >
-                Send
+                {t('templates.send')}
               </button>
             </div>
           </div>
@@ -687,6 +716,7 @@ interface EditorPageProps {
 }
 
 export function EditorPage({ mode }: Readonly<EditorPageProps>) {
+  const { t } = useTranslation('tools');
   const { id } = useParams<{ id: string }>();
   const [initial, setInitial] = useState<NoteTypeStarter | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -720,7 +750,7 @@ export function EditorPage({ mode }: Readonly<EditorPageProps>) {
       return;
     }
     if (!id) {
-      setLoadError('Missing template id');
+      setLoadError(t('templates.missingTemplateId'));
       return;
     }
     setLoadError(null);
@@ -728,7 +758,7 @@ export function EditorPage({ mode }: Readonly<EditorPageProps>) {
       .then(async (starter) => {
         if (cancelled) return;
         if (!starter) {
-          setLoadError('Template not found');
+          setLoadError(t('templates.templateNotFound'));
           return;
         }
         const userPayload = await getUserTemplates().catch(() => ({
@@ -742,13 +772,15 @@ export function EditorPage({ mode }: Readonly<EditorPageProps>) {
       .catch((error: unknown) => {
         if (cancelled) return;
         setLoadError(
-          error instanceof Error ? error.message : 'Could not load template'
+          error instanceof Error
+            ? error.message
+            : t('templates.couldNotLoadTemplate')
         );
       });
     return () => {
       cancelled = true;
     };
-  }, [mode, id, pickedPreset]);
+  }, [mode, id, pickedPreset, t]);
 
   if (loadError) {
     return (
@@ -757,7 +789,7 @@ export function EditorPage({ mode }: Readonly<EditorPageProps>) {
           {loadError}
         </p>
         <Link to="/templates" className={sharedStyles.btnSecondary}>
-          Back to Note types
+          {t('templates.backToNoteTypes')}
         </Link>
       </div>
     );
@@ -785,7 +817,10 @@ export function EditorPage({ mode }: Readonly<EditorPageProps>) {
     <>
       <Helmet>
         <title>
-          {mode === 'new' ? 'New note type' : `Edit ${initial.name}`} — 2anki
+          {mode === 'new'
+            ? t('templates.newPageTitle')
+            : t('templates.editTitle', { name: initial.name })}{' '}
+          — 2anki
         </title>
       </Helmet>
       <EditorBody initialStarter={initial} shouldFork={shouldFork} />

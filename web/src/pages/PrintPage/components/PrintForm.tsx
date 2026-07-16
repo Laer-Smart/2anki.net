@@ -1,4 +1,5 @@
 import { SyntheticEvent, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import styles from './PrintForm.module.css';
 import sharedStyles from '../../../styles/shared.module.css';
@@ -8,12 +9,13 @@ type PaperSize = 'A4' | 'Letter' | 'Legal';
 type Orientation = 'portrait' | 'landscape';
 type Margins = 'narrow' | 'normal' | 'wide';
 
-const WRONG_TYPE_MESSAGE =
-  'This tool works with Anki deck files (.apkg). To turn notes into an Anki deck, use the Upload page.';
-const CORRUPTED_MESSAGE =
-  "Couldn't read this file. Make sure it's a valid Anki deck (.apkg) and try again.";
-const GENERIC_ERROR_MESSAGE =
-  'Something went wrong while generating the PDF. Try again.';
+interface PrintMessages {
+  wrongType: string;
+  corrupted: string;
+  genericError: string;
+  auth: string;
+  upgrade: string;
+}
 
 const CARD_LIMIT_PATTERN = /PDF export supports up to/i;
 
@@ -21,7 +23,10 @@ function isApkgFile(name: string): boolean {
   return /\.apkg$/i.test(name);
 }
 
-async function extractErrorMessage(response: Response): Promise<string> {
+async function extractErrorMessage(
+  response: Response,
+  fallback: string
+): Promise<string> {
   try {
     const body = await response.clone().json();
     if (typeof body?.message === 'string' && body.message.trim().length > 0) {
@@ -30,20 +35,30 @@ async function extractErrorMessage(response: Response): Promise<string> {
   } catch {
     /* response not JSON */
   }
-  return GENERIC_ERROR_MESSAGE;
+  return fallback;
 }
 
-const AUTH_MESSAGE = 'Log in to use PDF export.';
-const UPGRADE_MESSAGE = 'Your free PDF for this month has been used.';
-
-function toUserMessage(serverMessage: string, status: number): string {
-  if (status === 401) return AUTH_MESSAGE;
-  if (status === 402 || status === 403) return UPGRADE_MESSAGE;
-  if (/Invalid .apkg/i.test(serverMessage)) return CORRUPTED_MESSAGE;
+function toUserMessage(
+  serverMessage: string,
+  status: number,
+  messages: PrintMessages
+): string {
+  if (status === 401) return messages.auth;
+  if (status === 402 || status === 403) return messages.upgrade;
+  if (/Invalid .apkg/i.test(serverMessage)) return messages.corrupted;
   return serverMessage;
 }
 
 export default function PrintForm() {
+  const { t } = useTranslation('tools');
+  const messages: PrintMessages = {
+    wrongType: t('print.wrongType'),
+    corrupted: t('print.corrupted'),
+    genericError: t('print.genericError'),
+    auth: t('print.authMessage'),
+    upgrade: t('print.upgradeMessage'),
+  };
+
   const [state, setState] = useState<PrintState>('idle');
   const [cardCount, setCardCount] = useState<number | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -67,7 +82,7 @@ export default function PrintForm() {
   const handleFile = async (file: File) => {
     if (!isApkgFile(file.name)) {
       setState('error');
-      setErrorMessage(WRONG_TYPE_MESSAGE);
+      setErrorMessage(messages.wrongType);
       return;
     }
 
@@ -100,13 +115,13 @@ export default function PrintForm() {
         setState('done');
         setCardCount(null);
       } else {
-        const raw = await extractErrorMessage(response);
+        const raw = await extractErrorMessage(response, messages.genericError);
         setState('error');
-        setErrorMessage(toUserMessage(raw, response.status));
+        setErrorMessage(toUserMessage(raw, response.status, messages));
       }
     } catch {
       setState('error');
-      setErrorMessage(GENERIC_ERROR_MESSAGE);
+      setErrorMessage(messages.genericError);
     }
   };
 
@@ -133,7 +148,7 @@ export default function PrintForm() {
       <div className={styles.optionsGrid}>
         <div>
           <label htmlFor="print-paper-size" className={sharedStyles.fieldLabel}>
-            Paper size
+            {t('print.paperSize')}
           </label>
           <select
             id="print-paper-size"
@@ -151,7 +166,7 @@ export default function PrintForm() {
             htmlFor="print-orientation"
             className={sharedStyles.fieldLabel}
           >
-            Orientation
+            {t('print.orientation')}
           </label>
           <select
             id="print-orientation"
@@ -159,13 +174,13 @@ export default function PrintForm() {
             value={orientation}
             onChange={(e) => setOrientation(e.target.value as Orientation)}
           >
-            <option value="portrait">Portrait</option>
-            <option value="landscape">Landscape</option>
+            <option value="portrait">{t('print.portrait')}</option>
+            <option value="landscape">{t('print.landscape')}</option>
           </select>
         </div>
         <div>
           <label htmlFor="print-margins" className={sharedStyles.fieldLabel}>
-            Margins
+            {t('print.margins')}
           </label>
           <select
             id="print-margins"
@@ -173,14 +188,14 @@ export default function PrintForm() {
             value={margins}
             onChange={(e) => setMargins(e.target.value as Margins)}
           >
-            <option value="narrow">Narrow (0.5 cm)</option>
-            <option value="normal">Normal (1 cm)</option>
-            <option value="wide">Wide (2 cm)</option>
+            <option value="narrow">{t('print.marginNarrow')}</option>
+            <option value="normal">{t('print.marginNormal')}</option>
+            <option value="wide">{t('print.marginWide')}</option>
           </select>
         </div>
         <div>
           <label htmlFor="print-bg-color" className={sharedStyles.fieldLabel}>
-            Page background
+            {t('print.pageBackground')}
           </label>
           <div className={styles.colorField}>
             <input
@@ -211,10 +226,10 @@ export default function PrintForm() {
         onDragLeave={() => setDropHover(false)}
         onDrop={handleDrop}
       >
-        <span className={styles.dropLabel}>Drop an Anki deck (.apkg) here</span>
-        <span className={styles.dropHint}>or</span>
+        <span className={styles.dropLabel}>{t('print.dropLabel')}</span>
+        <span className={styles.dropHint}>{t('print.or')}</span>
         <span className={styles.chooseButton}>
-          {isUploading ? 'Making your PDF' : 'Select file'}
+          {isUploading ? t('print.makingPdf') : t('print.selectFile')}
         </span>
         <input
           ref={fileInputRef}
@@ -238,44 +253,42 @@ export default function PrintForm() {
           }}
         >
           <div className={sharedStyles.spinnerSmall} />
-          <span>
-            Making your PDF — keep this tab open until the download starts.
-          </span>
+          <span>{t('print.makingPdfHint')}</span>
         </div>
       )}
 
       {state === 'done' && (
         <p className={sharedStyles.notificationSuccess}>
-          Your flashcards as a PDF
-          {cardCount == null ? '' : ` — ${cardCount} cards`}
+          {t('print.doneMessage')}
+          {cardCount == null ? '' : ` — ${t('print.doneCards', { count: cardCount })}`}
         </p>
       )}
 
       {state === 'error' && errorMessage && (
         <p className={sharedStyles.notificationDanger}>
           {errorMessage}
-          {errorMessage === WRONG_TYPE_MESSAGE && (
+          {errorMessage === messages.wrongType && (
             <>
               {' '}
-              <Link to="/upload">Go to Upload</Link>
+              <Link to="/upload">{t('print.goToUpload')}</Link>
             </>
           )}
-          {errorMessage === UPGRADE_MESSAGE && (
+          {errorMessage === messages.upgrade && (
             <>
               {' '}
-              <Link to="/pricing">View plans</Link>
+              <Link to="/pricing">{t('print.viewPlans')}</Link>
             </>
           )}
-          {errorMessage === AUTH_MESSAGE && (
+          {errorMessage === messages.auth && (
             <>
               {' '}
-              <Link to="/login">Log in</Link>
+              <Link to="/login">{t('print.logIn')}</Link>
             </>
           )}
           {CARD_LIMIT_PATTERN.test(errorMessage) && (
             <>
               {' '}
-              <Link to="/pricing">Upgrade for unlimited</Link>
+              <Link to="/pricing">{t('print.upgradeUnlimited')}</Link>
             </>
           )}
         </p>
@@ -288,7 +301,7 @@ export default function PrintForm() {
             className={sharedStyles.btnSecondary}
             onClick={resetForm}
           >
-            Print another deck
+            {t('print.printAnother')}
           </button>
         </div>
       )}

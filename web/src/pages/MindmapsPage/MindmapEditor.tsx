@@ -13,6 +13,8 @@ import {
   useNodesState,
 } from '@xyflow/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Link, useParams } from 'react-router-dom';
 import PencilIcon from '../../components/icons/PencilIcon';
 import shared from '../../styles/shared.module.css';
@@ -40,40 +42,66 @@ const NODE_STYLE = {
   boxSizing: 'border-box' as const,
 };
 
-const SHORTCUT_GROUPS: {
+function buildShortcutGroups(t: TFunction<'tools'>): {
   label: string;
   items: { keys: string[]; action: string }[];
-}[] = [
-  {
-    label: 'Create',
-    items: [
-      { keys: ['Tab'], action: 'Add child' },
-      { keys: ['Enter'], action: 'Add sibling' },
-      { keys: ['Double-click canvas'], action: 'Add node' },
-      { keys: ['Drag from node'], action: 'New connected node' },
-      { keys: ['Paste text'], action: 'New node' },
-      { keys: ['Paste or drop image'], action: 'Image node' },
-    ],
-  },
-  {
-    label: 'Edit',
-    items: [
-      { keys: ['F2', 'Double-click'], action: 'Rename node' },
-      { keys: ['Backspace'], action: 'Delete' },
-      { keys: ['Double-click border'], action: 'Auto-size' },
-      { keys: ['Ctrl/Cmd+L'], action: 'Tidy layout' },
-    ],
-  },
-  {
-    label: 'Select',
-    items: [
-      { keys: ['Ctrl/Cmd+A'], action: 'Select all' },
-      { keys: ['Esc'], action: 'Clear selection' },
-      { keys: ['Right-click'], action: 'Context menu' },
-      { keys: ['Click edge'], action: 'Edge menu' },
-    ],
-  },
-];
+}[] {
+  return [
+    {
+      label: t('mindmaps.shortcutCreate'),
+      items: [
+        { keys: ['Tab'], action: t('mindmaps.actionAddChild') },
+        { keys: ['Enter'], action: t('mindmaps.actionAddSibling') },
+        {
+          keys: [t('mindmaps.gestureDoubleClickCanvas')],
+          action: t('mindmaps.actionAddNode'),
+        },
+        {
+          keys: [t('mindmaps.gestureDragFromNode')],
+          action: t('mindmaps.actionNewConnected'),
+        },
+        {
+          keys: [t('mindmaps.gesturePasteText')],
+          action: t('mindmaps.actionNewNode'),
+        },
+        {
+          keys: [t('mindmaps.gesturePasteImage')],
+          action: t('mindmaps.actionImageNode'),
+        },
+      ],
+    },
+    {
+      label: t('mindmaps.shortcutEdit'),
+      items: [
+        {
+          keys: ['F2', t('mindmaps.gestureDoubleClick')],
+          action: t('mindmaps.actionRenameNode'),
+        },
+        { keys: ['Backspace'], action: t('mindmaps.actionDelete') },
+        {
+          keys: [t('mindmaps.gestureDoubleClickBorder')],
+          action: t('mindmaps.actionAutoSize'),
+        },
+        { keys: ['Ctrl/Cmd+L'], action: t('mindmaps.actionTidyLayout') },
+      ],
+    },
+    {
+      label: t('mindmaps.shortcutSelect'),
+      items: [
+        { keys: ['Ctrl/Cmd+A'], action: t('mindmaps.actionSelectAll') },
+        { keys: ['Esc'], action: t('mindmaps.actionClearSelection') },
+        {
+          keys: [t('mindmaps.gestureRightClick')],
+          action: t('mindmaps.actionContextMenu'),
+        },
+        {
+          keys: [t('mindmaps.gestureClickEdge')],
+          action: t('mindmaps.actionEdgeMenu'),
+        },
+      ],
+    },
+  ];
+}
 
 function ChevronLeftIcon() {
   return (
@@ -134,20 +162,22 @@ function ExportModal({
   onClose,
   exporting,
 }: Readonly<ExportModalProps>) {
+  const { t } = useTranslation('tools');
   const [deckName, setDeckName] = useState(defaultName);
   const [cardType, setCardType] = useState<MindmapCardType>('basic');
 
   function cardCountLabel(): string {
-    if (cardType === 'markmap') return '1 card';
-    const count = cardType === 'basic' ? basicCardCount : clozeCardCount;
-    return `${count} ${count === 1 ? 'card' : 'cards'}`;
+    let count = clozeCardCount;
+    if (cardType === 'markmap') count = 1;
+    else if (cardType === 'basic') count = basicCardCount;
+    return t('mindmaps.cardCount', { count });
   }
 
   return (
     <div className={styles.exportModal}>
       <div className={styles.exportCard}>
-        <h2 className={styles.exportTitle}>Download deck</h2>
-        <label className={styles.exportLabel}>Deck name</label>
+        <h2 className={styles.exportTitle}>{t('mindmaps.downloadDeck')}</h2>
+        <label className={styles.exportLabel}>{t('mindmaps.deckName')}</label>
         <input
           type="text"
           value={deckName}
@@ -155,7 +185,9 @@ function ExportModal({
           className={styles.exportInput}
         />
         <fieldset className={styles.exportFieldset}>
-          <legend className={styles.exportLegend}>Card type</legend>
+          <legend className={styles.exportLegend}>
+            {t('mindmaps.cardType')}
+          </legend>
           <label className={styles.exportRadioLabel}>
             <input
               type="radio"
@@ -164,7 +196,7 @@ function ExportModal({
               checked={cardType === 'basic'}
               onChange={() => setCardType('basic')}
             />
-            Basic — one card per edge (parent → child)
+            {t('mindmaps.basicOption')}
           </label>
           <label className={styles.exportRadioLabel}>
             <input
@@ -174,7 +206,7 @@ function ExportModal({
               checked={cardType === 'cloze'}
               onChange={() => setCardType('cloze')}
             />
-            Cloze — one card per path, each node clozed in sequence
+            {t('mindmaps.clozeOption')}
           </label>
           <label className={styles.exportRadioLabel}>
             <input
@@ -184,7 +216,7 @@ function ExportModal({
               checked={cardType === 'markmap'}
               onChange={() => setCardType('markmap')}
             />
-            Whole map — entire tree as one interactive card
+            {t('mindmaps.wholeMapOption')}
           </label>
         </fieldset>
         <p className={styles.exportCount}>{cardCountLabel()}</p>
@@ -194,7 +226,7 @@ function ExportModal({
             onClick={onClose}
             className={`${shared.btnSecondary} ${shared.btnInline}`}
           >
-            Cancel
+            {t('mindmaps.cancel')}
           </button>
           <button
             type="button"
@@ -202,7 +234,7 @@ function ExportModal({
             onClick={() => onExport(deckName.trim(), cardType)}
             className={`${shared.btnPrimary} ${shared.btnInline}`}
           >
-            Download deck
+            {t('mindmaps.downloadDeck')}
           </button>
         </div>
       </div>
@@ -216,6 +248,7 @@ function readSidebarCollapsed(): boolean {
 }
 
 export function MindmapEditor() {
+  const { t } = useTranslation('tools');
   const { id } = useParams<{ id: string }>();
   const { data: map } = useMindmapById(id ?? null);
   const updateMindmap = useUpdateMindmap(id ?? '');
@@ -266,9 +299,9 @@ export function MindmapEditor() {
       titleRef.current != null &&
       document.activeElement !== titleRef.current
     ) {
-      titleRef.current.innerText = map?.title ?? 'Untitled';
+      titleRef.current.innerText = map?.title ?? t('mindmaps.untitled');
     }
-  }, [map?.title]);
+  }, [map?.title, t]);
 
   function commitTitle(text: string) {
     const trimmed = text.trim();
@@ -471,11 +504,11 @@ export function MindmapEditor() {
               : n
           )
         );
-        setToast("Couldn't upload that image. Try again.");
+        setToast(t('mindmaps.imageUploadError'));
         setTimeout(() => setToast(null), 4000);
       }
     },
-    [id, setNodes, persistData, edges, setToast]
+    [id, setNodes, persistData, edges, setToast, t]
   );
 
   const handleImageFile = useCallback(
@@ -512,11 +545,11 @@ export function MindmapEditor() {
         });
       } catch {
         setNodes((ns) => ns.filter((n) => n.id !== newId));
-        setToast("Couldn't upload that image. Try again.");
+        setToast(t('mindmaps.imageUploadError'));
         setTimeout(() => setToast(null), 4000);
       }
     },
-    [id, setNodes, persistData, edges, setToast]
+    [id, setNodes, persistData, edges, setToast, t]
   );
 
   useEffect(() => {
@@ -670,7 +703,7 @@ export function MindmapEditor() {
 
   function addChildNode(parentId: string) {
     if (nodes.length >= FREE_NODE_LIMIT) {
-      showToast('50 nodes reached. Upgrade to add more.');
+      showToast(t('mindmaps.nodeLimitReached'));
       return;
     }
     const newId = crypto.randomUUID();
@@ -678,7 +711,7 @@ export function MindmapEditor() {
     const newNode: Node = {
       id: newId,
       type: 'mindmap',
-      data: { label: 'New node', editing: true },
+      data: { label: t('mindmaps.newNode'), editing: true },
       position: {
         x: (parentNode?.position.x ?? 0) + 200,
         y: (parentNode?.position.y ?? 0) + 50,
@@ -701,7 +734,7 @@ export function MindmapEditor() {
 
   function addSiblingNode(siblingId: string) {
     if (nodes.length >= FREE_NODE_LIMIT) {
-      showToast('50 nodes reached. Upgrade to add more.');
+      showToast(t('mindmaps.nodeLimitReached'));
       return;
     }
     const parentEdge = edges.find((e) => e.target === siblingId);
@@ -711,7 +744,7 @@ export function MindmapEditor() {
     const newNode: Node = {
       id: newId,
       type: 'mindmap',
-      data: { label: 'New node', editing: true },
+      data: { label: t('mindmaps.newNode'), editing: true },
       position: {
         x: siblingNode?.position.x ?? 0,
         y: (siblingNode?.position.y ?? 0) + NODE_HEIGHT + 20,
@@ -742,9 +775,7 @@ export function MindmapEditor() {
   function deleteNode(nodeId: string) {
     const childCount = edges.filter((e) => e.source === nodeId).length;
     if (childCount > 0) {
-      const confirmed = window.confirm(
-        'This node has children. Delete it and all connected edges?'
-      );
+      const confirmed = window.confirm(t('mindmaps.deleteNodeConfirm'));
       if (!confirmed) return;
     }
     const updatedNodes = nodes.filter((n) => n.id !== nodeId);
@@ -780,7 +811,7 @@ export function MindmapEditor() {
     setNodes(laidOut);
     persistData(laidOut, edges);
     rfInstance?.fitView({ duration: 300 });
-    showToast('Layout updated');
+    showToast(t('mindmaps.layoutUpdated'));
   }
 
   function createNodeAt(
@@ -788,14 +819,14 @@ export function MindmapEditor() {
     parentId?: string | null
   ) {
     if (nodes.length >= FREE_NODE_LIMIT) {
-      showToast('50 nodes reached. Upgrade to add more.');
+      showToast(t('mindmaps.nodeLimitReached'));
       return;
     }
     const newId = crypto.randomUUID();
     const newNode: Node = {
       id: newId,
       type: 'mindmap',
-      data: { label: 'New node', editing: true },
+      data: { label: t('mindmaps.newNode'), editing: true },
       position,
       style: NODE_STYLE,
     };
@@ -919,7 +950,7 @@ export function MindmapEditor() {
       a.remove();
       URL.revokeObjectURL(url);
       setShowExport(false);
-      showToast('Deck downloaded — open it in Anki to start studying.');
+      showToast(t('mindmaps.deckDownloaded'));
     } finally {
       setExporting(false);
     }
@@ -933,11 +964,11 @@ export function MindmapEditor() {
       contentEditable
       suppressContentEditableWarning
       spellCheck={false}
-      title="Click to rename"
+      title={t('mindmaps.clickToRename')}
       onBlur={(e) => {
         const text = e.currentTarget.innerText;
         if (text.trim().length === 0) {
-          e.currentTarget.innerText = map?.title ?? 'Untitled';
+          e.currentTarget.innerText = (map?.title ?? t('mindmaps.untitled'));
           return;
         }
         commitTitle(text);
@@ -948,7 +979,7 @@ export function MindmapEditor() {
           e.currentTarget.blur();
         } else if (e.key === 'Escape') {
           e.preventDefault();
-          e.currentTarget.innerText = map?.title ?? 'Untitled';
+          e.currentTarget.innerText = (map?.title ?? t('mindmaps.untitled'));
           e.currentTarget.blur();
         }
         e.stopPropagation();
@@ -959,7 +990,7 @@ export function MindmapEditor() {
           : styles.sidebarTitle
       }
     >
-      {map?.title ?? 'Untitled'}
+      {(map?.title ?? t('mindmaps.untitled'))}
     </h2>
   );
 
@@ -973,7 +1004,7 @@ export function MindmapEditor() {
         <div data-testid="editor-mobile-bar" className={styles.mobileBar}>
           <Link to="/mindmaps" className={styles.backLink}>
             <ChevronLeftIcon />
-            Mindmaps
+            {t('mindmaps.mindmapsBack')}
           </Link>
           {editableTitle}
           <button
@@ -981,7 +1012,7 @@ export function MindmapEditor() {
             onClick={() => setShowExport(true)}
             className={`${shared.btnPrimary} ${shared.btnInline}`}
           >
-            Download deck
+            {t('mindmaps.downloadDeck')}
           </button>
         </div>
       ) : (
@@ -991,13 +1022,13 @@ export function MindmapEditor() {
         >
           <Link to="/mindmaps" className={styles.backLink}>
             <ChevronLeftIcon />
-            Mindmaps
+            {t('mindmaps.mindmapsBack')}
           </Link>
 
           {!sidebarCollapsed && (
             <button
               type="button"
-              aria-label="Collapse sidebar"
+              aria-label={t('mindmaps.collapseSidebar')}
               onClick={toggleSidebar}
               className={styles.collapseToggle}
             >
@@ -1009,8 +1040,8 @@ export function MindmapEditor() {
             {editableTitle}
             <button
               type="button"
-              aria-label="Rename map"
-              title="Rename map"
+              aria-label={t('mindmaps.renameMap')}
+              title={t('mindmaps.renameMap')}
               onClick={() => {
                 if (titleRef.current == null) return;
                 titleRef.current.focus();
@@ -1027,16 +1058,16 @@ export function MindmapEditor() {
           </div>
 
           <p className={styles.statLine}>
-            {nodes.length} {nodes.length === 1 ? 'node' : 'nodes'} ·{' '}
-            {edges.length} {edges.length === 1 ? 'edge' : 'edges'}
+            {t('mindmaps.nodeCount', { count: nodes.length })} ·{' '}
+            {t('mindmaps.edgeCount', { count: edges.length })}
           </p>
 
           <details className={styles.shortcuts}>
             <summary className={styles.shortcutsSummary}>
-              Keyboard shortcuts
+              {t('mindmaps.keyboardShortcuts')}
             </summary>
             <div className={styles.shortcutsBody}>
-              {SHORTCUT_GROUPS.map((group) => (
+              {buildShortcutGroups(t).map((group) => (
                 <div key={group.label} className={styles.shortcutGroup}>
                   <p className={styles.shortcutGroupLabel}>{group.label}</p>
                   {group.items.map((item) => (
@@ -1060,7 +1091,7 @@ export function MindmapEditor() {
                 onClick={() => setShowMarkdownModal(true)}
                 className={styles.shortcutNoteBtn}
               >
-                Markdown works in node labels
+                {t('mindmaps.markdownWorks')}
               </button>
             </div>
           </details>
@@ -1071,7 +1102,7 @@ export function MindmapEditor() {
               onClick={() => setShowExport(true)}
               className={shared.btnPrimary}
             >
-              Download deck
+              {t('mindmaps.downloadDeck')}
             </button>
           </div>
         </div>
@@ -1118,10 +1149,10 @@ export function MindmapEditor() {
       >
         {isMobile && showMobileHint && (
           <div className={styles.mobileHint}>
-            <span>Tap to select · drag a handle to connect</span>
+            <span>{t('mindmaps.tapDragHint')}</span>
             <button
               type="button"
-              aria-label="Dismiss hint"
+              aria-label={t('mindmaps.dismissHint')}
               onClick={() => setShowMobileHint(false)}
               className={styles.mobileHintDismiss}
             >
@@ -1132,7 +1163,7 @@ export function MindmapEditor() {
         {!isMobile && sidebarCollapsed && (
           <button
             type="button"
-            aria-label="Expand sidebar"
+            aria-label={t('mindmaps.expandSidebar')}
             onClick={toggleSidebar}
             className={styles.collapseReopenHandle}
           >
@@ -1230,16 +1261,16 @@ export function MindmapEditor() {
         <button
           type="button"
           onClick={handleTidy}
-          title="Tidy layout (Ctrl/Cmd+L)"
+          title={t('mindmaps.tidyLayoutTitle')}
           className={styles.tidyBtn}
         >
-          Tidy layout
+          {t('mindmaps.tidyLayout')}
         </button>
       </div>
 
       {showExport && (
         <ExportModal
-          defaultName={map?.title ?? 'My deck'}
+          defaultName={map?.title ?? t('mindmaps.myDeck')}
           basicCardCount={basicCardCount}
           clozeCardCount={clozeCardCount}
           onExport={handleExport}
@@ -1267,7 +1298,7 @@ export function MindmapEditor() {
         >
           {contextMenu.edgeId != null && (
             <ContextMenuItem
-              label="Remove connection"
+              label={t('mindmaps.removeConnection')}
               shortcut="Backspace"
               onSelect={() => {
                 if (contextMenu.edgeId != null) {
@@ -1280,6 +1311,7 @@ export function MindmapEditor() {
           {contextMenu.edgeId == null && contextMenu.nodeId != null && (
             <NodeContextMenu
               nodeId={contextMenu.nodeId}
+              t={t}
               onAddChild={(nodeId) => {
                 addChildNode(nodeId);
                 setContextMenu(null);
@@ -1300,8 +1332,8 @@ export function MindmapEditor() {
           )}
           {contextMenu.edgeId == null && contextMenu.nodeId == null && (
             <ContextMenuItem
-              label="Add node here"
-              shortcut="Double-click"
+              label={t('mindmaps.addNodeHere')}
+              shortcut={t('mindmaps.gestureDoubleClick')}
               onSelect={() => {
                 if (contextMenu.flowX != null && contextMenu.flowY != null) {
                   createNodeAt(
@@ -1345,6 +1377,7 @@ function ContextMenuItem({
 
 interface NodeContextMenuProps {
   nodeId: string;
+  t: TFunction<'tools'>;
   onAddChild: (id: string) => void;
   onAddSibling: (id: string) => void;
   onRename: (id: string) => void;
@@ -1353,6 +1386,7 @@ interface NodeContextMenuProps {
 
 function NodeContextMenu({
   nodeId,
+  t,
   onAddChild,
   onAddSibling,
   onRename,
@@ -1361,22 +1395,22 @@ function NodeContextMenu({
   return (
     <>
       <ContextMenuItem
-        label="Add child"
+        label={t('mindmaps.actionAddChild')}
         shortcut="Tab"
         onSelect={() => onAddChild(nodeId)}
       />
       <ContextMenuItem
-        label="Add sibling"
+        label={t('mindmaps.actionAddSibling')}
         shortcut="Enter"
         onSelect={() => onAddSibling(nodeId)}
       />
       <ContextMenuItem
-        label="Rename"
+        label={t('mindmaps.rename')}
         shortcut="F2"
         onSelect={() => onRename(nodeId)}
       />
       <ContextMenuItem
-        label="Delete"
+        label={t('mindmaps.delete')}
         shortcut="Backspace"
         onSelect={() => onDelete(nodeId)}
       />

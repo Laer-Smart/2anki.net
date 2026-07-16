@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import styles from '../LimitPage/LimitPage.module.css';
 import sharedStyles from '../../styles/shared.module.css';
@@ -9,14 +10,12 @@ interface MindmapLimitModalProps {
 export function MindmapLimitModal({
   onClose,
 }: Readonly<MindmapLimitModalProps>) {
+  const { t } = useTranslation('tools');
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className={styles.heading}>You've used all 3 maps this month</h1>
-        <p className={styles.subheading}>
-          Free accounts can have 3 mind maps at a time. Upgrade for unlimited
-          mind maps.
-        </p>
+        <h1 className={styles.heading}>{t('mindmaps.limitHeading')}</h1>
+        <p className={styles.subheading}>{t('mindmaps.limitSubheading')}</p>
       </div>
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
         <Link
@@ -31,14 +30,14 @@ export function MindmapLimitModal({
             textDecoration: 'none',
           }}
         >
-          Upgrade
+          {t('mindmaps.upgrade')}
         </Link>
         <button
           type="button"
           onClick={onClose}
           className={sharedStyles.btnSecondary}
         >
-          Not now
+          {t('mindmaps.notNow')}
         </button>
       </div>
     </div>

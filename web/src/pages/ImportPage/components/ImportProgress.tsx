@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import styles from '../ImportPage.module.css';
 
 interface ImportProgressProps {
@@ -15,6 +16,7 @@ export default function ImportProgress({
   pageTitle,
   statusText,
 }: Readonly<ImportProgressProps>) {
+  const { t } = useTranslation('tools');
   const isUploadingImages = statusText?.startsWith('uploading') ?? false;
 
   function getPercent() {
@@ -26,7 +28,7 @@ export default function ImportProgress({
 
   return (
     <div className={styles.progressContainer}>
-      <p className={styles.progressTitle}>Importing to Notion</p>
+      <p className={styles.progressTitle}>{t('import.progressTitle')}</p>
       {fileName && pageTitle && (
         <p className={styles.progressSummary}>
           {fileName} &rarr; {pageTitle}
@@ -39,14 +41,14 @@ export default function ImportProgress({
         {isUploadingImages
           ? (statusText ?? '').replace(
               'uploading images ',
-              'Uploading images: '
+              t('import.uploadingImagesLabel')
             )
-          : `${imported} of ${total} notes`}
+          : t('import.progressCount', { imported, total })}
       </p>
       <p className={styles.progressReassurance}>
         {isUploadingImages
-          ? 'Uploading images to Notion. This can take a minute for large decks.'
-          : "You can leave this page — we'll keep going in the background."}
+          ? t('import.uploadingReassurance')
+          : t('import.progressReassurance')}
       </p>
     </div>
   );

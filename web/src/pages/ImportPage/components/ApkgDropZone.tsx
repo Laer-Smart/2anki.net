@@ -1,4 +1,5 @@
 import { useCallback, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../ImportPage.module.css';
 
 interface ApkgDropZoneProps {
@@ -18,6 +19,7 @@ export default function ApkgDropZone({
   onFileRejected,
   disabled,
 }: Readonly<ApkgDropZoneProps>) {
+  const { t } = useTranslation('tools');
   const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -26,10 +28,10 @@ export default function ApkgDropZone({
       if (isApkgFile(f)) {
         onFileSelected(f);
       } else {
-        onFileRejected("This file isn't an Anki deck");
+        onFileRejected(t('import.notAnkiDeck'));
       }
     },
-    [onFileSelected, onFileRejected]
+    [onFileSelected, onFileRejected, t]
   );
 
   const handleDrop = useCallback(
@@ -78,7 +80,7 @@ export default function ApkgDropZone({
       }}
       role="button"
       tabIndex={0}
-      aria-label="Drop your .apkg file here"
+      aria-label={t('import.dropAriaLabel')}
     >
       <input
         ref={inputRef}
@@ -92,8 +94,8 @@ export default function ApkgDropZone({
         <p className={styles.dropZoneFileName}>{file.name}</p>
       ) : (
         <>
-          <p className={styles.dropZoneTitle}>Drop your .apkg file here</p>
-          <p className={styles.dropZoneSubtitle}>or click to choose</p>
+          <p className={styles.dropZoneTitle}>{t('import.dropTitle')}</p>
+          <p className={styles.dropZoneSubtitle}>{t('import.dropSubtitle')}</p>
         </>
       )}
     </div>

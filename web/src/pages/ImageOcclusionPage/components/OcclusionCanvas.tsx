@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useCanvasZoom } from '../hooks/useCanvasZoom';
 import { useOcclusionHistory } from '../hooks/useOcclusionHistory';
 import styles from '../ImageOcclusionPage.module.css';
@@ -96,6 +97,7 @@ function duplicateRects(rects: OcclusionRect[]): OcclusionRect[] {
 }
 
 export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
+  const { t } = useTranslation('tools');
   const containerRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -698,7 +700,7 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
         onKeyDown={handleKeyDown}
         onKeyUp={handleKeyUp}
         role="application"
-        aria-label="Occlusion drawing canvas"
+        aria-label={t('occlusion.canvasAria')}
         style={{ cursor, position: 'relative', overflow: 'hidden' }}
       >
         <div
@@ -1047,7 +1049,7 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
           draft == null &&
           pendingPolygon.length === 0 && (
             <div className={styles.canvasEmptyHint}>
-              Drag a box over each area to hide.
+              {t('occlusion.dragBoxHint')}
             </div>
           )}
         {selectedOne != null && (
@@ -1056,9 +1058,9 @@ export function OcclusionCanvas({ entry, onRectsChange }: Readonly<Props>) {
               type="text"
               value={labelInput}
               onChange={(e) => handleLabelChange(e.target.value)}
-              placeholder="Label this area (optional)"
+              placeholder={t('occlusion.labelPlaceholder')}
               className={styles.labelInput}
-              aria-label="Rect label"
+              aria-label={t('occlusion.rectLabelAria')}
             />
           </div>
         )}
