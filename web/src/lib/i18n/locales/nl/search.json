@@ -1,0 +1,58 @@
+{
+  "page": {
+    "titleConnected": "Notion",
+    "titleGetStarted": "Aan de slag",
+    "subtitleConnected": "Zoek een pagina en zet hem om in een Anki-deck.",
+    "subtitleDisconnected": "Verbind je Notion-workspace of upload bestanden om Anki-decks te maken.",
+    "switchWorkspace": "Wissel van workspace"
+  },
+  "limit": {
+    "title": "Je hebt alle {{limit}} kaarten deze maand gebruikt",
+    "body": "{{used}} / {{limit}} kaarten · vernieuwt {{resetsOn}}, wanneer je gratis kaarten terugkomen",
+    "startingCheckout": "Afrekenen starten",
+    "getDayPass": "Get Day Pass — $4",
+    "seePlans": "Bekijk abonnementen"
+  },
+  "connect": {
+    "title": "Verbind je Notion-workspace",
+    "body": "Zoek en converteer pagina's rechtstreeks. We lezen alleen de pagina's die je met 2anki deelt.",
+    "connectButton": "Verbind met Notion",
+    "fallbackText": "Of upload een bestand dat je uit Notion hebt geëxporteerd.",
+    "uploadFile": "Een bestand uploaden"
+  },
+  "searchBar": {
+    "label": "Zoek in Notion",
+    "placeholder": "Zoek in Notion"
+  },
+  "results": {
+    "scopeWorkspace": "in “{{workSpace}}”",
+    "scopeGeneric": "in je Notion-workspace",
+    "noMatch": "Geen pagina's komen overeen met “{{query}}” {{scope}}",
+    "noneFound": "Geen pagina's gevonden {{scope}}",
+    "emptyBodyPrefix": "Probeer een andere zoekterm, of zorg dat de pagina met de 2anki-integratie is gedeeld — zie ",
+    "sharingLink": "Notion's deelinstellingen",
+    "emptyBodySuffix": "."
+  },
+  "entry": {
+    "remaking": "Je deck opnieuw maken — ",
+    "added": "Toegevoegd aan je downloads — ",
+    "view": "bekijken",
+    "paywallText": "Gratis abonnement — één conversie tegelijk.",
+    "upgrade": "Upgraden",
+    "paywallSuffix": " of wachten.",
+    "conflict": "Deze pagina wordt al geconverteerd.",
+    "error": "Kon deze pagina niet in de wachtrij zetten. Probeer het opnieuw.",
+    "inProgress": "Bezig",
+    "convertToAnki": "Converteren naar Anki",
+    "convert": "Converteren",
+    "openInNotion": "{{title}} openen in Notion",
+    "preview": "Voorbeeld van {{title}}",
+    "configureRules": "Regels instellen voor {{title}}"
+  },
+  "flashcardType": {
+    "new": "Nieuw"
+  },
+  "icon": {
+    "alt": "icoon"
+  }
+}

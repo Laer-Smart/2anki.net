@@ -1,0 +1,102 @@
+{
+  "page": {
+    "prefilledPrompt": "Ik probeerde {{filename}} om te zetten en liep vast. Wat kan ik doen?",
+    "prefilledPromptFallback": "dit bestand",
+    "loadError": "Kon dit gesprek niet laden.",
+    "renameError": "Kon dit gesprek niet hernoemen.",
+    "deleteError": "Kon dit gesprek niet verwijderen.",
+    "pastChats": "Eerdere chats",
+    "newChat": "Nieuwe chat"
+  },
+  "sidebar": {
+    "newChat": "Nieuwe chat",
+    "empty": "Nog geen gesprekken. Begin er hieronder een.",
+    "closeConversations": "Gesprekken sluiten",
+    "conversations": "Gesprekken",
+    "conversationTitle": "Gesprekstitel",
+    "optionsFor": "Opties voor {{title}}",
+    "rename": "Hernoemen",
+    "delete": "Verwijderen",
+    "justNow": "zojuist"
+  },
+  "message": {
+    "showLess": "Minder tonen",
+    "showFull": "Volledig bericht tonen",
+    "userMessage": "Gebruikersbericht"
+  },
+  "composer": {
+    "writingCards": "Je kaarten schrijven",
+    "thinking": "Nadenken",
+    "dropToAttach": "Sleep hierheen om bij te voegen",
+    "dropHint": "PDF of afbeelding, tot 10 MB per stuk",
+    "uploading": "Uploaden",
+    "uploadFailed": "Upload mislukt",
+    "retry": "Opnieuw",
+    "remove": "{{name}} verwijderen",
+    "attachFiles": "Bestanden bijvoegen",
+    "studyingPlaceholder": "Wat ben je aan het leren?",
+    "messageInput": "Berichtinvoer",
+    "sendMessage": "Bericht versturen",
+    "region": "Chatvenster met bestandssleepzone",
+    "scrollToBottom": "Naar beneden scrollen"
+  },
+  "heading": {
+    "withFile": "Wat wil je met dit bestand doen?",
+    "studying": "Wat ben je aan het leren?"
+  },
+  "usage": {
+    "messagesLeftOne": "Nog 1 bericht deze maand — je volgende verzending gebruikt het",
+    "messagesLeft": "Nog {{count}} van {{limit}} berichten deze maand"
+  },
+  "limitPanel": {
+    "text": "Je hebt alle {{count}} berichten deze maand gebruikt. Vernieuwt op {{date}}.",
+    "seePlans": "Bekijk abonnementen"
+  },
+  "errors": {
+    "cantAttachOne": "Kan {{name}} niet bijvoegen. Alleen PDF- en afbeeldingsbestanden werken hier.",
+    "cantAttachMany": "Kan {{count}} bestanden niet bijvoegen. Alleen PDF- en afbeeldingsbestanden werken hier.",
+    "oversize": "{{name}} is {{size}}. De limiet per bestand is 10 MB.",
+    "totalSize": "Dat is {{size}} in totaal. Een bericht mag maximaal 25 MB aan bestanden bevatten.",
+    "send": "Kon dit bericht niet versturen. Probeer het opnieuw.",
+    "conversationGone": "Dit gesprek is weg. Begin een nieuw gesprek.",
+    "rebuild": "Kon je kaarten niet opnieuw maken. Probeer het opnieuw.",
+    "addTags": "Kon geen tags toevoegen. Probeer het opnieuw.",
+    "deckGenerate": "Kon het deck niet genereren. Probeer het opnieuw."
+  },
+  "tags": {
+    "success_one": "Tags toegevoegd aan {{count}} kaart",
+    "success_other": "Tags toegevoegd aan {{count}} kaarten"
+  },
+  "cardPreview": {
+    "correctAnswer": "Juiste antwoord",
+    "addTags": "Tags toevoegen",
+    "downloadDeck": "Deck downloaden",
+    "nameThisDeck": "Geef dit deck een naam",
+    "deckName": "Decknaam",
+    "save": "Opslaan",
+    "cancel": "Annuleren",
+    "saveAgain": "Opnieuw opslaan",
+    "untitledDeck": "Naamloos deck",
+    "savedAs": "Opgeslagen als {{name}}.apkg",
+    "renameHint_one": "{{count}} kaart. Wordt opgeslagen als {{filename}}.apkg zodra je op Opslaan klikt.",
+    "renameHint_other": "{{count}} kaarten. Worden opgeslagen als {{filename}}.apkg zodra je op Opslaan klikt.",
+    "front": "Voorkant",
+    "back": "Achterkant",
+    "tags": "Tags",
+    "addingTags": "Tags toevoegen",
+    "showFewer": "Minder tonen",
+    "showAll": "Toon alle {{count}} kaarten",
+    "card_one": "kaart",
+    "card_other": "kaarten"
+  },
+  "codeBlock": {
+    "copyCode": "Code kopiëren",
+    "copied": "Gekopieerd",
+    "copy": "Kopiëren"
+  },
+  "templateSelector": {
+    "noteTypeAria": "Notitietype: {{label}}",
+    "noteTypeLabel": "Notitietype: {{label}}",
+    "listboxLabel": "Notitietype"
+  }
+}

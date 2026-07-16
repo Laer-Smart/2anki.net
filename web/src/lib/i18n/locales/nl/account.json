@@ -1,0 +1,150 @@
+{
+  "reasons": {
+    "finished": "Ik heb af wat ik nodig had",
+    "notEnough": "Ik gebruik het niet genoeg",
+    "tooExpensive": "Te duur",
+    "foundAlternative": "Ik heb een alternatief gevonden",
+    "technicalIssues": "Technische problemen",
+    "other": "Anders"
+  },
+  "subscription": {
+    "premium": "Premium",
+    "unknownDate": "een onbekende datum",
+    "endsPrefix": "Eindigt",
+    "endedPrefix": "Geëindigd",
+    "renewsPrefix": "Verlengt",
+    "accessContinues": "Toegang loopt tot dan door.",
+    "cancelThisPlan": "Dit abonnement opzeggen",
+    "cancelThisPlanNow": "Dit abonnement nu opzeggen",
+    "cancelPlanNoticeWithLabel": "Zegt het {{planLabel}}-abonnement direct op. Je kaart wordt niet belast voor de {{planLabel}} die verschuldigd is op {{date}}. Dit kan niet ongedaan worden gemaakt.",
+    "cancelPlanNotice": "Zegt dit abonnement direct op. Dit kan niet ongedaan worden gemaakt.",
+    "processing": "Verwerken…",
+    "keepIt": "Behouden",
+    "multipleActive": "Je hebt {{count}} actieve abonnementen. Je wordt waarschijnlijk dubbel belast — zeg het abonnement op dat je niet wilt houden.",
+    "billedThroughApple": "Gefactureerd via Apple",
+    "appleManageNotice": "Beheer of zeg dit abonnement op in je Apple-accountinstellingen: open Instellingen op je iPhone of iPad, tik op je naam en dan op Abonnementen.",
+    "pausedResumesPrefix": "Gepauzeerd · Hervat",
+    "pausedNotice": "Je wordt niet belast terwijl het gepauzeerd is. Je abonnement wordt hervat op {{date}} met {{plan}}. Tijdens de pauze zijn betaalde functies uit en blijft alles wat je hebt gemaakt bewaard.",
+    "yourPlan": "je abonnement",
+    "resuming": "Hervatten…",
+    "resumeNow": "Nu hervatten",
+    "cancelSubscription": "Abonnement opzeggen",
+    "legacyForfeit": "Opzeggen betekent dat je dit legacy-tarief verliest.",
+    "cancelNowInstead": "In plaats daarvan nu opzeggen",
+    "previousPlan": "Vorig abonnement: {{plan}}.",
+    "readingSubscription": "Je abonnement lezen",
+    "linkedEmailHeading": "Gekoppelde 2anki.net-e-mail",
+    "managedThroughStripe": "Je abonnement wordt beheerd via je Stripe-account op",
+    "youCan": "Je kunt:",
+    "manageSubscription": "Je abonnement beheren",
+    "updatePayment": "Betaalgegevens bijwerken",
+    "cancelYourSubscription": "Je abonnement opzeggen",
+    "subscriptionEmail": "Abonnements-e-mail",
+    "subscriptionEmailPlaceholder": "Voer abonnements-e-mail in",
+    "emailLinked": "E-mail gekoppeld.",
+    "linking": "Koppelen…",
+    "linkEmail": "E-mail koppelen"
+  },
+  "cancelFlow": {
+    "whyCancelling": "Waarom zeg je op? (optioneel)",
+    "processing": "Verwerken…",
+    "cancelSubscription": "Abonnement opzeggen",
+    "keepSubscription": "Abonnement behouden"
+  },
+  "pauseCard": {
+    "pauseInstead": "Pauzeer in plaats daarvan — geen kosten terwijl je weg bent",
+    "notice": "Even pauze tussen semesters? Pauzeer je abonnement in plaats van op te zeggen. Je wordt niet belast tijdens de pauze en het wordt vanzelf hervat wanneer je er klaar voor bent. Alles wat je hebt gemaakt blijft bewaard.",
+    "pauseFor": "Pauzeren voor",
+    "pauseLengthAria": "Pauzeduur",
+    "oneMonth": "1 maand",
+    "nMonths": "{{count}} maanden",
+    "resumesLine": "Hervat {{date}} met {{plan}}. Voor die tijd altijd opzegbaar.",
+    "yourPlan": "je abonnement",
+    "pausing": "Pauzeren…",
+    "pauseSubscription": "Abonnement pauzeren"
+  },
+  "cancellationFollowUp": {
+    "whyDidYouCancel": "Waarom heb je opgezegd? (optioneel)",
+    "tellMore": "Vertel ons meer (optioneel)",
+    "skip": "Overslaan",
+    "sending": "Verzenden…",
+    "sendFeedback": "Feedback versturen"
+  },
+  "accountDeletion": {
+    "deleteAccount": "Account verwijderen",
+    "warning": "Al je gegevens worden permanent verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    "deleteAccountQuestion": "Account verwijderen?",
+    "close": "sluiten",
+    "cancel": "Annuleren"
+  },
+  "claimSubscription": {
+    "paidDifferentEmail": "Betaald met een ander e-mailadres?",
+    "sent": "Verzonden. Check die inbox voor een bevestigingslink.",
+    "description": "Als je Stripe met een ander e-mailadres hebt betaald, voer het hier in. We sturen een bevestigingslink naar dat adres om het abonnement aan dit account te koppelen.",
+    "emailPlaceholder": "E-mail waarmee je betaalde",
+    "emailLabel": "E-mail waarmee je betaalde",
+    "error": "Er is iets misgegaan. Probeer het zo weer.",
+    "sending": "Verzenden…",
+    "sendConfirmation": "Bevestigingsmail versturen"
+  },
+  "logOutEverywhere": {
+    "sessions": "Sessies",
+    "notice": "Apparaat kwijt? Log overal uit om elke sessie te beëindigen, inclusief deze. Log opnieuw in om verder te gaan.",
+    "confirm": "Bevestigen",
+    "cancel": "Annuleren",
+    "logOutEverywhere": "Overal uitloggen"
+  },
+  "planDetails": {
+    "lifetimeMeta": "Alle huidige en toekomstige functies.",
+    "premiumMeta": "Onbeperkt kaarten, alle formaten.",
+    "free": "Free",
+    "freeMeta": "100 cards per month.",
+    "seePlans": "Bekijk abonnementen"
+  },
+  "checkout": {
+    "youreOnUnlimited": "Je zit op Unlimited",
+    "thanksActive": "Bedankt, {{firstName}} — je abonnement is actief.",
+    "subscriptionActive": "Je abonnement is actief.",
+    "makeDeck": "Een deck maken",
+    "goToAccount": "Naar account",
+    "paymentConfirmed": "Je betaling is bevestigd",
+    "startUsingPrefix": "Om je nieuwe functies te gebruiken, log in of maak een account aan met hetzelfde ",
+    "sameEmailAddress": "e-mailadres",
+    "startUsingSuffix": " dat je bij het afrekenen hebt gebruikt.",
+    "usedDifferentEmail": "Een ander e-mailadres gebruikt voor de betaling?",
+    "linkEmailsPrefix": "Je kunt betaal- en login-e-mails koppelen vanaf je ",
+    "settingsPage": "instellingenpagina",
+    "linkEmailsSuffix": " na het inloggen.",
+    "troubleLoggingIn": "Problemen met inloggen? Mail ",
+    "existingUser": "Bestaande gebruiker",
+    "existingUserBody": "Log in met het e-mailadres dat aan je betaling is gekoppeld.",
+    "logIn": "Inloggen",
+    "newUser": "Nieuwe gebruiker",
+    "newUserBody": "Maak een account aan met hetzelfde e-mailadres dat je voor je betaling hebt gebruikt.",
+    "signUp": "Aanmelden",
+    "note": "Let op:",
+    "timeoutBefore": " We verwerken je abonnementsactivering nog. Als je al bent ingelogd, kun je proberen rechtstreeks naar de ",
+    "notionPage": "Notion-pagina",
+    "timeoutAfter": " te gaan, of ververs deze pagina om het opnieuw te checken.",
+    "processingPayment": "Je betaling verwerken...",
+    "activatingSubscription": "We activeren je abonnement. Dit duurt meestal maar een paar seconden.",
+    "autoRedirect": "Je wordt automatisch doorgestuurd zodra je abonnement actief is."
+  },
+  "verifyEmail": {
+    "message": "Check je inbox — bevestig je e-mail om je account te beveiligen.",
+    "dismiss": "Sluiten"
+  },
+  "createAccount": {
+    "aria": "Bewaar je volgende decks",
+    "headline": "Bewaar je volgende decks",
+    "body": "Met een gratis account wordt elk deck dat je omzet opgeslagen in je downloadgeschiedenis — download ze later opnieuw.",
+    "cta": "Maak een gratis account"
+  },
+  "accessBanner": {
+    "active": "{{passLabel}} actief — verloopt {{date}}. Converteer zoveel je wilt.",
+    "endsIn": "{{passLabel}} eindigt over {{time}} — maak lopende conversies af.",
+    "minutes": "{{count}} minuten",
+    "aboutHours_one": "ongeveer {{count}} uur",
+    "aboutHours_other": "ongeveer {{count}} uur"
+  }
+}

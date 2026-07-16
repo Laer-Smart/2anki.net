@@ -1,0 +1,224 @@
+{
+  "steps": {
+    "dropFile": {
+      "title": "Sleep je bestand hierheen",
+      "body": "Notion-export, PDF, Word, Markdown of een Quizlet-export."
+    },
+    "buildsDeck": {
+      "title": "2anki bouwt je deck",
+      "body": "Meestal een paar seconden. Grotere bestanden duren een minuut."
+    },
+    "openInAnki": {
+      "title": "Open het in Anki",
+      "body": "Dubbelklik op het .apkg-bestand. Je kaarten zijn klaar om te leren."
+    }
+  },
+  "sections": {
+    "howItWorks": "Hoe het werkt",
+    "supportedFormats": "Ondersteunde formaten",
+    "whatYouGet": "Wat je echt in Anki krijgt",
+    "commonQuestions": "Veelgestelde vragen",
+    "related": "Gerelateerd"
+  },
+  "hero": {
+    "freeQuota": "Gratis · tot 1 000 kaarten per import",
+    "orPrefix": "of ",
+    "signUpFree": "meld je gratis aan",
+    "tryUnlimited": "probeer Unlimited 1 uur gratis"
+  },
+  "footer": {
+    "readyPrefix": "Klaar om het te proberen? ",
+    "dropLink": "Sleep een bestand naar boven aan deze pagina."
+  },
+  "hub": {
+    "h1": "Zet alles om naar Anki",
+    "subhead": "Kies je bron. Elke converter zet je notities, bestanden of flashcards om in een net .apkg-deck dat je in Anki leert.",
+    "groups": {
+      "note-apps": "Notitie-apps",
+      "flashcard-apps": "Flashcard-apps",
+      "files": "Bestanden",
+      "language-tools": "Taaltools"
+    }
+  },
+  "answers": {
+    "faqHeading": "Veelgestelde vragen",
+    "convert-notion-to-anki": {
+      "h1": "Zo zet je Notion om in Anki-flashcards",
+      "intro": "Notion bewaart je notities. Anki maakt er een herhaalsysteem van. 2anki overbrugt het gat — je krijgt binnen een minuut een .apkg-deck van elke Notion-pagina."
+    },
+    "notion-to-anki-sync": {
+      "h1": "Notion naar Anki automatische sync",
+      "intro": "Auto Sync volgt je verbonden Notion-pagina's en pusht wijzigingen elke 5 minuten naar je Anki-decks. Bewerk een toggle in Notion; de kaart wordt bijgewerkt in Anki vóór je volgende leersessie."
+    },
+    "pdf-to-anki": {
+      "h1": "Zo zet je een PDF om in Anki-flashcards",
+      "intro": "Upload een PDF naar 2anki en download een .apkg-deck. Werkt met collegeslides, hoofdstukken uit studieboeken en elke PDF met een tekstlaag."
+    },
+    "quizlet-to-anki": {
+      "h1": "Zo stap je over van Quizlet naar Anki",
+      "intro": "Quizlet bewaart je sets. Anki geeft je een echt spaced-repetition-algoritme. 2anki zet een Quizlet-export om in een .apkg-deck dat je rechtstreeks in Anki kunt openen."
+    },
+    "fsrs-explained": {
+      "h1": "FSRS in Anki — wat het is en waarom je volgende herhaling er vreemd uitziet",
+      "intro": "FSRS is het moderne spaced-repetition-algoritme dat Anki sinds versie 23.10 (november 2023) meelevert. Het is nog steeds opt-in — SM-2 blijft de standaard — maar het wordt breed aanbevolen in de community en de Anki-handleiding presenteert het als nauwkeuriger dan SM-2. FSRS voorspelt hoe lang je een kaart onthoudt en plant de volgende herhaling op het punt waarop je herinneringskans tot 90% zakt. Voor een kaart die je makkelijk beantwoordt, kan dat punt een jaar of meer weg liggen — de bron van de vraag \"waarom is mijn volgende herhaling over 17 maanden\" die elke week r/Anki vult."
+    },
+    "lecture-notes-to-anki": {
+      "h1": "Zo maak je Anki-flashcards van collegeaantekeningen",
+      "intro": "Je collegeaantekeningen staan al ergens — slide-PDF's, een Word- of Google-document, een Notion-pagina of een foto die je in de les maakte. 2anki leest elk daarvan en geeft je een .apkg-deck dat je in Anki opent. Kies de bron die bij je notities past en begin dezelfde dag met leren."
+    },
+    "word-to-anki": {
+      "h1": "Zo zet je een Word-document om in Anki",
+      "intro": "Als je notities in een Word-document staan, hoef je ze niet met de hand als kaarten opnieuw te maken. Upload het .docx-bestand naar 2anki en download een .apkg-deck dat in Anki opent. Koppen, afbeeldingen en opmaak komen mee."
+    },
+    "image-occlusion-anki": {
+      "h1": "Zo maak je image occlusion-kaarten in Anki",
+      "intro": "Image occlusion-kaarten verbergen een deel van een diagram en vragen je te herinneren wat eronder zit — de snelste manier om anatomie, structuren, kaarten en gelabelde figuren te onthouden. Upload een afbeelding naar 2anki, maskeer de delen die je wilt testen en download een Anki-deck."
+    },
+    "google-docs-to-anki": {
+      "h1": "Zo zet je Google Docs om in Anki-flashcards",
+      "intro": "Google Docs verbindt niet rechtstreeks met 2anki, maar je hoeft niets over te typen. Download je document als Word (.docx) of Markdown, upload het bestand en download een .apkg-deck dat in Anki opent. Koppen, afbeeldingen en opmaak komen mee."
+    },
+    "handwritten-notes-to-anki": {
+      "h1": "Zo maak je Anki-flashcards van handgeschreven notities",
+      "intro": "Handgeschreven notities zijn lastig te herhalen en niet te doorzoeken. Fotografeer een pagina, upload hem naar 2anki en de foto-naar-deck-tool leest hem met AI en maakt kaartconcepten die je bekijkt vóór de download. Je krijgt een .apkg-deck dat in Anki opent."
+    },
+    "textbook-to-anki": {
+      "h1": "Zo maak je Anki-flashcards van een hoofdstuk uit een studieboek",
+      "intro": "Een hoofdstuk uit een studieboek is veel stof om met de hand te bekaarten. Upload het hoofdstuk als PDF en 2anki leest de tekst in vraag-antwoordkaarten, behoudt de figuren en geeft je een .apkg-deck. Zet één hoofdstuk per keer om zodat elk deck herhaalbaar blijft."
+    },
+    "kindle-highlights-to-anki": {
+      "h1": "Zo zet je Kindle-markeringen om in Anki-flashcards",
+      "intro": "Elke markering die je op een Kindle maakt, wordt opgeslagen in één bestand met de naam My Clippings.txt. 2anki leest dat bestand en zet elke passage om in een kaart, zodat de regels die je tijdens het lezen markeerde een deck worden dat je in Anki herhaalt. Je krijgt een .apkg die je met een dubbelklik opent."
+    },
+    "language-app-to-anki": {
+      "h1": "Zo verplaats je je flashcards van een taalapp naar Anki",
+      "intro": "Taalapps zijn goed in het vastleggen van woordenschat, maar zwak in herhaling op lange termijn. Anki geeft je een echt spaced-repetition-algoritme. In welke app je ook begon, het pad is hetzelfde: exporteer een bestand, upload het naar 2anki en download een .apkg-deck dat je op elk apparaat leert. Zo past elke veelgebruikte app in dat pad."
+    },
+    "obsidian-to-anki": {
+      "h1": "Zo zet je Obsidian-notities om in Anki-flashcards",
+      "intro": "Obsidian-notities zijn platte Markdown-bestanden, wat betekent dat ze zonder plugin naar Anki converteren. Upload een .md-bestand naar 2anki en download een .apkg-deck dat in Anki opent. Bullets, vraag-antwoordparen, koppen en codeblokken komen allemaal mee."
+    }
+  },
+  "pages": {
+    "ai-flashcard-generator": {
+      "h1": "Zet je notities om in Anki-kaarten",
+      "subhead": "Echte notities erin, echte kaarten eruit. 2anki bouwt je deck op basis van wat je uploadt — het verzint nooit feiten."
+    },
+    "anki-to-notion": {
+      "h1": "Importeer Anki-decks met één klik in Notion.",
+      "subhead": "Upload een .apkg-bestand. Krijg elke kaart als toggle in een Notion-pagina die je kunt leren, doorzoeken en bewerken."
+    },
+    "goodnotes-to-anki": {
+      "h1": "Zet GoodNotes om in Anki-flashcards",
+      "subhead": "Exporteer je notitieboek als PDF, sleep het hierheen en download een Anki-deck."
+    },
+    "anki-for-japanese": {
+      "h1": "Notion naar Anki voor Japans en taalstudie",
+      "subhead": "Sleep een Notion-pagina met gemijnde zinnen of woordenschat hierheen. Screenshots, audio en lezingen komen mee zoals je ze schreef."
+    },
+    "markdown-to-anki": {
+      "h1": "Zet Markdown-notities om in Anki-kaarten",
+      "subhead": "Sleep een .md-bestand hierheen en download een deck — bullets en vraag-antwoordparen komen mee."
+    },
+    "mcat-anki": {
+      "h1": "Zet je MCAT-stof om in Anki-kaarten die je zelf beheert",
+      "subhead": "Sleep een PDF of Notion-export van je stofnotities hierheen — aminozuren, orgo-reacties, psych- en soc-termen. 2anki bouwt nette kaarten van jouw materiaal, niet van een gok."
+    },
+    "anki-from-medical-lecture-slides": {
+      "h1": "Zet collegeslides om in Anki-kaarten",
+      "subhead": "Upload een PDF van je slides — koppen worden decknamen, bullets worden kaarten."
+    },
+    "nclex-anki": {
+      "h1": "Zet je NCLEX-notities om in Anki-kaarten die je zelf beheert",
+      "subhead": "Sleep een PDF of Notion-export van je Saunders-, UWorld- of ATI-notities hierheen — labwaarden, med-suffixen, prioriteit en delegatie. 2anki bouwt nette kaarten van jouw materiaal, niet van een gok."
+    },
+    "notion-to-anki": {
+      "h1": "Notion naar Anki — gratis, geen add-on nodig",
+      "subhead": "Verbind Notion één keer, plak elke paginalink, krijg een .apkg-deck. Geen software te installeren."
+    },
+    "nursing-flashcards": {
+      "h1": "Anki-flashcards van verpleegkundige collegeslides en notities",
+      "subhead": "Sleep een PDF of Notion-export hierheen. 2anki haalt de termen, medicatie en procedures eruit."
+    },
+    "pdf-to-anki": {
+      "h1": "Maak Anki-flashcards van een PDF",
+      "subhead": "Sleep een PDF hierheen en we halen de tekst eruit die je in kaarten kunt omzetten."
+    },
+    "powerpoint-to-anki": {
+      "h1": "Maak Anki-flashcards van een PowerPoint",
+      "subhead": "Sleep een .pptx hierheen en 2anki leest de tekst op je slides en bouwt een Anki-deck dat je kunt bewerken."
+    },
+    "quizlet-to-anki": {
+      "h1": "Verplaats je Quizlet-set naar Anki",
+      "subhead": "Exporteer uit Quizlet, sleep het bestand hierheen en download een Anki-deck."
+    },
+    "step1-anki": {
+      "h1": "Zet je First Aid-aantekeningen en collegeaantekeningen om in Step 1-kaarten die je zelf beheert",
+      "subhead": "Anki is de ruggengraat van Step 1-voorbereiding. Upload je geannoteerde First Aid-pagina's, Pathoma-schema's of college-PDF's en krijg nette, high-yield kaarten — gebouwd van jouw materiaal, nooit verzonnen."
+    },
+    "usmle-anki": {
+      "h1": "USMLE Step 1- en Step 2-decks van je eigen notities",
+      "subhead": "Upload collegeslides, First Aid-exports of elke PDF. High-yield kaarten, klaar voor spaced repetition."
+    },
+    "convert-notion-to-anki": {
+      "h1": "Notion naar Anki — zet je notities om in flashcards",
+      "subhead": "Verbind Notion één keer, plak elke paginalink, krijg een .apkg-deck. Toggles worden kaarten. Geen add-on, geen kopiëren-plakken."
+    },
+    "convert-pdf-to-anki": {
+      "h1": "PDF naar Anki — flashcards van collegeslides en hoofdstukken uit studieboeken",
+      "subhead": "Sleep een college-PDF, slide-export of hoofdstuk uit een studieboek hierheen en download een .apkg-deck. 2anki leest de tekst in vraag-antwoordkaarten, valt terug op afbeeldingskaarten wanneer een pagina geen tekst heeft en kan met AI kaarten schrijven wanneer de PDF dicht is."
+    },
+    "convert-markdown-to-anki": {
+      "h1": "Markdown naar Anki — converteer .md-bestanden en Obsidian-notities",
+      "subhead": "Sleep een .md-bestand hierheen en download een deck — bullets, vraag-antwoordparen en codeblokken komen allemaal mee."
+    },
+    "convert-csv-to-anki": {
+      "h1": "CSV naar Anki — importeer spreadsheets als flashcard-decks",
+      "subhead": "Sleep een .csv-bestand hierheen en krijg een .apkg-deck. Kolom A wordt de voorkant, alles na A komt samen in de achterkant. Werkt ook met Excel-exports."
+    },
+    "convert-html-to-anki": {
+      "h1": "HTML naar Anki — zet webpagina's om in flashcard-decks",
+      "subhead": "Sleep een .html-bestand hierheen en download een .apkg-deck. Koppen, bullets en tabellen komen allemaal mee."
+    },
+    "convert-apkg-to-csv": {
+      "h1": "Anki-deck naar CSV — exporteer kaarten naar een spreadsheet",
+      "subhead": "Sleep een .apkg-bestand hierheen en download een CSV. Elke kaartvoorkant, achterkant en tag in één spreadsheet die je kunt bewerken."
+    },
+    "convert-notion-tables-to-anki": {
+      "h1": "Notion-tabellen naar Anki — één rij, één kaart",
+      "subhead": "Plak een Notion-pagina met een tabel. Kolom 1 wordt de voorkant, kolom 2 wordt de achterkant."
+    },
+    "convert-brainscape-to-anki": {
+      "h1": "Verplaats je Brainscape-flashcards naar Anki",
+      "subhead": "Exporteer je Brainscape-deck als CSV, sleep het hierheen, krijg een .apkg-deck dat netjes in Anki opent."
+    },
+    "convert-lingvist-to-anki": {
+      "h1": "Verplaats je Lingvist-flashcards naar Anki",
+      "subhead": "Exporteer je Lingvist-woordenschat als CSV, sleep het hierheen en krijg een .apkg-deck. Je woorden en vertalingen komen mee als Basic-kaarten."
+    },
+    "convert-studystack-to-anki": {
+      "h1": "Verplaats je StudyStack-flashcards naar Anki",
+      "subhead": "Exporteer je StudyStack als CSV, sleep het hierheen en krijg een .apkg-deck. Termen en definities worden Basic-kaarten, klaar om in Anki te herhalen."
+    },
+    "convert-pleco-to-anki": {
+      "h1": "Verplaats je Pleco-flashcards naar Anki",
+      "subhead": "Exporteer je Pleco-userdict als .txt-bestand, sleep het hierheen en krijg een .apkg-deck. Hanzi, pinyin en definities komen mee als Basic-kaarten."
+    },
+    "convert-zorbi-to-anki": {
+      "h1": "Verplaats je Zorbi-flashcards naar Anki",
+      "subhead": "Exporteer je Zorbi-deck als CSV, sleep het hierheen en krijg een .apkg-deck. Vragen en antwoorden worden Basic Anki-kaarten."
+    },
+    "convert-language-reactor-to-anki": {
+      "h1": "Verplaats je Language Reactor-opslag naar Anki",
+      "subhead": "Sleep de export-zip van Language Reactor hierheen — je opgeslagen zinnen, afbeeldingen en audio komen mee als een nette .apkg die je op elk apparaat leert."
+    },
+    "convert-epub-to-anki": {
+      "h1": "EPUB-markeringen naar Anki — van e-bookmarkeringen naar kaarten",
+      "subhead": "Sleep een DRM-vrije .epub hierheen en download een .apkg. Elke passage die je markeerde wordt een kaart, met de boektitel en auteur op de achterkant."
+    },
+    "convert-kindle-to-anki": {
+      "h1": "Kindle-markeringen naar Anki — van My Clippings.txt naar een deck",
+      "subhead": "Kopieer My Clippings.txt van je Kindle, sleep het hierheen en download een .apkg. Elke passage die je markeerde — en elke notitie die je typte — wordt een kaart."
+    }
+  }
+}
