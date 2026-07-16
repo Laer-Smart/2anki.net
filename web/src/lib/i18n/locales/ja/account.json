@@ -1,0 +1,149 @@
+{
+  "reasons": {
+    "finished": "必要なことは終わりました",
+    "notEnough": "あまり使っていません",
+    "tooExpensive": "料金が高すぎます",
+    "foundAlternative": "他のサービスを見つけました",
+    "technicalIssues": "技術的な問題があります",
+    "other": "その他"
+  },
+  "subscription": {
+    "premium": "Premium",
+    "unknownDate": "不明な日付",
+    "endsPrefix": "終了",
+    "endedPrefix": "終了済み",
+    "renewsPrefix": "更新",
+    "accessContinues": "その日まで引き続きご利用いただけます。",
+    "cancelThisPlan": "このプランを解約",
+    "cancelThisPlanNow": "今すぐこのプランを解約",
+    "cancelPlanNoticeWithLabel": "{{planLabel}} プランを今すぐ解約します。{{date}} に予定されていた {{planLabel}} の請求は行われません。この操作は取り消せません。",
+    "cancelPlanNotice": "このプランを今すぐ解約します。この操作は取り消せません。",
+    "processing": "処理中…",
+    "keepIt": "続ける",
+    "multipleActive": "有効なサブスクリプションが {{count}} 件あります。二重に請求されている可能性が高いため、不要な方を解約してください。",
+    "billedThroughApple": "Apple 経由で請求",
+    "appleManageNotice": "このサブスクリプションの管理・解約は Apple アカウントの設定から行えます。iPhone または iPad で設定を開き、お名前をタップして「サブスクリプション」を選んでください。",
+    "pausedResumesPrefix": "一時停止中 · 再開",
+    "pausedNotice": "一時停止中は請求されません。{{date}} に {{plan}} で再開します。停止中は有料機能はオフになりますが、作成したものはすべて保存されています。",
+    "yourPlan": "現在のプラン",
+    "resuming": "再開中…",
+    "resumeNow": "今すぐ再開",
+    "cancelSubscription": "サブスクリプションを解約",
+    "legacyForfeit": "解約すると、この旧料金は失われます。",
+    "cancelNowInstead": "代わりに今すぐ解約",
+    "previousPlan": "以前のプラン: {{plan}}。",
+    "readingSubscription": "サブスクリプションを読み込んでいます",
+    "linkedEmailHeading": "連携済みの 2anki.net メールアドレス",
+    "managedThroughStripe": "サブスクリプションは、次の Stripe アカウントで管理されています",
+    "youCan": "できること:",
+    "manageSubscription": "サブスクリプションを管理",
+    "updatePayment": "支払い情報を更新",
+    "cancelYourSubscription": "サブスクリプションを解約",
+    "subscriptionEmail": "サブスクリプションのメールアドレス",
+    "subscriptionEmailPlaceholder": "サブスクリプションのメールアドレスを入力",
+    "emailLinked": "メールアドレスを連携しました。",
+    "linking": "連携中…",
+    "linkEmail": "メールを連携"
+  },
+  "cancelFlow": {
+    "whyCancelling": "解約の理由を教えてください（任意）",
+    "processing": "処理中…",
+    "cancelSubscription": "サブスクリプションを解約",
+    "keepSubscription": "サブスクリプションを続ける"
+  },
+  "pauseCard": {
+    "pauseInstead": "代わりに一時停止 — 離れている間は請求なし",
+    "notice": "学期の合間に休みますか？解約する代わりに一時停止できます。停止中は請求されず、準備ができれば自動で再開します。作成したものはすべて保存されています。",
+    "pauseFor": "停止期間",
+    "pauseLengthAria": "停止期間",
+    "oneMonth": "1 か月",
+    "nMonths": "{{count}} か月",
+    "resumesLine": "{{date}} に {{plan}} で再開します。それまではいつでも解約できます。",
+    "yourPlan": "現在のプラン",
+    "pausing": "一時停止中…",
+    "pauseSubscription": "サブスクリプションを一時停止"
+  },
+  "cancellationFollowUp": {
+    "whyDidYouCancel": "解約された理由を教えてください（任意）",
+    "tellMore": "詳しく教えてください（任意）",
+    "skip": "スキップ",
+    "sending": "送信中…",
+    "sendFeedback": "フィードバックを送信"
+  },
+  "accountDeletion": {
+    "deleteAccount": "アカウントを削除",
+    "warning": "すべてのデータが完全に削除されます。この操作は取り消せません。",
+    "deleteAccountQuestion": "アカウントを削除しますか？",
+    "close": "閉じる",
+    "cancel": "キャンセル"
+  },
+  "claimSubscription": {
+    "paidDifferentEmail": "別のメールアドレスで支払いましたか？",
+    "sent": "送信しました。そのメールボックスで確認リンクをご確認ください。",
+    "description": "別のメールアドレスで Stripe に支払った場合は、ここに入力してください。そのアドレスに確認リンクを送り、このアカウントにサブスクリプションを紐付けます。",
+    "emailPlaceholder": "支払いに使ったメールアドレス",
+    "emailLabel": "支払いに使ったメールアドレス",
+    "error": "問題が発生しました。少し待ってからもう一度お試しください。",
+    "sending": "送信中…",
+    "sendConfirmation": "確認メールを送信"
+  },
+  "logOutEverywhere": {
+    "sessions": "セッション",
+    "notice": "デバイスをなくしましたか？すべての端末からログアウトすると、この端末を含むすべてのセッションが終了します。続けるには再度サインインしてください。",
+    "confirm": "確認",
+    "cancel": "キャンセル",
+    "logOutEverywhere": "すべての端末からログアウト"
+  },
+  "planDetails": {
+    "lifetimeMeta": "現在および今後のすべての機能。",
+    "premiumMeta": "無制限のカード、すべての形式。",
+    "free": "無料",
+    "freeMeta": "100 cards per month.",
+    "seePlans": "プランを見る"
+  },
+  "checkout": {
+    "youreOnUnlimited": "Unlimited をご利用中です",
+    "thanksActive": "{{firstName}} さん、ありがとうございます — サブスクリプションが有効になりました。",
+    "subscriptionActive": "サブスクリプションが有効になりました。",
+    "makeDeck": "デッキを作る",
+    "goToAccount": "アカウントへ",
+    "paymentConfirmed": "お支払いが確認されました",
+    "startUsingPrefix": "新しい機能を使い始めるには、チェックアウトで使った ",
+    "sameEmailAddress": "同じメールアドレス",
+    "startUsingSuffix": " でログインするか、アカウントを作成してください。",
+    "usedDifferentEmail": "支払いに別のメールアドレスを使いましたか？",
+    "linkEmailsPrefix": "サインイン後に、支払い用とログイン用のメールアドレスを ",
+    "settingsPage": "設定ページ",
+    "linkEmailsSuffix": " から連携できます。",
+    "troubleLoggingIn": "ログインでお困りですか？次のアドレスまでご連絡ください: ",
+    "existingUser": "既存のユーザー",
+    "existingUserBody": "支払いに紐付いたメールアドレスでログインしてください。",
+    "logIn": "ログイン",
+    "newUser": "新規のユーザー",
+    "newUserBody": "支払いに使ったものと同じメールアドレスでアカウントを作成してください。",
+    "signUp": "登録",
+    "note": "注意:",
+    "timeoutBefore": " サブスクリプションの有効化をまだ処理しています。すでにログイン済みの場合は、",
+    "notionPage": "Notion ページ",
+    "timeoutAfter": " に直接アクセスするか、このページを再読み込みして再度ご確認ください。",
+    "processingPayment": "お支払いを処理しています...",
+    "activatingSubscription": "サブスクリプションを有効化しています。通常は数秒で完了します。",
+    "autoRedirect": "サブスクリプションが有効になり次第、自動的にリダイレクトされます。"
+  },
+  "verifyEmail": {
+    "message": "メールボックスをご確認ください — メールを確認してアカウントを保護しましょう。",
+    "dismiss": "閉じる"
+  },
+  "createAccount": {
+    "aria": "次のデッキを保存",
+    "headline": "次のデッキを保存しておきましょう",
+    "body": "無料アカウントがあれば、変換したデッキはすべてダウンロード履歴に保存され、あとからいつでも再ダウンロードできます。",
+    "cta": "無料アカウントを作成"
+  },
+  "accessBanner": {
+    "active": "{{passLabel}} 有効 — {{date}} に期限切れ。好きなだけ変換できます。",
+    "endsIn": "{{passLabel}} はあと {{time}} で終了 — 保留中の変換を済ませてください。",
+    "minutes": "{{count}} 分",
+    "aboutHours_other": "約 {{count}} 時間"
+  }
+}

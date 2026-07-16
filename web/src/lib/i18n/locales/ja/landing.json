@@ -1,0 +1,224 @@
+{
+  "steps": {
+    "dropFile": {
+      "title": "ファイルをドロップ",
+      "body": "Notion エクスポート、PDF、Word、Markdown、または Quizlet エクスポート。"
+    },
+    "buildsDeck": {
+      "title": "2anki がデッキを作成",
+      "body": "通常は数秒です。大きなファイルは 1 分ほどかかります。"
+    },
+    "openInAnki": {
+      "title": "Anki で開く",
+      "body": ".apkg ファイルをダブルクリック。カードはすぐに学習できます。"
+    }
+  },
+  "sections": {
+    "howItWorks": "使い方",
+    "supportedFormats": "対応形式",
+    "whatYouGet": "Anki で実際に手に入るもの",
+    "commonQuestions": "よくある質問",
+    "related": "関連"
+  },
+  "hero": {
+    "freeQuota": "無料 · 1 回のインポートで最大 1 000 枚",
+    "orPrefix": "または ",
+    "signUpFree": "無料で登録",
+    "tryUnlimited": "Unlimited を 1 時間無料で試す"
+  },
+  "footer": {
+    "readyPrefix": "試してみますか？ ",
+    "dropLink": "このページの上部にファイルをドロップしてください。"
+  },
+  "hub": {
+    "h1": "何でも Anki に変換",
+    "subhead": "ソースを選んでください。どの変換ツールも、あなたのノート、ファイル、フラッシュカードを、Anki で学習できるきれいな .apkg デッキに変えます。",
+    "groups": {
+      "note-apps": "ノートアプリ",
+      "flashcard-apps": "フラッシュカードアプリ",
+      "files": "ファイル",
+      "language-tools": "語学ツール"
+    }
+  },
+  "answers": {
+    "faqHeading": "よくある質問",
+    "convert-notion-to-anki": {
+      "h1": "Notion を Anki フラッシュカードに変換する方法",
+      "intro": "Notion はノートを保管します。Anki はそれを復習システムに変えます。2anki がその隔たりを橋渡しします — どんな Notion ページからでも、1 分もかからず .apkg デッキが手に入ります。"
+    },
+    "notion-to-anki-sync": {
+      "h1": "Notion から Anki への自動同期",
+      "intro": "Auto Sync は接続した Notion ページを監視し、5 分ごとに変更を Anki デッキに反映します。Notion でトグルを編集すれば、次の復習セッションの前にカードが Anki で更新されます。"
+    },
+    "pdf-to-anki": {
+      "h1": "PDF を Anki フラッシュカードに変換する方法",
+      "intro": "PDF を 2anki にアップロードして、.apkg デッキをダウンロードしましょう。講義スライド、教科書の章、そしてテキストレイヤーのあるあらゆる PDF に対応します。"
+    },
+    "quizlet-to-anki": {
+      "h1": "Quizlet から Anki へ移行する方法",
+      "intro": "Quizlet はセットを保管します。Anki は本格的な間隔反復アルゴリズムを提供します。2anki は Quizlet エクスポートを、Anki で直接開ける .apkg デッキに変換します。"
+    },
+    "fsrs-explained": {
+      "h1": "Anki の FSRS — それが何か、そしてなぜ次の復習が正しく見えないのか",
+      "intro": "FSRS は、Anki がバージョン 23.10（2023 年 11 月）以降に搭載している最新の間隔反復アルゴリズムです。まだオプトイン方式で — 既定は SM-2 のままですが — コミュニティで広く推奨されており、Anki マニュアルでも SM-2 より正確だと説明されています。FSRS はカードをどれくらい覚えていられるかを予測し、記憶保持率が 90% に下がる時点で次の復習を予定します。簡単に答えられるカードでは、その時点が 1 年以上先になることもあり — これが r/Anki を毎週にぎわせる「なぜ次の復習が 17 か月後なのか」という疑問の元になっています。"
+    },
+    "lecture-notes-to-anki": {
+      "h1": "講義ノートを Anki フラッシュカードに変える方法",
+      "intro": "講義ノートはすでにどこかにあるはずです — スライドの PDF、Word や Google ドキュメント、Notion ページ、あるいは授業中に撮った写真。2anki はそのいずれも読み取り、Anki で開ける .apkg デッキを作ります。ノートに合ったソースを選んで、その日のうちに復習を始めましょう。"
+    },
+    "word-to-anki": {
+      "h1": "Word 文書を Anki に変換する方法",
+      "intro": "ノートが Word 文書にある場合、手作業でカードを作り直す必要はありません。.docx ファイルを 2anki にアップロードすれば、Anki で開ける .apkg デッキをダウンロードできます。見出し、画像、書式もそのまま反映されます。"
+    },
+    "image-occlusion-anki": {
+      "h1": "Anki で画像で隠す問題を作る方法",
+      "intro": "画像で隠す問題は、図の一部を隠して、その下に何があるかを思い出させます — 解剖、構造、地図、ラベル付きの図を覚える最速の方法です。画像を 2anki にアップロードし、テストしたい部分を隠して、Anki デッキをダウンロードしましょう。"
+    },
+    "google-docs-to-anki": {
+      "h1": "Google ドキュメントを Anki フラッシュカードに変換する方法",
+      "intro": "Google ドキュメントは 2anki に直接接続しませんが、何も打ち直す必要はありません。ドキュメントを Word（.docx）または Markdown としてダウンロードし、そのファイルをアップロードすれば、Anki で開ける .apkg デッキが手に入ります。見出し、画像、書式もそのまま反映されます。"
+    },
+    "handwritten-notes-to-anki": {
+      "h1": "手書きノートを Anki フラッシュカードに変える方法",
+      "intro": "手書きのノートは復習しづらく、検索もできません。ページを撮影して 2anki にアップロードすれば、写真からデッキのツールが AI で読み取り、ダウンロード前に確認できるカードの下書きを作ります。Anki で開ける .apkg デッキが手に入ります。"
+    },
+    "textbook-to-anki": {
+      "h1": "教科書の章を Anki フラッシュカードに変える方法",
+      "intro": "教科書の章は、手作業でカードにするには量が多いものです。章を PDF としてアップロードすれば、2anki がテキストを読み取って質問と回答のカードにし、図も残して .apkg デッキを作ります。各デッキが復習しやすいよう、1 章ずつ変換しましょう。"
+    },
+    "kindle-highlights-to-anki": {
+      "h1": "Kindle のハイライトを Anki フラッシュカードに変換する方法",
+      "intro": "Kindle で付けたハイライトはすべて、My Clippings.txt という 1 つのファイルに保存されます。2anki はそのファイルを読み取り、各一節をカードに変えるので、読みながらマークした行が Anki で復習するデッキになります。ダブルクリックで開ける .apkg が手に入ります。"
+    },
+    "language-app-to-anki": {
+      "h1": "語学アプリのフラッシュカードを Anki に移す方法",
+      "intro": "語学アプリは単語を集めるのは得意ですが、長期的な復習は苦手です。Anki は本格的な間隔反復アルゴリズムを提供します。どのアプリから始めても道のりは同じです。ファイルをエクスポートし、2anki にアップロードして、どのデバイスでも学習できる .apkg デッキをダウンロードします。各アプリがこの道のりにどう当てはまるかをご紹介します。"
+    },
+    "obsidian-to-anki": {
+      "h1": "Obsidian のノートを Anki フラッシュカードに変換する方法",
+      "intro": "Obsidian のノートはプレーンな Markdown ファイルなので、プラグインなしで Anki に変換できます。.md ファイルを 2anki にアップロードすれば、Anki で開ける .apkg デッキをダウンロードできます。箇条書き、質問と回答のペア、見出し、コードブロックもすべて反映されます。"
+    }
+  },
+  "pages": {
+    "ai-flashcard-generator": {
+      "h1": "ノートを Anki カードに変える",
+      "subhead": "本物のノートを入れれば、本物のカードが出てきます。2anki はアップロードした内容からデッキを作ります — 事実を創作することはありません。"
+    },
+    "anki-to-notion": {
+      "h1": "ワンクリックで Anki デッキを Notion に取り込む。",
+      "subhead": ".apkg ファイルをアップロード。すべてのカードが、学習・検索・編集できる Notion ページのトグルになります。"
+    },
+    "goodnotes-to-anki": {
+      "h1": "GoodNotes を Anki フラッシュカードに変える",
+      "subhead": "ノートブックを PDF としてエクスポートし、ここにドロップして Anki デッキをダウンロードしましょう。"
+    },
+    "anki-for-japanese": {
+      "h1": "日本語・語学学習のための Notion から Anki",
+      "subhead": "マイニングした例文や語彙の Notion ページをドロップ。スクリーンショット、音声、読みが、書いたとおりに反映されます。"
+    },
+    "markdown-to-anki": {
+      "h1": "Markdown のノートを Anki カードに変える",
+      "subhead": ".md ファイルをドロップしてデッキをダウンロード — 箇条書きと Q/A のペアが反映されます。"
+    },
+    "mcat-anki": {
+      "h1": "MCAT の内容復習を、自分でコントロールできる Anki カードに変える",
+      "subhead": "内容復習ノートの PDF や Notion エクスポートをドロップ — アミノ酸、有機化学の反応、心理・社会の用語。2anki は推測ではなく、あなたの素材からきれいなカードを作ります。"
+    },
+    "anki-from-medical-lecture-slides": {
+      "h1": "講義スライドを Anki カードに変える",
+      "subhead": "スライドの PDF をアップロード — 見出しがデッキ名に、箇条書きがカードになります。"
+    },
+    "nclex-anki": {
+      "h1": "NCLEX の復習ノートを、自分でコントロールできる Anki カードに変える",
+      "subhead": "Saunders、UWorld、ATI のノートの PDF や Notion エクスポートをドロップ — 検査値、薬剤の接尾辞、優先順位と委譲。2anki は推測ではなく、あなたの素材からきれいなカードを作ります。"
+    },
+    "notion-to-anki": {
+      "h1": "Notion から Anki へ — 無料、アドオン不要",
+      "subhead": "Notion を一度接続し、どのページのリンクでも貼れば、.apkg デッキが手に入ります。インストールするソフトはありません。"
+    },
+    "nursing-flashcards": {
+      "h1": "看護の講義スライドとノートから Anki フラッシュカード",
+      "subhead": "PDF や Notion エクスポートをドロップ。2anki が用語、薬剤、手技を抽出します。"
+    },
+    "pdf-to-anki": {
+      "h1": "PDF から Anki フラッシュカードを作る",
+      "subhead": "PDF をドロップすれば、カードにできるテキストを抽出します。"
+    },
+    "powerpoint-to-anki": {
+      "h1": "PowerPoint から Anki フラッシュカードを作る",
+      "subhead": ".pptx をドロップすれば、2anki がスライドのテキストを読み取り、編集できる Anki デッキを作ります。"
+    },
+    "quizlet-to-anki": {
+      "h1": "Quizlet のセットを Anki に移す",
+      "subhead": "Quizlet からエクスポートし、ファイルをここにドロップして、Anki デッキをダウンロードしましょう。"
+    },
+    "step1-anki": {
+      "h1": "First Aid の書き込みや講義ノートを、自分でコントロールできる Step 1 カードに変える",
+      "subhead": "Anki は Step 1 対策の要です。書き込んだ First Aid のページ、Pathoma のアウトライン、講義 PDF をアップロードすれば、あなたの素材から作られた、高収率できれいなカードが手に入ります — 決して創作されません。"
+    },
+    "usmle-anki": {
+      "h1": "自分のノートから作る USMLE Step 1・Step 2 デッキ",
+      "subhead": "講義スライド、First Aid エクスポート、あらゆる PDF をアップロード。高収率で、間隔反復にすぐ使えるカードに。"
+    },
+    "convert-notion-to-anki": {
+      "h1": "Notion から Anki へ — ノートをフラッシュカードに変える",
+      "subhead": "Notion を一度接続し、どのページのリンクでも貼れば、.apkg デッキが手に入ります。トグルがカードになります。アドオン不要、コピペ不要。"
+    },
+    "convert-pdf-to-anki": {
+      "h1": "PDF を Anki に変換 — 講義スライドと教科書の章からフラッシュカード",
+      "subhead": "講義 PDF、スライドエクスポート、教科書の章をドロップして .apkg デッキをダウンロード。2anki はテキストを質問と回答のカードに読み取り、テキストのないページでは画像カードに切り替え、PDF が濃密なときは AI でカードを書けます。"
+    },
+    "convert-markdown-to-anki": {
+      "h1": "Markdown を Anki に変換 — .md ファイルと Obsidian ノート",
+      "subhead": ".md ファイルをドロップしてデッキをダウンロード — 箇条書き、Q/A のペア、コードブロックもすべて反映されます。"
+    },
+    "convert-csv-to-anki": {
+      "h1": "CSV を Anki に変換 — スプレッドシートをフラッシュカードデッキとしてインポート",
+      "subhead": ".csv ファイルをドロップして .apkg デッキを入手。A 列が表になり、A 列より後がまとまって裏になります。Excel エクスポートにも対応します。"
+    },
+    "convert-html-to-anki": {
+      "h1": "HTML を Anki に変換 — ウェブページをフラッシュカードデッキに",
+      "subhead": ".html ファイルをドロップして .apkg デッキをダウンロード。見出し、箇条書き、表もすべて反映されます。"
+    },
+    "convert-apkg-to-csv": {
+      "h1": "Anki デッキを CSV に — カードをスプレッドシートにエクスポート",
+      "subhead": ".apkg ファイルをドロップして CSV をダウンロード。すべてのカードの表、裏、タグを、編集できる 1 つのスプレッドシートに。"
+    },
+    "convert-notion-tables-to-anki": {
+      "h1": "Notion のテーブルを Anki に — 1 行が 1 枚のカード",
+      "subhead": "テーブルのある Notion ページを貼り付け。1 列目が表、2 列目が裏になります。"
+    },
+    "convert-brainscape-to-anki": {
+      "h1": "Brainscape のフラッシュカードを Anki に移す",
+      "subhead": "Brainscape のデッキを CSV としてエクスポートし、ここにドロップすれば、Anki できれいに開ける .apkg デッキが手に入ります。"
+    },
+    "convert-lingvist-to-anki": {
+      "h1": "Lingvist のフラッシュカードを Anki に移す",
+      "subhead": "Lingvist の語彙を CSV としてエクスポートし、ここにドロップすれば、.apkg デッキが手に入ります。単語と訳が Basic カードとして反映されます。"
+    },
+    "convert-studystack-to-anki": {
+      "h1": "StudyStack のフラッシュカードを Anki に移す",
+      "subhead": "StudyStack を CSV としてエクスポートし、ここにドロップすれば、.apkg デッキが手に入ります。用語と定義が、Anki で復習できる Basic カードになります。"
+    },
+    "convert-pleco-to-anki": {
+      "h1": "Pleco のフラッシュカードを Anki に移す",
+      "subhead": "Pleco の userdict を .txt ファイルとしてエクスポートし、ここにドロップすれば、.apkg デッキが手に入ります。漢字、ピンイン、定義が Basic カードとして反映されます。"
+    },
+    "convert-zorbi-to-anki": {
+      "h1": "Zorbi のフラッシュカードを Anki に移す",
+      "subhead": "Zorbi のデッキを CSV としてエクスポートし、ここにドロップすれば、.apkg デッキが手に入ります。質問と回答が Basic の Anki カードになります。"
+    },
+    "convert-language-reactor-to-anki": {
+      "h1": "Language Reactor の保存を Anki に移す",
+      "subhead": "Language Reactor のエクスポート zip をドロップ — 保存したフレーズ、画像、音声が、どのデバイスでも学習できるきれいな .apkg として反映されます。"
+    },
+    "convert-epub-to-anki": {
+      "h1": "EPUB のハイライトを Anki に — 電子書籍のハイライトからカードへ",
+      "subhead": "DRM のない .epub をドロップして .apkg をダウンロード。ハイライトした各一節がカードになり、裏に本のタイトルと著者が入ります。"
+    },
+    "convert-kindle-to-anki": {
+      "h1": "Kindle のハイライトを Anki に — My Clippings.txt からデッキへ",
+      "subhead": "Kindle から My Clippings.txt をコピーし、ここにドロップして .apkg をダウンロード。ハイライトした各一節 — そして入力したメモ — がカードになります。"
+    }
+  }
+}
