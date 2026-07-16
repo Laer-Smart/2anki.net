@@ -1,7 +1,64 @@
 import React, { type ErrorInfo, type ReactNode } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import styles from '../../styles/shared.module.css';
 import { isChunkLoadError, recoverFromChunkError } from '../../lib/chunkReload';
+
+type RootErrorFallbackProps = Readonly<{
+  chunkLoad: boolean;
+  resetFailed: boolean;
+  onReload: () => void;
+  onResetLocalData: () => void;
+}>;
+
+function RootErrorFallback({
+  chunkLoad,
+  resetFailed,
+  onReload,
+  onResetLocalData,
+}: RootErrorFallbackProps) {
+  const { t } = useTranslation('errors');
+  const title = chunkLoad
+    ? t('rootBoundary.chunkTitle')
+    : t('rootBoundary.genericTitle');
+  const subtitle = chunkLoad
+    ? t('rootBoundary.chunkSubtitle')
+    : t('rootBoundary.genericSubtitle');
+
+  return (
+    <main className={styles.pageNarrow}>
+      <section className={styles.card} role="alert" aria-live="assertive">
+        <header className={styles.pageHeader}>
+          <h1 className={styles.title}>{title}</h1>
+          <p className={styles.subtitle}>{subtitle}</p>
+        </header>
+
+        {resetFailed && (
+          <p className={styles.notificationDanger}>
+            {t('rootBoundary.resetFailed')}
+          </p>
+        )}
+
+        <div className={styles.modalFooter}>
+          <button
+            type="button"
+            className={`${styles.btnPrimary} ${styles.btnInline}`}
+            onClick={onReload}
+          >
+            {t('rootBoundary.reload')}
+          </button>
+          <button
+            type="button"
+            className={styles.btnSecondary}
+            onClick={onResetLocalData}
+          >
+            {t('rootBoundary.resetLocalData')}
+          </button>
+        </div>
+      </section>
+    </main>
+  );
+}
 
 type RootErrorBoundaryProps = Readonly<{
   children: ReactNode;
@@ -68,86 +125,13 @@ export class RootErrorBoundary extends React.Component<
     }
 
     if (this.state.error) {
-      if (this.state.chunkLoad) {
-        return (
-          <main className={styles.pageNarrow}>
-            <section className={styles.card} role="alert" aria-live="assertive">
-              <header className={styles.pageHeader}>
-                <h1 className={styles.title}>
-                  This page was updated while you had it open
-                </h1>
-                <p className={styles.subtitle}>
-                  Reload to load the latest version. If reload doesn't help,
-                  reset local data and reload.
-                </p>
-              </header>
-
-              {this.state.resetFailed && (
-                <p className={styles.notificationDanger}>
-                  Couldn't reset local data. Clear site data for 2anki in your
-                  browser settings, then reload.
-                </p>
-              )}
-
-              <div className={styles.modalFooter}>
-                <button
-                  type="button"
-                  className={`${styles.btnPrimary} ${styles.btnInline}`}
-                  onClick={this.reloadPage}
-                >
-                  Reload
-                </button>
-                <button
-                  type="button"
-                  className={styles.btnSecondary}
-                  onClick={this.resetLocalData}
-                >
-                  Reset local data
-                </button>
-              </div>
-            </section>
-          </main>
-        );
-      }
-
       return (
-        <main className={styles.pageNarrow}>
-          <section className={styles.card} role="alert" aria-live="assertive">
-            <header className={styles.pageHeader}>
-              <h1 className={styles.title}>
-                Something went wrong loading 2anki
-              </h1>
-              <p className={styles.subtitle}>
-                Try reloading. If that doesn't help, reset local data and
-                reload.
-              </p>
-            </header>
-
-            {this.state.resetFailed && (
-              <p className={styles.notificationDanger}>
-                Couldn't reset local data. Clear site data for 2anki in your
-                browser settings, then reload.
-              </p>
-            )}
-
-            <div className={styles.modalFooter}>
-              <button
-                type="button"
-                className={`${styles.btnPrimary} ${styles.btnInline}`}
-                onClick={this.reloadPage}
-              >
-                Reload
-              </button>
-              <button
-                type="button"
-                className={styles.btnSecondary}
-                onClick={this.resetLocalData}
-              >
-                Reset local data
-              </button>
-            </div>
-          </section>
-        </main>
+        <RootErrorFallback
+          chunkLoad={this.state.chunkLoad}
+          resetFailed={this.state.resetFailed}
+          onReload={this.reloadPage}
+          onResetLocalData={this.resetLocalData}
+        />
       );
     }
 

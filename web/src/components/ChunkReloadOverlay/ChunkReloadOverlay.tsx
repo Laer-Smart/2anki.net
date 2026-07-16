@@ -1,6 +1,8 @@
+import { useTranslation } from 'react-i18next';
 import styles from './ChunkReloadOverlay.module.css';
 
 export function ChunkReloadOverlay() {
+  const { t } = useTranslation('errors');
   return (
     <div
       className={styles.overlay}
@@ -13,7 +15,7 @@ export function ChunkReloadOverlay() {
         src="https://2anki.net/mascot/navbar-logo.png"
         alt=""
       />
-      <p className={styles.message}>Updating to the latest version.</p>
+      <p className={styles.message}>{t('chunkOverlay.updating')}</p>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import styles from './Skeleton.module.css';
 
 interface SkeletonProps {
@@ -63,8 +64,9 @@ export function SkeletonList({
   count = 5,
   rowProps,
 }: Readonly<SkeletonListProps>) {
+  const { t } = useTranslation('errors');
   return (
-    <output aria-label="Loading">
+    <output aria-label={t('skeleton.loading')}>
       {Array.from({ length: count }, (_, idx) => (
         <SkeletonRow key={idx} {...rowProps} />
       ))}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import styles from './StepIndicator.module.css';
 import { StepIndex } from './jobStepFromStatus';
 
@@ -7,7 +8,12 @@ interface Props {
   readonly compact?: boolean;
 }
 
-const STEP_LABELS = ['Uploaded', 'Parsing', 'Generating', 'Packaging'] as const;
+const STEP_LABEL_KEYS = [
+  'uploaded',
+  'parsing',
+  'generating',
+  'packaging',
+] as const;
 
 function getPillClass(step: StepIndex, currentStep: StepIndex): string {
   if (step < currentStep) return styles.pillDone;
@@ -20,10 +26,13 @@ export function StepIndicator({
   substep,
   compact = false,
 }: Props) {
+  const { t } = useTranslation('errors');
+  const stepLabels = STEP_LABEL_KEYS.map((key) => t(`stepIndicator.${key}`));
+
   if (compact) {
-    const label = STEP_LABELS[currentStep - 1];
+    const label = stepLabels[currentStep - 1];
     return (
-      <ol className={styles.indicator} aria-label="Conversion progress">
+      <ol className={styles.indicator} aria-label={t('stepIndicator.progress')}>
         <li
           className={`${styles.pill} ${styles.pillActive}`}
           aria-current="step"
@@ -31,15 +40,15 @@ export function StepIndicator({
           <span className={styles.dot} />
           {label}
           {substep && <span className={styles.substep}>({substep})</span>}
-          <span className={styles.compactRest}> / {STEP_LABELS.length}</span>
+          <span className={styles.compactRest}> / {stepLabels.length}</span>
         </li>
       </ol>
     );
   }
 
   return (
-    <ol className={styles.indicator} aria-label="Conversion progress">
-      {STEP_LABELS.map((label, index) => {
+    <ol className={styles.indicator} aria-label={t('stepIndicator.progress')}>
+      {stepLabels.map((label, index) => {
         const step = (index + 1) as StepIndex;
         const isActive = step === currentStep;
         return (
