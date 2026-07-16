@@ -1,0 +1,146 @@
+{
+  "messages": {
+    "notionUnauthorized": {
+      "title": "Notion との接続の有効期限が切れました",
+      "detail": "ページの変換を続けるには、もう一度 Notion にサインインしてください。",
+      "action": "Notion に再接続"
+    },
+    "network": {
+      "title": "2anki に接続できませんでした。",
+      "detail": "接続を確認してからもう一度お試しください。"
+    },
+    "serviceUnavailable": {
+      "title": "現在サービスに接続できません。",
+      "detail": "多くの場合は一時的なものです — 少し待ってからお試しください。"
+    },
+    "rateLimited": {
+      "title": "リクエストが多すぎます。",
+      "detail": "1 分ほど待ってからお試しください。"
+    },
+    "sessionExpired": {
+      "title": "セッションの有効期限が切れました。",
+      "detail": "続けるにはもう一度サインインしてください。",
+      "action": "サインイン"
+    },
+    "apkgGone": {
+      "title": "このデッキは現在利用できません。",
+      "detail": "アップロードしたデッキは一定時間後に削除されます。プレビューするには、もう一度変換またはアップロードしてください。",
+      "action": "ダウンロードへ戻る"
+    },
+    "notionPageNotFound": {
+      "title": "その Notion ページを開けませんでした。",
+      "detail": "削除されたか、2anki と共有されていない可能性があります。Notion で再度共有するか、別のページを選んでください。",
+      "action": "ページを選ぶ"
+    },
+    "monthlyLimit": {
+      "title": "今月の上限に達しました。",
+      "detail": "今月さらにデッキを変換するには、プランをアップグレードしてください。"
+    },
+    "fallback": {
+      "title": "問題が発生しました。",
+      "detail": "もう一度お試しください。問題が続く場合は support@2anki.net までご連絡ください。"
+    },
+    "uploadFallback": {
+      "title": "このファイルの読み込み中に問題が発生しました。",
+      "detail": "もう一度お試しいただくか、パーサーを修正できるようファイルを support@2anki.net までお送りください。"
+    }
+  },
+  "upload": {
+    "unsupported_format": {
+      "title": "このファイル形式には対応していません。",
+      "detail": ".zip、.html、.md、.pdf、.docx、.xlsx、.pptx、.csv、.xml をご利用ください。"
+    },
+    "too_large": {
+      "title": "このエクスポートは一度に変換するには大きすぎます。",
+      "detail": "より小さな Notion のサブページに分割し、それぞれ別々に変換してください。"
+    },
+    "password_protected_pdf": {
+      "title": "この PDF はパスワードで保護されています。",
+      "detail": "PDF リーダーでパスワードを解除し、コピーを保存してからアップロードしてください。"
+    },
+    "invalid_markup": {
+      "title": "このファイルの一部に、読み取れない書式があります。",
+      "detail": "元のファイルを開き、問題のあるブロックを削除するか簡略化してから、もう一度お試しください。"
+    },
+    "malformed_notion": {
+      "title": "この Notion エクスポートを解析できませんでした。",
+      "detail": "Notion からページを再エクスポートしてもう一度お試しください。"
+    },
+    "corrupted_apkg": {
+      "title": "この .apkg ファイルは破損しています。",
+      "detail": "Anki から再エクスポートするか、support@2anki.net までお送りください。"
+    },
+    "empty_export": {
+      "title": "このエクスポートには、カードにできる内容がありません。",
+      "detail": "ページにテキストまたはトグルブロックがあることを確認してから、再度エクスポートしてください。"
+    },
+    "markdown_likely_lossy": {
+      "title": "Notion の Markdown エクスポートはトグルが失われます — このページを HTML として再エクスポートすると、トグルがフラッシュカードになります。"
+    },
+    "claude_parse_failed": {
+      "title": "カードの作成中に問題が発生しました。",
+      "detail": "もう一度お試しください。問題が続く場合は support@2anki.net までご連絡ください。"
+    },
+    "parser_crash": {
+      "title": "このファイルを読み取れませんでした。",
+      "detail": "形式に問題があるか、まだ対応していない構造の可能性があります。元のアプリから再エクスポートするか、ファイルを support@2anki.net までお送りください。"
+    },
+    "worker_timeout": {
+      "title": "この変換には、処理の制限時間を超える時間がかかりました。",
+      "detail": "ファイルをより小さく分割するか、非常に大きな埋め込み画像を削除してみてください。"
+    },
+    "notion_rate_limit": {
+      "title": "現在 Notion からレート制限を受けています。",
+      "detail": "1 分ほど待ってから、もう一度変換してください。"
+    },
+    "notion_object_not_found": {
+      "title": "その Notion ページを開けませんでした。",
+      "detail": "Notion で 2anki 連携とページを共有してから、もう一度お試しください。"
+    },
+    "apkg_too_large_for_anki": {
+      "title": "このデッキは Anki のアップロード上限を超えています。",
+      "detail": "トグルにするページ数を減らして分割するか、Anki デスクトップに直接アップロードしてください。"
+    },
+    "zip_invalid": {
+      "title": "この zip を読み取れませんでした。",
+      "detail": "Notion の HTML エクスポートではなく、Markdown & CSV エクスポートであることを確認してください。"
+    }
+  },
+  "presenter": {
+    "tryAgain": "再試行",
+    "dismiss": "閉じる"
+  },
+  "rootBoundary": {
+    "chunkTitle": "開いている間にこのページが更新されました",
+    "chunkSubtitle": "再読み込みして最新版を読み込んでください。再読み込みで解決しない場合は、ローカルデータをリセットして再読み込みしてください。",
+    "resetFailed": "ローカルデータをリセットできませんでした。ブラウザの設定で 2anki のサイトデータを消去してから、再読み込みしてください。",
+    "genericTitle": "2anki の読み込み中に問題が発生しました",
+    "genericSubtitle": "再読み込みをお試しください。解決しない場合は、ローカルデータをリセットして再読み込みしてください。",
+    "reload": "再読み込み",
+    "resetLocalData": "ローカルデータをリセット"
+  },
+  "domRecovery": {
+    "title": "問題が発生しました",
+    "subtitle": "ブラウザ拡張機能がこのページに干渉している可能性があります。再読み込みしてやり直してください。",
+    "reload": "再読み込み"
+  },
+  "chunkOverlay": {
+    "updating": "最新版に更新しています。"
+  },
+  "notFound": {
+    "pageTitle": "ページが見つかりません — 2anki",
+    "title": "ページが見つかりません",
+    "description": "このページは存在しないか、移動された可能性があります。",
+    "cta": "ホームページへ"
+  },
+  "stepIndicator": {
+    "progress": "変換の進捗",
+    "uploaded": "アップロード済み",
+    "parsing": "解析中",
+    "generating": "生成中",
+    "packaging": "パッケージ化中"
+  },
+  "skeleton": {
+    "loading": "読み込み中"
+  }
+}

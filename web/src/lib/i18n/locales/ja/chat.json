@@ -1,0 +1,99 @@
+{
+  "page": {
+    "prefilledPrompt": "{{filename}} を変換しようとしたのですが、うまくいきませんでした。どうすればいいですか？",
+    "prefilledPromptFallback": "このファイル",
+    "loadError": "この会話を読み込めませんでした。",
+    "renameError": "この会話の名前を変更できませんでした。",
+    "deleteError": "この会話を削除できませんでした。",
+    "pastChats": "過去のチャット",
+    "newChat": "新しいチャット"
+  },
+  "sidebar": {
+    "newChat": "新しいチャット",
+    "empty": "まだ会話がありません。下から始めましょう。",
+    "closeConversations": "会話を閉じる",
+    "conversations": "会話",
+    "conversationTitle": "会話のタイトル",
+    "optionsFor": "{{title}} のオプション",
+    "rename": "名前を変更",
+    "delete": "削除",
+    "justNow": "たった今"
+  },
+  "message": {
+    "showLess": "折りたたむ",
+    "showFull": "メッセージ全体を表示",
+    "userMessage": "ユーザーのメッセージ"
+  },
+  "composer": {
+    "writingCards": "カードを作成しています",
+    "thinking": "考えています",
+    "dropToAttach": "ドロップして添付",
+    "dropHint": "PDF または画像、各 10 MB まで",
+    "uploading": "アップロード中",
+    "uploadFailed": "アップロードに失敗しました",
+    "retry": "再試行",
+    "remove": "{{name}} を削除",
+    "attachFiles": "ファイルを添付",
+    "studyingPlaceholder": "何を勉強していますか？",
+    "messageInput": "メッセージ入力",
+    "sendMessage": "メッセージを送信",
+    "region": "ファイルドロップゾーン付きのチャット入力欄",
+    "scrollToBottom": "一番下へスクロール"
+  },
+  "heading": {
+    "withFile": "このファイルで何をしますか？",
+    "studying": "何を勉強していますか？"
+  },
+  "usage": {
+    "messagesLeftOne": "今月の残りメッセージは 1 件 — 次の送信で消費されます",
+    "messagesLeft": "今月の残りメッセージは {{limit}} 件中 {{count}} 件"
+  },
+  "limitPanel": {
+    "text": "今月の {{count}} 件のメッセージをすべて使い切りました。{{date}} にリセットされます。",
+    "seePlans": "プランを見る"
+  },
+  "errors": {
+    "cantAttachOne": "{{name}} は添付できません。ここでは PDF と画像ファイルのみ使えます。",
+    "cantAttachMany": "{{count}} 件のファイルは添付できません。ここでは PDF と画像ファイルのみ使えます。",
+    "oversize": "{{name}} は {{size}} です。1 ファイルあたりの上限は 10 MB です。",
+    "totalSize": "合計 {{size}} です。1 通のメッセージで送れるのは全ファイル合わせて 25 MB までです。",
+    "send": "このメッセージを送信できませんでした。もう一度お試しください。",
+    "conversationGone": "この会話は存在しません。新しい会話を始めてください。",
+    "rebuild": "カードを作り直せませんでした。もう一度お試しください。",
+    "addTags": "タグを追加できませんでした。もう一度お試しください。",
+    "deckGenerate": "デッキを生成できませんでした。もう一度お試しください。"
+  },
+  "tags": {
+    "success_other": "{{count}} 枚のカードにタグを追加しました"
+  },
+  "cardPreview": {
+    "correctAnswer": "正解",
+    "addTags": "タグを追加",
+    "downloadDeck": "デッキをダウンロード",
+    "nameThisDeck": "このデッキに名前を付ける",
+    "deckName": "デッキ名",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "saveAgain": "もう一度保存",
+    "untitledDeck": "無題のデッキ",
+    "savedAs": "{{name}}.apkg として保存しました",
+    "renameHint_other": "{{count}} 枚のカード。保存をクリックすると {{filename}}.apkg として保存されます。",
+    "front": "表",
+    "back": "裏",
+    "tags": "タグ",
+    "addingTags": "タグを追加しています",
+    "showFewer": "表示を減らす",
+    "showAll": "{{count}} 枚すべてのカードを表示",
+    "card_other": "枚"
+  },
+  "codeBlock": {
+    "copyCode": "コードをコピー",
+    "copied": "コピーしました",
+    "copy": "コピー"
+  },
+  "templateSelector": {
+    "noteTypeAria": "ノートタイプ: {{label}}",
+    "noteTypeLabel": "ノートタイプ: {{label}}",
+    "listboxLabel": "ノートタイプ"
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "page": {
+    "titleConnected": "Notion",
+    "titleGetStarted": "はじめる",
+    "subtitleConnected": "ページを見つけて、Anki デッキに変換しましょう。",
+    "subtitleDisconnected": "Notion ワークスペースを接続するか、ファイルをアップロードして Anki デッキを作成しましょう。",
+    "switchWorkspace": "ワークスペースを切り替え"
+  },
+  "limit": {
+    "title": "今月の {{limit}} 枚のカードをすべて使い切りました",
+    "body": "{{used}} / {{limit}} 枚 · {{resetsOn}} に無料カードが戻ってリセットされます",
+    "startingCheckout": "チェックアウトを開始しています",
+    "getDayPass": "Get Day Pass — $4",
+    "seePlans": "プランを見る"
+  },
+  "connect": {
+    "title": "Notion ワークスペースを接続",
+    "body": "ページを直接検索して変換できます。2anki と共有したページのみを読み取ります。",
+    "connectButton": "Notion に接続",
+    "fallbackText": "または Notion からエクスポートしたファイルをアップロードしてください。",
+    "uploadFile": "ファイルをアップロード"
+  },
+  "searchBar": {
+    "label": "Notion を検索",
+    "placeholder": "Notion を検索"
+  },
+  "results": {
+    "scopeWorkspace": "「{{workSpace}}」内",
+    "scopeGeneric": "あなたの Notion ワークスペース内",
+    "noMatch": "「{{query}}」に一致するページはありません（{{scope}}）",
+    "noneFound": "ページが見つかりません（{{scope}}）",
+    "emptyBodyPrefix": "別の検索語を試すか、そのページが 2anki 連携と共有されているか確認してください — ",
+    "sharingLink": "Notion の共有設定",
+    "emptyBodySuffix": " をご覧ください。"
+  },
+  "entry": {
+    "remaking": "デッキを作り直しています — ",
+    "added": "ダウンロードに追加しました — ",
+    "view": "表示",
+    "paywallText": "無料プラン — 一度に 1 件の変換まで。",
+    "upgrade": "アップグレード",
+    "paywallSuffix": " するか、お待ちください。",
+    "conflict": "このページはすでに変換中です。",
+    "error": "このページを処理待ちに追加できませんでした。もう一度お試しください。",
+    "inProgress": "処理中",
+    "convertToAnki": "Anki に変換",
+    "convert": "変換",
+    "openInNotion": "{{title}} を Notion で開く",
+    "preview": "{{title}} をプレビュー",
+    "configureRules": "{{title}} のルールを設定"
+  },
+  "flashcardType": {
+    "new": "新規"
+  },
+  "icon": {
+    "alt": "アイコン"
+  }
+}
