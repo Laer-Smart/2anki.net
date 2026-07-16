@@ -1,0 +1,102 @@
+{
+  "page": {
+    "prefilledPrompt": "Tentei converter {{filename}} e travei. O que eu posso fazer?",
+    "prefilledPromptFallback": "este arquivo",
+    "loadError": "Não foi possível carregar esta conversa.",
+    "renameError": "Não foi possível renomear esta conversa.",
+    "deleteError": "Não foi possível excluir esta conversa.",
+    "pastChats": "Conversas anteriores",
+    "newChat": "Nova conversa"
+  },
+  "sidebar": {
+    "newChat": "Nova conversa",
+    "empty": "Nenhuma conversa ainda. Comece uma abaixo.",
+    "closeConversations": "Fechar conversas",
+    "conversations": "Conversas",
+    "conversationTitle": "Título da conversa",
+    "optionsFor": "Opções de {{title}}",
+    "rename": "Renomear",
+    "delete": "Excluir",
+    "justNow": "agora mesmo"
+  },
+  "message": {
+    "showLess": "Mostrar menos",
+    "showFull": "Mostrar mensagem inteira",
+    "userMessage": "Mensagem do usuário"
+  },
+  "composer": {
+    "writingCards": "Escrevendo seus cartões",
+    "thinking": "Pensando",
+    "dropToAttach": "Solte para anexar",
+    "dropHint": "PDF ou imagem, até 10 MB cada",
+    "uploading": "Enviando",
+    "uploadFailed": "Falha no envio",
+    "retry": "Tentar de novo",
+    "remove": "Remover {{name}}",
+    "attachFiles": "Anexar arquivos",
+    "studyingPlaceholder": "O que você está estudando?",
+    "messageInput": "Campo de mensagem",
+    "sendMessage": "Enviar mensagem",
+    "region": "Compositor de chat com zona de soltar arquivos",
+    "scrollToBottom": "Rolar até o fim"
+  },
+  "heading": {
+    "withFile": "O que você gostaria de fazer com este arquivo?",
+    "studying": "O que você está estudando?"
+  },
+  "usage": {
+    "messagesLeftOne": "1 mensagem restante neste mês — o próximo envio usa ela",
+    "messagesLeft": "{{count}} de {{limit}} mensagens restantes neste mês"
+  },
+  "limitPanel": {
+    "text": "Você usou todas as {{count}} mensagens deste mês. Renova em {{date}}.",
+    "seePlans": "Ver planos"
+  },
+  "errors": {
+    "cantAttachOne": "Não é possível anexar {{name}}. Só arquivos PDF e de imagem funcionam aqui.",
+    "cantAttachMany": "Não é possível anexar {{count}} arquivos. Só arquivos PDF e de imagem funcionam aqui.",
+    "oversize": "{{name}} tem {{size}}. O limite por arquivo é 10 MB.",
+    "totalSize": "Isso dá {{size}} no total. Uma mensagem pode levar até 25 MB somando todos os arquivos.",
+    "send": "Não foi possível enviar esta mensagem. Tente de novo.",
+    "conversationGone": "Esta conversa não existe mais. Comece uma nova.",
+    "rebuild": "Não foi possível refazer seus cartões. Tente de novo.",
+    "addTags": "Não foi possível adicionar as tags. Tente de novo.",
+    "deckGenerate": "Não foi possível gerar o baralho. Tente de novo."
+  },
+  "tags": {
+    "success_one": "Tags adicionadas a {{count}} cartão",
+    "success_other": "Tags adicionadas a {{count}} cartões"
+  },
+  "cardPreview": {
+    "correctAnswer": "Resposta correta",
+    "addTags": "Adicionar tags",
+    "downloadDeck": "Baixar baralho",
+    "nameThisDeck": "Dar nome a este baralho",
+    "deckName": "Nome do baralho",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "saveAgain": "Salvar de novo",
+    "untitledDeck": "Baralho sem título",
+    "savedAs": "Salvo como {{name}}.apkg",
+    "renameHint_one": "{{count}} cartão. Salva como {{filename}}.apkg quando você clicar em Salvar.",
+    "renameHint_other": "{{count}} cartões. Salva como {{filename}}.apkg quando você clicar em Salvar.",
+    "front": "Frente",
+    "back": "Verso",
+    "tags": "Tags",
+    "addingTags": "Adicionando tags",
+    "showFewer": "Mostrar menos",
+    "showAll": "Mostrar todos os {{count}} cartões",
+    "card_one": "cartão",
+    "card_other": "cartões"
+  },
+  "codeBlock": {
+    "copyCode": "Copiar código",
+    "copied": "Copiado",
+    "copy": "Copiar"
+  },
+  "templateSelector": {
+    "noteTypeAria": "Tipo de nota: {{label}}",
+    "noteTypeLabel": "Tipo de nota: {{label}}",
+    "listboxLabel": "Tipo de nota"
+  }
+}
