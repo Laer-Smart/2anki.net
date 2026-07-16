@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { UserActionCards } from './UserActionCards';
 import { TimeoutWarning } from './TimeoutWarning';
 import styles from '../../../styles/shared.module.css';
@@ -10,27 +11,30 @@ interface SuccessContentProps {
 }
 
 export const SuccessContent = ({ timeoutReached }: SuccessContentProps) => {
+  const { t } = useTranslation('account');
   return (
     <>
-      <h1 className={styles.title}>Your payment has been confirmed</h1>
+      <h1 className={styles.title}>{t('checkout.paymentConfirmed')}</h1>
 
       <p>
-        To start using your new features, log in or create an account with the{' '}
-        <strong>same email address</strong> you used at checkout.
+        {t('checkout.startUsingPrefix')}
+        <strong>{t('checkout.sameEmailAddress')}</strong>
+        {t('checkout.startUsingSuffix')}
       </p>
 
       <UserActionCards />
 
       <p>
-        <strong>Used a different email for payment?</strong>
+        <strong>{t('checkout.usedDifferentEmail')}</strong>
       </p>
       <p>
-        You can link payment and login emails from your{' '}
-        <a href={settingsLink}>settings page</a> after signing in.
+        {t('checkout.linkEmailsPrefix')}
+        <a href={settingsLink}>{t('checkout.settingsPage')}</a>
+        {t('checkout.linkEmailsSuffix')}
       </p>
 
       <p>
-        Having trouble logging in? Email{' '}
+        {t('checkout.troubleLoggingIn')}
         <a href={supportLink}>support@2anki.net</a>.
       </p>
 

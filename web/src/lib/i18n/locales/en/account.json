@@ -1,0 +1,150 @@
+{
+  "reasons": {
+    "finished": "I finished what I needed",
+    "notEnough": "I don't use it enough",
+    "tooExpensive": "Too expensive",
+    "foundAlternative": "I found an alternative",
+    "technicalIssues": "Technical issues",
+    "other": "Other"
+  },
+  "subscription": {
+    "premium": "Premium",
+    "unknownDate": "an unknown date",
+    "endsPrefix": "Ends",
+    "endedPrefix": "Ended",
+    "renewsPrefix": "Renews",
+    "accessContinues": "Access continues until then.",
+    "cancelThisPlan": "Cancel this plan",
+    "cancelThisPlanNow": "Cancel this plan now",
+    "cancelPlanNoticeWithLabel": "Cancels the {{planLabel}} plan right away. Your card won't be charged the {{planLabel}} due {{date}}. This can't be undone.",
+    "cancelPlanNotice": "Cancels this plan right away. This can't be undone.",
+    "processing": "Processing…",
+    "keepIt": "Keep it",
+    "multipleActive": "You have {{count}} active subscriptions. You're likely being charged twice — cancel the one you don't want to keep.",
+    "billedThroughApple": "Billed through Apple",
+    "appleManageNotice": "Manage or cancel this subscription in your Apple Account settings: open Settings on your iPhone or iPad, tap your name, then Subscriptions.",
+    "pausedResumesPrefix": "Paused · Resumes",
+    "pausedNotice": "You won't be charged while paused. Your subscription resumes on {{date}} at {{plan}}. While paused, paid features are off and everything you've made is saved.",
+    "yourPlan": "your plan",
+    "resuming": "Resuming…",
+    "resumeNow": "Resume now",
+    "cancelSubscription": "Cancel subscription",
+    "legacyForfeit": "Cancelling forfeits this legacy rate.",
+    "cancelNowInstead": "Cancel now instead",
+    "previousPlan": "Previous plan: {{plan}}.",
+    "readingSubscription": "Reading your subscription",
+    "linkedEmailHeading": "Linked 2anki.net email",
+    "managedThroughStripe": "Your subscription is managed through your Stripe account at",
+    "youCan": "You can:",
+    "manageSubscription": "Manage your subscription",
+    "updatePayment": "Update payment details",
+    "cancelYourSubscription": "Cancel your subscription",
+    "subscriptionEmail": "Subscription email",
+    "subscriptionEmailPlaceholder": "Enter subscription email",
+    "emailLinked": "Email linked.",
+    "linking": "Linking…",
+    "linkEmail": "Link email"
+  },
+  "cancelFlow": {
+    "whyCancelling": "Why are you cancelling? (optional)",
+    "processing": "Processing…",
+    "cancelSubscription": "Cancel subscription",
+    "keepSubscription": "Keep subscription"
+  },
+  "pauseCard": {
+    "pauseInstead": "Pause instead — no charge while you're away",
+    "notice": "Taking a break between terms? Pause your subscription instead of cancelling. You won't be charged while it's paused, and it resumes on its own when you're ready. Everything you've made is saved.",
+    "pauseFor": "Pause for",
+    "pauseLengthAria": "Pause length",
+    "oneMonth": "1 month",
+    "nMonths": "{{count}} months",
+    "resumesLine": "Resumes {{date}} at {{plan}}. Cancel anytime before then.",
+    "yourPlan": "your plan",
+    "pausing": "Pausing…",
+    "pauseSubscription": "Pause subscription"
+  },
+  "cancellationFollowUp": {
+    "whyDidYouCancel": "Why did you cancel? (optional)",
+    "tellMore": "Tell us more (optional)",
+    "skip": "Skip",
+    "sending": "Sending…",
+    "sendFeedback": "Send feedback"
+  },
+  "accountDeletion": {
+    "deleteAccount": "Delete account",
+    "warning": "All your data will be permanently deleted. This cannot be undone.",
+    "deleteAccountQuestion": "Delete account?",
+    "close": "close",
+    "cancel": "Cancel"
+  },
+  "claimSubscription": {
+    "paidDifferentEmail": "Paid with a different email?",
+    "sent": "Sent. Check that inbox for a confirmation link.",
+    "description": "If you paid Stripe with another email address, enter it here. We'll send a confirmation link to that address to attach the subscription to this account.",
+    "emailPlaceholder": "Email you paid with",
+    "emailLabel": "Email you paid with",
+    "error": "Something went wrong. Try again in a moment.",
+    "sending": "Sending…",
+    "sendConfirmation": "Send confirmation email"
+  },
+  "logOutEverywhere": {
+    "sessions": "Sessions",
+    "notice": "Lost a device? Log out everywhere to end every session, including this one. Sign back in to continue.",
+    "confirm": "Confirm",
+    "cancel": "Cancel",
+    "logOutEverywhere": "Log out everywhere"
+  },
+  "planDetails": {
+    "lifetimeMeta": "All current and future features.",
+    "premiumMeta": "Unlimited cards, all formats.",
+    "free": "Free",
+    "freeMeta": "100 cards per month.",
+    "seePlans": "See plans"
+  },
+  "checkout": {
+    "youreOnUnlimited": "You're on Unlimited",
+    "thanksActive": "Thanks, {{firstName}} — your subscription is active.",
+    "subscriptionActive": "Your subscription is active.",
+    "makeDeck": "Make a deck",
+    "goToAccount": "Go to account",
+    "paymentConfirmed": "Your payment has been confirmed",
+    "startUsingPrefix": "To start using your new features, log in or create an account with the ",
+    "sameEmailAddress": "same email address",
+    "startUsingSuffix": " you used at checkout.",
+    "usedDifferentEmail": "Used a different email for payment?",
+    "linkEmailsPrefix": "You can link payment and login emails from your ",
+    "settingsPage": "settings page",
+    "linkEmailsSuffix": " after signing in.",
+    "troubleLoggingIn": "Having trouble logging in? Email ",
+    "existingUser": "Existing user",
+    "existingUserBody": "Log in with the email address associated with your payment.",
+    "logIn": "Log in",
+    "newUser": "New user",
+    "newUserBody": "Create an account using the same email address used for your payment.",
+    "signUp": "Sign up",
+    "note": "Note:",
+    "timeoutBefore": " We're still processing your subscription activation. If you're already logged in, you can try visiting the ",
+    "notionPage": "Notion page",
+    "timeoutAfter": " directly, or refresh this page to check again.",
+    "processingPayment": "Processing your payment...",
+    "activatingSubscription": "We're activating your subscription. This usually takes just a few seconds.",
+    "autoRedirect": "You'll be automatically redirected once your subscription is active."
+  },
+  "verifyEmail": {
+    "message": "Check your inbox — confirm your email to secure your account.",
+    "dismiss": "Dismiss"
+  },
+  "createAccount": {
+    "aria": "Save your next decks",
+    "headline": "Keep your next decks",
+    "body": "With a free account, every deck you convert is saved to your downloads history — re-download any of them later.",
+    "cta": "Create a free account"
+  },
+  "accessBanner": {
+    "active": "{{passLabel}} active — expires {{date}}. Convert as much as you want.",
+    "endsIn": "{{passLabel}} ends in {{time}} — finish any pending conversions.",
+    "minutes": "{{count}} minutes",
+    "aboutHours_one": "about {{count}} hour",
+    "aboutHours_other": "about {{count}} hours"
+  }
+}

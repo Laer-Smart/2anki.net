@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AccountPage.module.css';
 
@@ -13,6 +14,15 @@ export const CANCELLATION_REASONS = [
 
 export type CancellationReason = (typeof CANCELLATION_REASONS)[number];
 
+export const REASON_KEYS: Record<CancellationReason, string> = {
+  'I finished what I needed': 'reasons.finished',
+  "I don't use it enough": 'reasons.notEnough',
+  'Too expensive': 'reasons.tooExpensive',
+  'I found an alternative': 'reasons.foundAlternative',
+  'Technical issues': 'reasons.technicalIssues',
+  Other: 'reasons.other',
+};
+
 interface Props {
   readonly onSubmit: (reason: CancellationReason, comment: string) => void;
   readonly onSkip: () => void;
@@ -24,6 +34,7 @@ export function CancellationFollowUp({
   onSkip,
   isSubmitting,
 }: Props) {
+  const { t } = useTranslation('account');
   const [reason, setReason] = useState<CancellationReason | ''>('');
   const [comment, setComment] = useState('');
 
@@ -34,7 +45,7 @@ export function CancellationFollowUp({
 
   return (
     <div className={sharedStyles.marginTopLg}>
-      <p>Why did you cancel? (optional)</p>
+      <p>{t('cancellationFollowUp.whyDidYouCancel')}</p>
       <div className={styles.reasonList}>
         {CANCELLATION_REASONS.map((r) => (
           <label key={r} className={styles.reasonOption}>
@@ -45,7 +56,7 @@ export function CancellationFollowUp({
               checked={reason === r}
               onChange={() => setReason(r)}
             />
-            {r}
+            {t(REASON_KEYS[r])}
           </label>
         ))}
       </div>
@@ -53,7 +64,7 @@ export function CancellationFollowUp({
       {reason === 'Other' && (
         <textarea
           className={styles.reasonComment}
-          placeholder="Tell us more (optional)"
+          placeholder={t('cancellationFollowUp.tellMore')}
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           rows={3}
@@ -63,7 +74,7 @@ export function CancellationFollowUp({
 
       <div className={styles.actions}>
         <button type="button" className={styles.textButton} onClick={onSkip}>
-          Skip
+          {t('cancellationFollowUp.skip')}
         </button>
         <button
           type="button"
@@ -71,7 +82,9 @@ export function CancellationFollowUp({
           onClick={handleSubmit}
           disabled={!reason || isSubmitting}
         >
-          {isSubmitting ? 'Sending…' : 'Send feedback'}
+          {isSubmitting
+            ? t('cancellationFollowUp.sending')
+            : t('cancellationFollowUp.sendFeedback')}
         </button>
       </div>
     </div>

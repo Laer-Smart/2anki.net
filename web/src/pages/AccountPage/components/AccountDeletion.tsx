@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useDialog } from '../../../lib/hooks/useDialog';
 import sharedStyles from '../../../styles/shared.module.css';
 import styles from '../AccountPage.module.css';
 
 export function AccountDeletion() {
+  const { t } = useTranslation('account');
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -23,17 +25,17 @@ export function AccountDeletion() {
 
   return (
     <div className={styles.dangerSection}>
-      <h4 className={styles.dangerTitle}>Delete account</h4>
-      <div className={styles.dangerNotice}>
-        All your data will be permanently deleted. This cannot be undone.
-      </div>
+      <h4 className={styles.dangerTitle}>
+        {t('accountDeletion.deleteAccount')}
+      </h4>
+      <div className={styles.dangerNotice}>{t('accountDeletion.warning')}</div>
       <button
         ref={triggerRef}
         type="button"
         className={styles.dangerButton}
         onClick={() => setIsOpen(true)}
       >
-        Delete account
+        {t('accountDeletion.deleteAccount')}
       </button>
       <dialog
         ref={dialogRef}
@@ -46,11 +48,11 @@ export function AccountDeletion() {
               id="delete-account-dialog-title"
               className={sharedStyles.modalHeaderTitle}
             >
-              Delete account?
+              {t('accountDeletion.deleteAccountQuestion')}
             </h4>
             <button
               type="button"
-              aria-label="close"
+              aria-label={t('accountDeletion.close')}
               onClick={close}
               className={sharedStyles.modalClose}
             >
@@ -58,7 +60,7 @@ export function AccountDeletion() {
             </button>
           </div>
           <section className={sharedStyles.modalBody}>
-            All your data will be permanently deleted. This cannot be undone.
+            {t('accountDeletion.warning')}
           </section>
           <div className={sharedStyles.modalFooter}>
             <button
@@ -67,14 +69,14 @@ export function AccountDeletion() {
               className={sharedStyles.btnSecondary}
               onClick={close}
             >
-              Cancel
+              {t('accountDeletion.cancel')}
             </button>
             <button
               type="button"
               className={sharedStyles.btnDanger}
               onClick={() => navigate('/delete-account')}
             >
-              Delete account
+              {t('accountDeletion.deleteAccount')}
             </button>
           </div>
         </div>

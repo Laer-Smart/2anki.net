@@ -1,4 +1,5 @@
 import React, { ChangeEvent, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useEmailLinking } from '../hooks/useEmailLinking';
 import { useSubscriptionCancellation } from '../hooks/useSubscriptionCancellation';
 import { usePerSubscriptionCancellation } from '../hooks/usePerSubscriptionCancellation';
@@ -45,8 +46,8 @@ interface SubscriptionManagementProps {
   readonly onRefetch: () => Promise<any>;
 }
 
-const formatDate = (seconds: number | null): string => {
-  if (!seconds) return 'an unknown date';
+const formatDate = (seconds: number | null, unknownLabel: string): string => {
+  if (!seconds) return unknownLabel;
   return new Date(seconds * 1000).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
@@ -99,6 +100,9 @@ function MultipleSubscriptionsRow({
   readonly onConfirmCancel: (id: string) => void;
   readonly onDismiss: () => void;
 }) {
+  const { t } = useTranslation('account');
+  const fmt = (seconds: number | null) =>
+    formatDate(seconds, t('subscription.unknownDate'));
   const planLabel = formatPlan(sub);
   const isScheduled = sub.cancel_at_period_end;
   const isConfirming = confirmingSubId === sub.id;
@@ -107,9 +111,9 @@ function MultipleSubscriptionsRow({
     return (
       <div className={styles.section}>
         <p className={styles.statusLine}>
-          {planLabel ?? 'Premium'} · Ends{' '}
-          <strong>{formatDate(sub.cancel_at)}</strong>. Access continues until
-          then.
+          {planLabel ?? t('subscription.premium')} ·{' '}
+          {t('subscription.endsPrefix')} <strong>{fmt(sub.cancel_at)}</strong>.{' '}
+          {t('subscription.accessContinues')}
         </p>
       </div>
     );
@@ -118,8 +122,11 @@ function MultipleSubscriptionsRow({
   return (
     <div className={styles.section}>
       <p className={styles.statusLine}>
-        <span style={{ fontWeight: 500 }}>{planLabel ?? 'Premium'}</span> ·
-        Renews <strong>{formatDate(sub.current_period_end)}</strong>
+        <span style={{ fontWeight: 500 }}>
+          {planLabel ?? t('subscription.premium')}
+        </span>{' '}
+        · {t('subscription.renewsPrefix')}{' '}
+        <strong>{fmt(sub.current_period_end)}</strong>
       </p>
       {!isConfirming && (
         <div className={styles.actions}>
@@ -128,7 +135,7 @@ function MultipleSubscriptionsRow({
             className={styles.secondaryButton}
             onClick={() => onOpenConfirm(sub.id)}
           >
-            Cancel this plan
+            {t('subscription.cancelThisPlan')}
           </button>
         </div>
       )}
@@ -136,13 +143,18 @@ function MultipleSubscriptionsRow({
         <div
           className={styles.dangerSection}
           role="group"
-          aria-label="Cancel this plan now"
+          aria-label={t('subscription.cancelThisPlanNow')}
         >
-          <p className={styles.dangerTitle}>Cancel this plan now</p>
+          <p className={styles.dangerTitle}>
+            {t('subscription.cancelThisPlanNow')}
+          </p>
           <p className={styles.dangerNotice}>
             {planLabel
-              ? `Cancels the ${planLabel} plan right away. Your card won't be charged the ${planLabel} due ${formatDate(sub.current_period_end)}. This can't be undone.`
-              : "Cancels this plan right away. This can't be undone."}
+              ? t('subscription.cancelPlanNoticeWithLabel', {
+                  planLabel,
+                  date: fmt(sub.current_period_end),
+                })
+              : t('subscription.cancelPlanNotice')}
           </p>
           <div className={styles.buttonRow}>
             <button
@@ -151,7 +163,9 @@ function MultipleSubscriptionsRow({
               onClick={() => onConfirmCancel(sub.id)}
               disabled={isCancelling}
             >
-              {isCancelling ? 'Processing…' : 'Cancel this plan'}
+              {isCancelling
+                ? t('subscription.processing')
+                : t('subscription.cancelThisPlan')}
             </button>
             <button
               type="button"
@@ -159,7 +173,7 @@ function MultipleSubscriptionsRow({
               onClick={onDismiss}
               disabled={isCancelling}
             >
-              Keep it
+              {t('subscription.keepIt')}
             </button>
           </div>
         </div>
@@ -178,6 +192,7 @@ function MultipleSubscriptions({
   readonly subscriptions: StripeSubscriptionSummary[];
   readonly onRefetch: () => Promise<unknown>;
 }) {
+  const { t } = useTranslation('account');
   const {
     confirmingSubId,
     errorSubId,
@@ -195,8 +210,7 @@ function MultipleSubscriptions({
   return (
     <section className={styles.section}>
       <p className={styles.scheduledBadge}>
-        You have {subscriptions.length} active subscriptions. You're likely
-        being charged twice — cancel the one you don't want to keep.
+        {t('subscription.multipleActive', { count: subscriptions.length })}
       </p>
       {ordered.map((sub) => (
         <MultipleSubscriptionsRow
@@ -216,12 +230,14 @@ function MultipleSubscriptions({
 }
 
 function AppleSubscriptionManagement() {
+  const { t } = useTranslation('account');
   return (
     <section className={styles.section}>
-      <p className={styles.statusLine}>Unlimited · Billed through Apple</p>
+      <p className={styles.statusLine}>
+        Unlimited · {t('subscription.billedThroughApple')}
+      </p>
       <p className={sharedStyles.smallDescription}>
-        Manage or cancel this subscription in your Apple Account settings: open
-        Settings on your iPhone or iPad, tap your name, then Subscriptions.
+        {t('subscription.appleManageNotice')}
       </p>
     </section>
   );
@@ -244,18 +260,20 @@ function PausedState({
   readonly onResume: () => void;
   readonly onCancel: () => void;
 }) {
-  const resumeDate = formatDate(subscription.paused_until);
-  const planText = planLabel ?? 'your plan';
+  const { t } = useTranslation('account');
+  const resumeDate = formatDate(
+    subscription.paused_until,
+    t('subscription.unknownDate')
+  );
+  const planText = planLabel ?? t('subscription.yourPlan');
 
   return (
     <>
       <p className={styles.scheduledBadge}>
-        Paused · Resumes <strong>{resumeDate}</strong>
+        {t('subscription.pausedResumesPrefix')} <strong>{resumeDate}</strong>
       </p>
       <p className={styles.dangerNotice}>
-        You won't be charged while paused. Your subscription resumes on{' '}
-        {resumeDate} at {planText}. While paused, paid features are off and
-        everything you've made is saved.
+        {t('subscription.pausedNotice', { date: resumeDate, plan: planText })}
       </p>
       <div className={styles.actions}>
         <button
@@ -264,7 +282,9 @@ function PausedState({
           onClick={onResume}
           disabled={isResuming}
         >
-          {isResuming ? 'Resuming…' : 'Resume now'}
+          {isResuming
+            ? t('subscription.resuming')
+            : t('subscription.resumeNow')}
         </button>
         <button
           type="button"
@@ -272,7 +292,9 @@ function PausedState({
           onClick={onCancel}
           disabled={isCancelling}
         >
-          {isCancelling ? 'Processing…' : 'Cancel subscription'}
+          {isCancelling
+            ? t('subscription.processing')
+            : t('subscription.cancelSubscription')}
         </button>
       </div>
       {resumeError && <p className={styles.helpDanger}>{resumeError}</p>}
@@ -299,6 +321,9 @@ function StripeSubscriptionManagement({
   locals,
   onRefetch,
 }: SubscriptionManagementProps) {
+  const { t } = useTranslation('account');
+  const fmt = (seconds: number | null) =>
+    formatDate(seconds, t('subscription.unknownDate'));
   const {
     linkEmail,
     setLinkEmail,
@@ -399,14 +424,13 @@ function StripeSubscriptionManagement({
           {view.kind === 'active' && (
             <>
               <p className={styles.statusLine}>
-                {formatPlan(view.subscription) ?? 'Premium'} · Renews{' '}
-                <strong>
-                  {formatDate(view.subscription.current_period_end)}
-                </strong>
+                {formatPlan(view.subscription) ?? t('subscription.premium')} ·{' '}
+                {t('subscription.renewsPrefix')}{' '}
+                <strong>{fmt(view.subscription.current_period_end)}</strong>
               </p>
               {isLegacyRate(view.subscription) && (
                 <p className={styles.legacyNote}>
-                  Cancelling forfeits this legacy rate.
+                  {t('subscription.legacyForfeit')}
                 </p>
               )}
               {!confirming && (
@@ -417,7 +441,7 @@ function StripeSubscriptionManagement({
                     onClick={() => setConfirming(true)}
                     disabled={isCancelling}
                   >
-                    Cancel subscription
+                    {t('subscription.cancelSubscription')}
                   </button>
                 </div>
               )}
@@ -452,8 +476,9 @@ function StripeSubscriptionManagement({
           {view.kind === 'scheduled' && (
             <>
               <p className={styles.statusLine}>
-                Ends <strong>{formatDate(view.subscription.cancel_at)}</strong>.
-                Access continues until then.
+                {t('subscription.endsPrefix')}{' '}
+                <strong>{fmt(view.subscription.cancel_at)}</strong>.{' '}
+                {t('subscription.accessContinues')}
               </p>
               <div className={styles.actions}>
                 <button
@@ -462,7 +487,9 @@ function StripeSubscriptionManagement({
                   onClick={() => cancelUserSubscription('immediate')}
                   disabled={isCancelling}
                 >
-                  {isCancelling ? 'Processing…' : 'Cancel now instead'}
+                  {isCancelling
+                    ? t('subscription.processing')
+                    : t('subscription.cancelNowInstead')}
                 </button>
               </div>
             </>
@@ -470,16 +497,16 @@ function StripeSubscriptionManagement({
 
           {view.kind === 'cancelled' && (
             <p className={styles.statusLineMuted}>
-              Ended <strong>{formatDate(view.subscription.canceled_at)}</strong>
-              .
+              {t('subscription.endedPrefix')}{' '}
+              <strong>{fmt(view.subscription.canceled_at)}</strong>.
               {formatPlan(view.subscription) &&
-                ` Previous plan: ${formatPlan(view.subscription)}.`}
+                ` ${t('subscription.previousPlan', { plan: formatPlan(view.subscription) })}`}
             </p>
           )}
 
           {stripeStatus.isLoading && view.kind === 'none' && (
             <p className={sharedStyles.smallDescription}>
-              Reading your subscription
+              {t('subscription.readingSubscription')}
             </p>
           )}
 
@@ -492,34 +519,41 @@ function StripeSubscriptionManagement({
 
       {locals?.subscriber && (
         <div className={sharedStyles.marginTopLg}>
-          <h4 className={sharedStyles.smallHeading}>Linked 2anki.net email</h4>
+          <h4 className={sharedStyles.smallHeading}>
+            {t('subscription.linkedEmailHeading')}
+          </h4>
           {isEmailLinked ? (
             <div className={styles.linkedEmail}>
               <p>
-                Your subscription is managed through your Stripe account at{' '}
-                <strong>{locals.subscriptionInfo?.email}</strong>. You can:
+                {t('subscription.managedThroughStripe')}{' '}
+                <strong>{locals.subscriptionInfo?.email}</strong>.{' '}
+                {t('subscription.youCan')}
               </p>
               <ul className={sharedStyles.featureList}>
-                <li>Manage your subscription</li>
-                <li>Update payment details</li>
-                <li>Cancel your subscription</li>
+                <li>{t('subscription.manageSubscription')}</li>
+                <li>{t('subscription.updatePayment')}</li>
+                <li>{t('subscription.cancelYourSubscription')}</li>
               </ul>
             </div>
           ) : (
             <div>
               <div className={styles.field}>
-                <label htmlFor="subscription-email">Subscription email</label>
+                <label htmlFor="subscription-email">
+                  {t('subscription.subscriptionEmail')}
+                </label>
                 <input
                   id="subscription-email"
                   value={linkEmail}
                   onChange={onChangeLinkEmail}
                   type="email"
-                  placeholder="Enter subscription email"
+                  placeholder={t('subscription.subscriptionEmailPlaceholder')}
                   disabled={isEmailLinked}
                 />
                 {linkError && <p className={styles.helpDanger}>{linkError}</p>}
                 {linkSuccess && (
-                  <p className={styles.helpSuccess}>Email linked.</p>
+                  <p className={styles.helpSuccess}>
+                    {t('subscription.emailLinked')}
+                  </p>
                 )}
               </div>
 
@@ -529,7 +563,9 @@ function StripeSubscriptionManagement({
                 onClick={onLink}
                 disabled={isEmailLinked || !linkEmail.trim()}
               >
-                {isLinking ? 'Linking…' : 'Link email'}
+                {isLinking
+                  ? t('subscription.linking')
+                  : t('subscription.linkEmail')}
               </button>
             </div>
           )}
