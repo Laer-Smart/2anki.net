@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import { SkeletonPage } from '../../components/Skeleton/Skeleton';
 import { useSubscriptionStatus } from './hooks';
@@ -10,10 +11,12 @@ import {
   AccountDeletion,
   LogOutEverywhere,
 } from './components';
+import { LanguagePicker } from '../../components/LanguagePicker/LanguagePicker';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './AccountPage.module.css';
 
 export default function AccountPage() {
+  const { t } = useTranslation();
   const { isLoading, data, refetch } = useUserLocals();
   const { subscriptionType, hasActivePlan } = useSubscriptionStatus(
     data?.locals
@@ -41,7 +44,7 @@ export default function AccountPage() {
   return (
     <div className={styles.page}>
       <header className={sharedStyles.pageHeader}>
-        <h1 className={sharedStyles.title}>Account</h1>
+        <h1 className={sharedStyles.title}>{t('account.title')}</h1>
       </header>
 
       {justSubscribed && (
@@ -51,14 +54,14 @@ export default function AccountPage() {
           aria-live="polite"
         >
           <p>
-            <strong>Subscribed.</strong>
+            <strong>{t('account.subscribed')}</strong>
           </p>
           <button
             type="button"
             className={sharedStyles.btnGhost}
             onClick={() => dismissParam('subscribed')}
           >
-            Dismiss
+            {t('account.dismiss')}
           </button>
         </div>
       )}
@@ -69,18 +72,22 @@ export default function AccountPage() {
           role="status"
           aria-live="polite"
         >
-          <p>Email verified.</p>
+          <p>{t('account.emailVerified')}</p>
           <button
             type="button"
             className={sharedStyles.btnGhost}
             onClick={() => dismissParam('verified')}
           >
-            Dismiss
+            {t('account.dismiss')}
           </button>
         </div>
       )}
 
       <UserProfile user={user} />
+
+      <section className={styles.section}>
+        <LanguagePicker variant="labeled" />
+      </section>
 
       <PlanDetails subscriptionType={subscriptionType} />
 

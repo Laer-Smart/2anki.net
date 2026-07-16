@@ -1,0 +1,56 @@
+.labeledRow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.rowLabel {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  letter-spacing: var(--tracking-tight);
+}
+
+.rowDescription {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 0.5rem;
+}
+
+.selectWrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.globe {
+  position: absolute;
+  left: 10px;
+  font-size: 14px;
+  line-height: 1;
+  pointer-events: none;
+}
+
+.select {
+  appearance: none;
+  padding: var(--space-2) var(--space-4) var(--space-2) 32px;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition:
+    background var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.select:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-primary);
+}
+
+.compact {
+  font-size: var(--text-xs);
+  padding: 6px var(--space-3) 6px 28px;
+}
