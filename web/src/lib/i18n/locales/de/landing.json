@@ -1,0 +1,224 @@
+{
+  "steps": {
+    "dropFile": {
+      "title": "Leg deine Datei ab",
+      "body": "Notion-Export, PDF, Word, Markdown oder ein Quizlet-Export."
+    },
+    "buildsDeck": {
+      "title": "2anki erstellt deinen Stapel",
+      "body": "Meist ein paar Sekunden. Größere Dateien dauern eine Minute."
+    },
+    "openInAnki": {
+      "title": "Öffne ihn in Anki",
+      "body": "Doppelklicke die .apkg-Datei. Deine Karten sind bereit zum Lernen."
+    }
+  },
+  "sections": {
+    "howItWorks": "So funktioniert's",
+    "supportedFormats": "Unterstützte Formate",
+    "whatYouGet": "Was du wirklich in Anki bekommst",
+    "commonQuestions": "Häufige Fragen",
+    "related": "Verwandte Seiten"
+  },
+  "hero": {
+    "freeQuota": "Kostenlos · bis zu 1 000 Karten pro Import",
+    "orPrefix": "oder ",
+    "signUpFree": "kostenlos registrieren",
+    "tryUnlimited": "Unlimited 1 Stunde kostenlos testen"
+  },
+  "footer": {
+    "readyPrefix": "Bereit zum Ausprobieren? ",
+    "dropLink": "Leg oben auf dieser Seite eine Datei ab."
+  },
+  "hub": {
+    "h1": "Alles in Anki umwandeln",
+    "subhead": "Wähle deine Quelle. Jeder Konverter macht aus deinen Notizen, Dateien oder Karteikarten einen sauberen .apkg-Stapel, den du in Anki lernst.",
+    "groups": {
+      "note-apps": "Notiz-Apps",
+      "flashcard-apps": "Karteikarten-Apps",
+      "files": "Dateien",
+      "language-tools": "Sprach-Tools"
+    }
+  },
+  "answers": {
+    "faqHeading": "Häufig gestellte Fragen",
+    "convert-notion-to-anki": {
+      "h1": "So wandelst du Notion in Anki-Karteikarten um",
+      "intro": "Notion speichert deine Notizen. Anki macht daraus ein Wiederholungssystem. 2anki schließt die Lücke — aus jeder Notion-Seite erhältst du in unter einer Minute einen .apkg-Stapel."
+    },
+    "notion-to-anki-sync": {
+      "h1": "Automatische Synchronisierung von Notion zu Anki",
+      "intro": "Auto Sync überwacht deine verbundenen Notion-Seiten und überträgt Änderungen alle 5 Minuten in deine Anki-Stapel. Bearbeite einen Toggle in Notion; die Karte aktualisiert sich in Anki vor deiner nächsten Lernsitzung."
+    },
+    "pdf-to-anki": {
+      "h1": "So wandelst du ein PDF in Anki-Karteikarten um",
+      "intro": "Lade ein PDF zu 2anki hoch und lade einen .apkg-Stapel herunter. Funktioniert mit Vorlesungsfolien, Lehrbuchkapiteln und jedem PDF mit Textebene."
+    },
+    "quizlet-to-anki": {
+      "h1": "So wechselst du von Quizlet zu Anki",
+      "intro": "Quizlet speichert deine Sets. Anki gibt dir einen echten Algorithmus fürs verteilte Lernen. 2anki wandelt einen Quizlet-Export in einen .apkg-Stapel um, den du direkt in Anki öffnest."
+    },
+    "fsrs-explained": {
+      "h1": "FSRS in Anki — was es ist und warum deine nächste Wiederholung falsch wirkt",
+      "intro": "FSRS ist der moderne Algorithmus fürs verteilte Lernen, den Anki seit Version 23.10 (November 2023) mitbringt. Er ist weiterhin optional — SM-2 bleibt die Voreinstellung —, wird aber in der Community breit empfohlen, und das Anki-Handbuch stellt ihn als genauer als SM-2 dar. FSRS sagt vorher, wie lange du dir eine Karte merkst, und plant die nächste Wiederholung an dem Punkt, an dem deine Erinnerungswahrscheinlichkeit auf 90 % fällt. Bei einer Karte, die du leicht beantwortest, kann dieser Punkt ein Jahr oder mehr entfernt sein — daher stammt die Frage „Warum ist meine nächste Wiederholung in 17 Monaten?“, die r/Anki jede Woche füllt."
+    },
+    "lecture-notes-to-anki": {
+      "h1": "So machst du aus Vorlesungsnotizen Anki-Karteikarten",
+      "intro": "Deine Vorlesungsnotizen liegen schon irgendwo — Folien-PDFs, ein Word- oder Google-Dokument, eine Notion-Seite oder ein Foto aus der Vorlesung. 2anki liest jede davon und gibt dir einen .apkg-Stapel, den du in Anki öffnest. Wähle die Quelle, die zu deinen Notizen passt, und lerne noch am selben Tag."
+    },
+    "word-to-anki": {
+      "h1": "So wandelst du ein Word-Dokument in Anki um",
+      "intro": "Wenn deine Notizen in einem Word-Dokument liegen, musst du sie nicht von Hand als Karten nachbauen. Lade die .docx-Datei zu 2anki hoch und lade einen .apkg-Stapel herunter, der in Anki öffnet. Überschriften, Bilder und Formatierung kommen mit."
+    },
+    "image-occlusion-anki": {
+      "h1": "So erstellst du Bildverdeckungskarten in Anki",
+      "intro": "Bildverdeckungskarten verbergen einen Teil eines Diagramms und fragen ab, was darunter liegt — der schnellste Weg, Anatomie, Strukturen, Karten und beschriftete Abbildungen zu lernen. Lade ein Bild zu 2anki hoch, verdecke die Teile, die du abfragen willst, und lade einen Anki-Stapel herunter."
+    },
+    "google-docs-to-anki": {
+      "h1": "So wandelst du Google Docs in Anki-Karteikarten um",
+      "intro": "Google Docs verbindet sich nicht direkt mit 2anki, aber du musst nichts abtippen. Lade dein Dokument als Word (.docx) oder Markdown herunter, lade die Datei hoch und lade einen .apkg-Stapel herunter, der in Anki öffnet. Überschriften, Bilder und Formatierung kommen mit."
+    },
+    "handwritten-notes-to-anki": {
+      "h1": "So machst du aus handschriftlichen Notizen Anki-Karteikarten",
+      "intro": "Handschriftliche Notizen sind schwer zu wiederholen und unmöglich zu durchsuchen. Fotografiere eine Seite, lade sie zu 2anki hoch, und das Werkzeug Foto zu Stapel liest sie mit KI und entwirft Karten, die du vor dem Download prüfst. Du erhältst einen .apkg-Stapel, der in Anki öffnet."
+    },
+    "textbook-to-anki": {
+      "h1": "So machst du aus einem Lehrbuchkapitel Anki-Karteikarten",
+      "intro": "Ein Lehrbuchkapitel ist viel Material, um es von Hand zu Karten zu machen. Lade das Kapitel als PDF hoch, und 2anki liest seinen Text in Frage-Antwort-Karten, behält die Abbildungen und gibt dir einen .apkg-Stapel. Wandle ein Kapitel nach dem anderen um, damit jeder Stapel wiederholbar bleibt."
+    },
+    "kindle-highlights-to-anki": {
+      "h1": "So wandelst du Kindle-Markierungen in Anki-Karteikarten um",
+      "intro": "Jede Markierung, die du auf einem Kindle machst, wird in einer einzigen Datei namens My Clippings.txt gespeichert. 2anki liest diese Datei und macht aus jeder Passage eine Karte, sodass die Zeilen, die du beim Lesen markiert hast, zu einem Stapel werden, den du in Anki wiederholst. Du erhältst eine .apkg, die du per Doppelklick öffnest."
+    },
+    "language-app-to-anki": {
+      "h1": "So überträgst du deine Karteikarten von einer Sprach-App zu Anki",
+      "intro": "Sprach-Apps sind gut darin, Vokabeln zu erfassen, aber schwach bei der langfristigen Wiederholung. Anki gibt dir einen echten Algorithmus fürs verteilte Lernen. Egal, mit welcher App du angefangen hast, der Weg ist derselbe: Exportiere eine Datei, lade sie zu 2anki hoch und lade einen .apkg-Stapel herunter, den du auf jedem Gerät lernst. So passt jede gängige App in diesen Weg."
+    },
+    "obsidian-to-anki": {
+      "h1": "So wandelst du Obsidian-Notizen in Anki-Karteikarten um",
+      "intro": "Obsidian-Notizen sind einfache Markdown-Dateien, das heißt, sie lassen sich ohne Plugin in Anki umwandeln. Lade eine .md-Datei zu 2anki hoch und lade einen .apkg-Stapel herunter, der in Anki öffnet. Aufzählungen, Frage-Antwort-Paare, Überschriften und Codeblöcke kommen alle mit."
+    }
+  },
+  "pages": {
+    "ai-flashcard-generator": {
+      "h1": "Verwandle deine Notizen in Anki-Karten",
+      "subhead": "Echte Notizen rein, echte Karten raus. 2anki baut deinen Stapel aus dem, was du hochlädst — Fakten werden nie erfunden."
+    },
+    "anki-to-notion": {
+      "h1": "Importiere Anki-Stapel mit einem Klick in Notion.",
+      "subhead": "Lade eine .apkg-Datei hoch. Jede Karte wird zu einem Toggle auf einer Notion-Seite, die du lernen, durchsuchen und bearbeiten kannst."
+    },
+    "goodnotes-to-anki": {
+      "h1": "Verwandle GoodNotes in Anki-Karteikarten",
+      "subhead": "Exportiere dein Notizbuch als PDF, leg es hier ab und lade einen Anki-Stapel herunter."
+    },
+    "anki-for-japanese": {
+      "h1": "Notion zu Anki fürs Japanische und Sprachenlernen",
+      "subhead": "Leg eine Notion-Seite mit gesammelten Sätzen oder Vokabeln ab. Screenshots, Audio und Lesungen kommen so mit, wie du sie geschrieben hast."
+    },
+    "markdown-to-anki": {
+      "h1": "Verwandle Markdown-Notizen in Anki-Karten",
+      "subhead": "Leg eine .md-Datei ab und lade einen Stapel herunter — Aufzählungen und Frage-Antwort-Paare kommen mit."
+    },
+    "mcat-anki": {
+      "h1": "Verwandle deine MCAT-Inhaltswiederholung in Anki-Karten, die du steuerst",
+      "subhead": "Leg ein PDF oder einen Notion-Export deiner Wiederholungsnotizen ab — Aminosäuren, Orgo-Reaktionen, Psych- und Soc-Begriffe. 2anki baut saubere Karten aus deinem Material, nicht aus Vermutungen."
+    },
+    "anki-from-medical-lecture-slides": {
+      "h1": "Verwandle Vorlesungsfolien in Anki-Karten",
+      "subhead": "Lade ein PDF deiner Folien hoch — Überschriften werden zu Stapelnamen, Aufzählungen zu Karten."
+    },
+    "nclex-anki": {
+      "h1": "Verwandle deine NCLEX-Wiederholungsnotizen in Anki-Karten, die du steuerst",
+      "subhead": "Leg ein PDF oder einen Notion-Export deiner Saunders-, UWorld- oder ATI-Notizen ab — Laborwerte, Medikamenten-Endungen, Priorisierung und Delegation. 2anki baut saubere Karten aus deinem Material, nicht aus Vermutungen."
+    },
+    "notion-to-anki": {
+      "h1": "Notion zu Anki — kostenlos, kein Add-on nötig",
+      "subhead": "Verbinde Notion einmal, füge einen beliebigen Seitenlink ein und erhalte einen .apkg-Stapel. Keine Software zu installieren."
+    },
+    "nursing-flashcards": {
+      "h1": "Anki-Karteikarten aus Pflege-Vorlesungsfolien und -Notizen",
+      "subhead": "Leg ein PDF oder einen Notion-Export ab. 2anki zieht die Begriffe, Medikamente und Verfahren heraus."
+    },
+    "pdf-to-anki": {
+      "h1": "Erstelle Anki-Karteikarten aus einem PDF",
+      "subhead": "Leg ein PDF ab und wir ziehen den Text heraus, aus dem du Karten machen kannst."
+    },
+    "powerpoint-to-anki": {
+      "h1": "Erstelle Anki-Karteikarten aus einer PowerPoint",
+      "subhead": "Leg eine .pptx-Datei ab und 2anki liest den Text auf deinen Folien und baut einen Anki-Stapel, den du bearbeiten kannst."
+    },
+    "quizlet-to-anki": {
+      "h1": "Übertrage dein Quizlet-Set zu Anki",
+      "subhead": "Exportiere aus Quizlet, leg die Datei hier ab und lade einen Anki-Stapel herunter."
+    },
+    "step1-anki": {
+      "h1": "Verwandle deine First-Aid-Anmerkungen und Vorlesungsnotizen in Step-1-Karten, die du steuerst",
+      "subhead": "Anki ist das Rückgrat der Step-1-Vorbereitung. Lade deine annotierten First-Aid-Seiten, Pathoma-Übersichten oder Vorlesungs-PDFs hoch und erhalte saubere, ertragreiche Karten — aus deinem Material gebaut, nie erfunden."
+    },
+    "usmle-anki": {
+      "h1": "USMLE-Step-1- und Step-2-Stapel aus deinen eigenen Notizen",
+      "subhead": "Lade Vorlesungsfolien, First-Aid-Exporte oder ein beliebiges PDF hoch. Ertragreiche Karten, bereit für verteiltes Lernen."
+    },
+    "convert-notion-to-anki": {
+      "h1": "Notion zu Anki — mach aus deinen Notizen Karteikarten",
+      "subhead": "Verbinde Notion einmal, füge einen beliebigen Seitenlink ein und erhalte einen .apkg-Stapel. Toggles werden zu Karten. Kein Add-on, kein Kopieren und Einfügen."
+    },
+    "convert-pdf-to-anki": {
+      "h1": "PDF zu Anki — Karteikarten aus Vorlesungsfolien und Lehrbuchkapiteln",
+      "subhead": "Leg ein Vorlesungs-PDF, einen Folienexport oder ein Lehrbuchkapitel ab und lade einen .apkg-Stapel herunter. 2anki liest den Text in Frage-Antwort-Karten, weicht auf Bildkarten aus, wenn eine Seite keinen Text hat, und kann Karten mit KI schreiben, wenn das PDF dicht ist."
+    },
+    "convert-markdown-to-anki": {
+      "h1": "Markdown zu Anki — .md-Dateien und Obsidian-Notizen umwandeln",
+      "subhead": "Leg eine .md-Datei ab und lade einen Stapel herunter — Aufzählungen, Frage-Antwort-Paare und Codeblöcke kommen alle mit."
+    },
+    "convert-csv-to-anki": {
+      "h1": "CSV zu Anki — Tabellen als Karteikartenstapel importieren",
+      "subhead": "Leg eine .csv-Datei ab und erhalte einen .apkg-Stapel. Spalte A wird zur Vorderseite, alles nach A bildet die Rückseite. Funktioniert auch mit Excel-Exporten."
+    },
+    "convert-html-to-anki": {
+      "h1": "HTML zu Anki — aus Webseiten Karteikartenstapel machen",
+      "subhead": "Leg eine .html-Datei ab und lade einen .apkg-Stapel herunter. Überschriften, Aufzählungen und Tabellen kommen alle mit."
+    },
+    "convert-apkg-to-csv": {
+      "h1": "Anki-Stapel zu CSV — Karten in eine Tabelle exportieren",
+      "subhead": "Leg eine .apkg-Datei ab und lade eine CSV herunter. Jede Kartenvorderseite, -rückseite und jedes Tag in einer Tabelle, die du bearbeiten kannst."
+    },
+    "convert-notion-tables-to-anki": {
+      "h1": "Notion-Tabellen zu Anki — eine Zeile, eine Karte",
+      "subhead": "Füge eine Notion-Seite mit einer Tabelle ein. Spalte 1 wird zur Vorderseite, Spalte 2 zur Rückseite."
+    },
+    "convert-brainscape-to-anki": {
+      "h1": "Übertrage deine Brainscape-Karteikarten zu Anki",
+      "subhead": "Exportiere deinen Brainscape-Stapel als CSV, leg ihn hier ab und erhalte einen .apkg-Stapel, der sauber in Anki öffnet."
+    },
+    "convert-lingvist-to-anki": {
+      "h1": "Übertrage deine Lingvist-Karteikarten zu Anki",
+      "subhead": "Exportiere deine Lingvist-Vokabeln als CSV, leg sie hier ab und erhalte einen .apkg-Stapel. Deine Wörter und Übersetzungen kommen als Basic-Karten mit."
+    },
+    "convert-studystack-to-anki": {
+      "h1": "Übertrage deine StudyStack-Karteikarten zu Anki",
+      "subhead": "Exportiere deinen StudyStack als CSV, leg ihn hier ab und erhalte einen .apkg-Stapel. Begriffe und Definitionen werden zu Basic-Karten, bereit zum Wiederholen in Anki."
+    },
+    "convert-pleco-to-anki": {
+      "h1": "Übertrage deine Pleco-Karteikarten zu Anki",
+      "subhead": "Exportiere dein Pleco-userdict als .txt-Datei, leg sie hier ab und erhalte einen .apkg-Stapel. Hanzi, Pinyin und Definitionen kommen als Basic-Karten mit."
+    },
+    "convert-zorbi-to-anki": {
+      "h1": "Übertrage deine Zorbi-Karteikarten zu Anki",
+      "subhead": "Exportiere deinen Zorbi-Stapel als CSV, leg ihn hier ab und erhalte einen .apkg-Stapel. Fragen und Antworten werden zu Basic-Anki-Karten."
+    },
+    "convert-language-reactor-to-anki": {
+      "h1": "Übertrage deine Language-Reactor-Speicherungen zu Anki",
+      "subhead": "Leg die Export-ZIP von Language Reactor ab — deine gespeicherten Sätze, Bilder und Audios kommen als sauberer .apkg-Stapel mit, den du auf jedem Gerät lernen kannst."
+    },
+    "convert-epub-to-anki": {
+      "h1": "EPUB-Markierungen zu Anki — von E-Book-Markierungen zu Karten",
+      "subhead": "Leg eine DRM-freie .epub-Datei ab und lade eine .apkg herunter. Jede markierte Passage wird zu einer Karte, mit Buchtitel und Autor auf der Rückseite."
+    },
+    "convert-kindle-to-anki": {
+      "h1": "Kindle-Markierungen zu Anki — von My Clippings.txt zum Stapel",
+      "subhead": "Kopiere My Clippings.txt von deinem Kindle, leg sie hier ab und lade eine .apkg herunter. Jede markierte Passage — und jede von dir getippte Notiz — wird zu einer Karte."
+    }
+  }
+}
