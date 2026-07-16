@@ -96,6 +96,14 @@ class UsersRepository {
       .first();
   }
 
+  async getLanguageByEmail(email: string): Promise<string | null> {
+    const row = await this.database(this.table)
+      .whereRaw('LOWER(TRIM(email)) = LOWER(?)', [email.trim()])
+      .select('language')
+      .first();
+    return row?.language ?? null;
+  }
+
   updateResetToken(id: string, resetToken: string) {
     return this.database(this.table)
       .where({ id })

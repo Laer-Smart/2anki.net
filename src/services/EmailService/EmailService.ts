@@ -29,6 +29,8 @@ import { SUPPORT_EMAIL_ADDRESS } from '../../lib/constants';
 import { emailHash } from '../../lib/emailHash';
 import { getDatabase } from '../../data_layer';
 import SuppressionEventsRepository from '../../data_layer/SuppressionEventsRepository';
+import UsersRepository from '../../data_layer/UsersRepository';
+import { DeckReadyStrings, getEmailStrings } from './i18n';
 
 type EmailResponse = { didSend: boolean; error?: Error };
 
@@ -110,16 +112,24 @@ export const PRICE_LOCK_IN_SUBJECTS: Record<'a' | 'b', string> = {
 
 type SgMessage = Exclude<Parameters<typeof sgMail.send>[0], unknown[]>;
 type IsEmailSuppressed = (email: string) => Promise<boolean>;
+type GetRecipientLanguage = (email: string) => Promise<string | null>;
 
 const THIN_SPACE = ' ';
 
-function formatCardCount(count: number): string {
-  const label = count === 1 ? 'card' : 'cards';
+function formatCardCount(count: number, strings: DeckReadyStrings): string {
+  const label = count === 1 ? strings.cardSingular : strings.cardPlural;
   const grouped =
     count >= 10000
       ? String(count).replace(/\B(?=(\d{3})+(?!\d))/g, THIN_SPACE)
       : String(count);
   return `${grouped} ${label}`;
+}
+
+function deckReadySuffix(
+  cardCount: number | undefined,
+  strings: DeckReadyStrings
+): string {
+  return cardCount == null ? '' : ` — ${formatCardCount(cardCount, strings)}`;
 }
 
 function resolveDeckName(filename: string): string {
@@ -130,17 +140,25 @@ function resolveDeckName(filename: string): string {
 function renderDeckReadyMarkup(
   template: string,
   deckName: string,
-  cardCount?: number
+  cardCount: number | undefined,
+  strings: DeckReadyStrings
 ): string {
-  const suffix = cardCount == null ? '' : ` — ${formatCardCount(cardCount)}`;
   return template
+    .replace('{{heading}}', strings.heading)
+    .replace('{{bodyAttached}}', strings.bodyAttached)
+    .replace('{{bodyTrouble}}', strings.bodyTrouble)
+    .replace('{{disclaimerPrefix}}', strings.disclaimerPrefix)
+    .replace('{{disclaimerSuffix}}', strings.disclaimerSuffix)
     .replace('{{deckName}}', escapeHtml(deckName))
-    .replace('{{cardCountSuffix}}', suffix);
+    .replace('{{cardCountSuffix}}', deckReadySuffix(cardCount, strings));
 }
 
-function deckReadyText(deckName: string, cardCount?: number): string {
-  const suffix = cardCount == null ? '' : ` — ${formatCardCount(cardCount)}`;
-  return `Your deck is ready: ${deckName}${suffix}`;
+function deckReadyText(
+  deckName: string,
+  cardCount: number | undefined,
+  strings: DeckReadyStrings
+): string {
+  return `${strings.textReadyPrefix}${deckName}${deckReadySuffix(cardCount, strings)}`;
 }
 
 function firstRecipient(to: SgMessage['to']): string | null {
@@ -158,9 +176,19 @@ export class EmailService implements IEmailService {
   constructor(
     apiKey: string,
     readonly defaultSender: string,
-    private readonly isEmailSuppressed: IsEmailSuppressed = async () => false
+    private readonly isEmailSuppressed: IsEmailSuppressed = async () => false,
+    private readonly getRecipientLanguage: GetRecipientLanguage = async () =>
+      null
   ) {
     sgMail.setApiKey(apiKey);
+  }
+
+  private async resolveLanguage(email: string): Promise<string | null> {
+    try {
+      return await this.getRecipientLanguage(email);
+    } catch {
+      return null;
+    }
   }
 
   private async deliver(msg: SgMessage): Promise<[ClientResponse, {}] | null> {
@@ -186,12 +214,22 @@ export class EmailService implements IEmailService {
 
   async sendResetEmail(email: string, token: string): Promise<void> {
     const link = `${process.env.DOMAIN ?? 'https://2anki.net'}/users/r/${token}`;
-    const markup = PASSWORD_RESET_TEMPLATE.replace('{{link}}', link);
+    const strings = getEmailStrings(
+      await this.resolveLanguage(email)
+    ).resetPassword;
+    const markup = PASSWORD_RESET_TEMPLATE.replace(
+      '{{heading}}',
+      strings.heading
+    )
+      .replace('{{body}}', strings.body)
+      .replace('{{cta}}', strings.cta)
+      .replace('{{disclaimer}}', strings.disclaimer)
+      .replace('{{link}}', link);
     const msg = {
       to: email,
       from: this.defaultSender,
-      subject: 'Reset your 2anki.net password',
-      text: `We received your password change request, you can change it here ${link}`,
+      subject: strings.subject,
+      text: strings.text.replace('{{link}}', link),
       html: markup,
       replyTo: 'support@2anki.net',
     };
@@ -204,14 +242,22 @@ export class EmailService implements IEmailService {
     }
   }
 
-  sendConversionEmail(
+  async sendConversionEmail(
     email: string,
     filename: string,
     contents: Buffer,
     cardCount?: number
   ): Promise<[ClientResponse, {}] | null> {
+    const strings = getEmailStrings(
+      await this.resolveLanguage(email)
+    ).deckReady;
     const deckName = resolveDeckName(filename);
-    const markup = renderDeckReadyMarkup(CONVERT_TEMPLATE, deckName, cardCount);
+    const markup = renderDeckReadyMarkup(
+      CONVERT_TEMPLATE,
+      deckName,
+      cardCount,
+      strings
+    );
 
     let attachedFilename = filename;
     if (!isValidDeckName(filename)) {
@@ -220,8 +266,8 @@ export class EmailService implements IEmailService {
     const msg = {
       to: email,
       from: DEFAULT_SENDER,
-      subject: `2anki.net - Your «${filename}» deck is ready`,
-      text: `${deckReadyText(deckName, cardCount)}. It is attached to this email.`,
+      subject: strings.subject.replace('{{filename}}', filename),
+      text: `${deckReadyText(deckName, cardCount, strings)}${strings.textAttached}`,
       html: markup,
       replyTo: 'support@2anki.net',
       attachments: [
@@ -243,17 +289,19 @@ export class EmailService implements IEmailService {
     link: string,
     cardCount?: number
   ) {
+    const strings = getEmailStrings('en').deckReady;
     const deckName = resolveDeckName(filename);
     const markup = renderDeckReadyMarkup(
       CONVERT_LINK_TEMPLATE,
       deckName,
-      cardCount
+      cardCount,
+      strings
     ).replace(/{{link}}/g, link);
     const msg = {
       to: email,
       from: DEFAULT_SENDER,
       subject: `2anki.net - Your «${filename}» deck is ready`,
-      text: `${deckReadyText(deckName, cardCount)}. Download it here: ${link}`,
+      text: `${deckReadyText(deckName, cardCount, strings)}. Download it here: ${link}`,
       html: markup,
       replyTo: 'support@2anki.net',
     };
@@ -318,31 +366,24 @@ export class EmailService implements IEmailService {
   ): Promise<MagicLinkSendResult> {
     const link = `${process.env.DOMAIN ?? 'https://2anki.net'}/auth/magic?token=${token}`;
     const isLogin = purpose === 'login';
-    const subject = isLogin
-      ? 'Your 2anki login link'
-      : 'Reset your 2anki password';
-    const heading = isLogin
-      ? 'Sign in to 2anki.net'
-      : 'Reset your 2anki.net password';
-    const description = isLogin
-      ? 'Click the button below to sign in to your account.'
-      : 'Click the button below to reset your password.';
-    const buttonText = isLogin ? 'Sign in' : 'Reset password';
+    const strings = getEmailStrings(await this.resolveLanguage(email));
+    const variant = isLogin ? strings.magicLinkLogin : strings.magicLinkReset;
+    const shared = strings.magicLinkShared;
 
-    const markup = MAGIC_LINK_TEMPLATE.replace('{{title}}', heading)
-      .replace('{{heading}}', heading)
-      .replace('{{description}}', description)
+    const markup = MAGIC_LINK_TEMPLATE.replace('{{title}}', variant.heading)
+      .replace('{{heading}}', variant.heading)
+      .replace('{{description}}', variant.description)
       .replace('{{link}}', link)
-      .replace('{{buttonText}}', buttonText);
+      .replace('{{buttonText}}', variant.cta)
+      .replace('{{expiry}}', shared.expiry)
+      .replace('{{disclaimer}}', shared.disclaimer);
 
-    const plainText = isLogin
-      ? `Sign in to your 2anki account using this link: ${link}`
-      : `Reset your 2anki password using this link: ${link}`;
+    const plainText = variant.text.replace('{{link}}', link);
 
     const msg = {
       to: email,
       from: this.defaultSender,
-      subject,
+      subject: variant.subject,
       text: plainText,
       html: markup,
       replyTo: 'support@2anki.net',
@@ -953,13 +994,14 @@ export class UnimplementedEmailService implements IEmailService {
 
 export const getDefaultEmailService = () => {
   if (process.env.SENDGRID_API_KEY !== undefined) {
-    const suppressionRepository = new SuppressionEventsRepository(
-      getDatabase()
-    );
+    const database = getDatabase();
+    const suppressionRepository = new SuppressionEventsRepository(database);
+    const usersRepository = new UsersRepository(database);
     return new EmailService(
       process.env.SENDGRID_API_KEY!,
       DEFAULT_SENDER,
-      (email) => suppressionRepository.isSuppressed(emailHash(email))
+      (email) => suppressionRepository.isSuppressed(emailHash(email)),
+      (email) => usersRepository.getLanguageByEmail(email)
     );
   }
   return new UnimplementedEmailService();
