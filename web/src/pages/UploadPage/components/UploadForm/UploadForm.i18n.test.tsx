@@ -72,4 +72,13 @@ describe('UploadForm dropzone in German', () => {
     expect(screen.getAllByText('.zip').length).toBeGreaterThan(0);
     expect(screen.getAllByText('.csv').length).toBeGreaterThan(0);
   });
+
+  it('translates the Dropbox source chip prompt in German', () => {
+    renderUploadForm();
+    expect(
+      screen.getByText(
+        'Wähle eine Datei aus deiner Dropbox, um sie in einen Stapel zu konvertieren'
+      )
+    ).toBeInTheDocument();
+  });
 });

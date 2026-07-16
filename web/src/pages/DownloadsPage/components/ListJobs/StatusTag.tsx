@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import listStyles from './ListJobs.module.css';
 import styles from '../../../../styles/shared.module.css';
 
@@ -53,34 +54,36 @@ function getStatusStyle(status: JobStatus): {
   }
 }
 
-function getStatusText(status: JobStatus): string {
-  const chunk = parseClaudeChunk(status);
-  if (chunk) return `Generating flashcards (${chunk.current} / ${chunk.total})`;
+function getStatusKey(status: JobStatus): string {
   switch (status) {
     case 'started':
-      return 'Queued';
+      return 'status.queued';
     case 'step1_create_workspace':
     case 'step2_creating_flashcards':
     case 'step3_building_deck':
-      return 'In Progress';
+      return 'status.inProgress';
     case 'done':
-      return 'Done';
+      return 'status.done';
     case 'interrupted':
-      return 'Interrupted';
+      return 'status.interrupted';
     case 'stale':
-      return 'Stuck';
+      return 'status.stuck';
     case 'failed':
-      return 'Failed';
+      return 'status.failed';
     case 'cancelled':
-      return 'Cancelled';
+      return 'status.cancelled';
     default:
-      return 'In Progress';
+      return 'status.inProgress';
   }
 }
 
 export function StatusTag({ status }: Prop) {
+  const { t } = useTranslation();
   const { className, dotClassName } = getStatusStyle(status);
-  const displayText = getStatusText(status);
+  const chunk = parseClaudeChunk(status);
+  const displayText = chunk
+    ? t('status.generating', { current: chunk.current, total: chunk.total })
+    : t(getStatusKey(status));
 
   return (
     <span className={`${listStyles.status} ${className}`}>

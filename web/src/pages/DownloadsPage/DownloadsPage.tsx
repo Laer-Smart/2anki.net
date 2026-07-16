@@ -5,6 +5,8 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 
 import useUploads from './hooks/useUploads';
@@ -96,18 +98,18 @@ function isGeneratingStatus(status: string): boolean {
   );
 }
 
-function getSourceLabel(source: DeckRow['source']): string {
+function getSourceLabel(source: DeckRow['source'], t: TFunction): string {
   switch (source) {
     case 'notion':
-      return 'Notion';
+      return t('downloads.source.notion');
     case 'upload':
-      return 'Upload';
+      return t('downloads.source.upload');
     case 'app':
-      return 'From the app';
+      return t('downloads.source.app');
     case 'dropbox':
-      return 'Dropbox';
+      return t('downloads.source.dropbox');
     case 'drive':
-      return 'Drive';
+      return t('downloads.source.drive');
   }
 }
 
@@ -137,7 +139,11 @@ interface RenderJobStatusOptions {
   onToggle: () => void;
 }
 
-export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
+export function renderJobStatusCell(
+  j: JobResponse,
+  t: TFunction,
+  onDownload?: () => void
+) {
   if (isDoneJob(j.status)) {
     if (j.type === 'apkg_import') {
       let notionUrl: string | null = null;
@@ -148,7 +154,7 @@ export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
         /* not JSON */
       }
       return notionUrl == null ? (
-        <span>Done</span>
+        <span>{t('downloads.done')}</span>
       ) : (
         <a
           href={notionUrl}
@@ -156,7 +162,7 @@ export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
           rel="noopener noreferrer"
           className={styles.downloadButton}
         >
-          Open in Notion
+          {t('downloads.openInNotion')}
         </a>
       );
     }
@@ -165,8 +171,10 @@ export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
         <a
           href={`/api/download/u/${j.download_key}`}
           className={styles.downloadAction}
-          aria-label={`Download ${j.title ?? 'deck'}`}
-          title="Download"
+          aria-label={t('downloads.actions.downloadNamed', {
+            name: j.title ?? 'deck',
+          })}
+          title={t('downloads.actions.download')}
           onClick={() => {
             onDownload?.();
             fireAnalyticsEvent('deck_downloaded');
@@ -191,21 +199,23 @@ export function renderJobStatusCell(j: JobResponse, onDownload?: () => void) {
 
 function getFailureToggleLabel(
   isMonthlyLimit: boolean,
-  isExpanded: boolean
+  isExpanded: boolean,
+  t: TFunction
 ): string {
   if (isMonthlyLimit) {
     return isExpanded
-      ? 'Collapse monthly limit details'
-      : 'Show monthly limit details';
+      ? t('downloads.toggle.collapseLimit')
+      : t('downloads.toggle.showLimit');
   }
-  return isExpanded ? 'Collapse failure reason' : 'Show failure reason';
+  return isExpanded
+    ? t('downloads.toggle.collapseFailure')
+    : t('downloads.toggle.showFailure');
 }
 
-function renderJobStatusWithToggle({
-  job,
-  isExpanded,
-  onToggle,
-}: RenderJobStatusOptions) {
+function renderJobStatusWithToggle(
+  { job, isExpanded, onToggle }: RenderJobStatusOptions,
+  t: TFunction
+) {
   if (isFailedJob(job.status)) {
     const isMonthlyLimit =
       parseMonthlyLimitPayload(job.job_reason_failure) != null;
@@ -214,11 +224,13 @@ function renderJobStatusWithToggle({
         type="button"
         className={styles.statusToggle}
         onClick={onToggle}
-        aria-label={getFailureToggleLabel(isMonthlyLimit, isExpanded)}
+        aria-label={getFailureToggleLabel(isMonthlyLimit, isExpanded, t)}
         aria-expanded={isExpanded}
       >
         {isMonthlyLimit ? (
-          <span className={sharedStyles.badge}>Monthly limit reached</span>
+          <span className={sharedStyles.badge}>
+            {t('downloads.badge.monthlyLimitReached')}
+          </span>
         ) : (
           <StatusTag status={job.status as JobStatus} />
         )}
@@ -230,7 +242,7 @@ function renderJobStatusWithToggle({
       </button>
     );
   }
-  return renderJobStatusCell(job);
+  return renderJobStatusCell(job, t);
 }
 
 const NOTION_TOKEN_EXPIRED_REASON = 'notion_token_expired';
@@ -305,6 +317,7 @@ function FilterChip({
 }
 
 export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
+  const { t } = useTranslation();
   const backend = get2ankiApi();
   const { deleteUpload, loading, uploads, error, refreshUploads } =
     useUploads(backend);
@@ -460,15 +473,12 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
           role="status"
           aria-live="polite"
         >
-          Email verified. You&apos;re all set.
+          {t('downloads.emailVerified')}
         </div>
       )}
       <div className={sharedStyles.pageHeader}>
-        <h1 className={sharedStyles.title}>My decks</h1>
-        <p className={sharedStyles.subtitle}>
-          Clean decks — proper cloze, atomic cards, no empty backs. Download
-          straight into Anki.
-        </p>
+        <h1 className={sharedStyles.title}>{t('downloads.title')}</h1>
+        <p className={sharedStyles.subtitle}>{t('downloads.subtitle')}</p>
       </div>
 
       {loading ? (
@@ -490,37 +500,37 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                 style={{ marginBottom: '1rem' }}
               >
                 <FilterChip
-                  label="All"
+                  label={t('downloads.filters.all')}
                   value="all"
                   active={activeFilter === 'all'}
                   onSelect={setFilter}
                 />
                 <FilterChip
-                  label="Ready"
+                  label={t('downloads.filters.ready')}
                   value="ready"
                   active={activeFilter === 'ready'}
                   onSelect={setFilter}
                 />
                 <FilterChip
-                  label="In progress"
+                  label={t('downloads.filters.inProgress')}
                   value="in-progress"
                   active={activeFilter === 'in-progress'}
                   onSelect={setFilter}
                 />
                 <FilterChip
-                  label="Failed"
+                  label={t('downloads.filters.failed')}
                   value="failed"
                   active={activeFilter === 'failed'}
                   onSelect={setFilter}
                 />
                 <FilterChip
-                  label="From Dropbox"
+                  label={t('downloads.filters.fromDropbox')}
                   value="dropbox"
                   active={activeFilter === 'dropbox'}
                   onSelect={setFilter}
                 />
                 <FilterChip
-                  label="From Drive"
+                  label={t('downloads.filters.fromDrive')}
                   value="drive"
                   active={activeFilter === 'drive'}
                   onSelect={setFilter}
@@ -532,11 +542,11 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                   <table className={styles.table}>
                     <thead>
                       <tr>
-                        <th>Name</th>
-                        <th>Source</th>
-                        <th>Created</th>
+                        <th>{t('downloads.columns.name')}</th>
+                        <th>{t('downloads.columns.source')}</th>
+                        <th>{t('downloads.columns.created')}</th>
                         <th className={sharedStyles.actionColumnWide}>
-                          Actions
+                          {t('downloads.columns.actions')}
                         </th>
                       </tr>
                     </thead>
@@ -551,7 +561,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               padding: '2rem 1rem',
                             }}
                           >
-                            No decks match this filter.
+                            {t('downloads.noMatch')}
                           </td>
                         </tr>
                       )}
@@ -599,8 +609,8 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                   <span className={sharedStyles.badge}>
                                     {row.source === 'upload' &&
                                     row.job.type === 'claude'
-                                      ? 'Written with Claude'
-                                      : getSourceLabel(row.source)}
+                                      ? t('downloads.badge.writtenWithClaude')
+                                      : getSourceLabel(row.source, t)}
                                   </span>
                                 </td>
                                 <td>
@@ -613,14 +623,17 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                 <td>
                                   <div className={styles.actions}>
                                     {isFailed ? (
-                                      renderJobStatusWithToggle({
-                                        job: row.job,
-                                        isExpanded,
-                                        onToggle: toggleFailurePanel,
-                                      })
+                                      renderJobStatusWithToggle(
+                                        {
+                                          job: row.job,
+                                          isExpanded,
+                                          onToggle: toggleFailurePanel,
+                                        },
+                                        t
+                                      )
                                     ) : (
                                       <>
-                                        {renderJobStatusCell(row.job, () =>
+                                        {renderJobStatusCell(row.job, t, () =>
                                           setHasDownloaded(true)
                                         )}
                                         {truncation != null && (
@@ -630,15 +643,17 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                             onClick={toggleFailurePanel}
                                             aria-label={
                                               isExpanded
-                                                ? 'Collapse conversion note'
-                                                : 'Show conversion note'
+                                                ? t(
+                                                    'downloads.toggle.collapseNote'
+                                                  )
+                                                : t('downloads.toggle.showNote')
                                             }
                                             aria-expanded={isExpanded}
                                           >
                                             <span
                                               className={sharedStyles.badge}
                                             >
-                                              Partial
+                                              {t('downloads.badge.partial')}
                                             </span>
                                             <span
                                               className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}
@@ -654,8 +669,12 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                             onClick={toggleFailurePanel}
                                             aria-label={
                                               isExpanded
-                                                ? 'Collapse image note'
-                                                : 'Show image note'
+                                                ? t(
+                                                    'downloads.toggle.collapseImageNote'
+                                                  )
+                                                : t(
+                                                    'downloads.toggle.showImageNote'
+                                                  )
                                             }
                                             aria-expanded={isExpanded}
                                           >
@@ -664,9 +683,12 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                                 sharedStyles.badgeWarning
                                               }
                                             >
-                                              {droppedAssets === 1
-                                                ? '1 image skipped'
-                                                : `${droppedAssets} images skipped`}
+                                              {t(
+                                                'downloads.badge.imageSkipped',
+                                                {
+                                                  count: droppedAssets,
+                                                }
+                                              )}
                                             </span>
                                             <span
                                               className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}
@@ -686,8 +708,13 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                           <Link
                                             to={`/preview/apkg/${encodeURIComponent(row.job.download_key)}`}
                                             className={styles.iconButton}
-                                            aria-label={`Preview ${row.job.title ?? 'deck'}`}
-                                            title="Preview"
+                                            aria-label={t(
+                                              'downloads.actions.previewNamed',
+                                              { name: row.job.title ?? 'deck' }
+                                            )}
+                                            title={t(
+                                              'downloads.actions.preview'
+                                            )}
                                           >
                                             <EyeIcon width={16} height={16} />
                                           </Link>
@@ -710,8 +737,12 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                             type="button"
                                             onClick={() => restartJob(row.job)}
                                             className={styles.iconButton}
-                                            aria-label="Restart job"
-                                            title="Restart"
+                                            aria-label={t(
+                                              'downloads.actions.restartJob'
+                                            )}
+                                            title={t(
+                                              'downloads.actions.restart'
+                                            )}
                                           >
                                             ↺
                                           </button>
@@ -724,10 +755,24 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                         className={`${styles.iconButton} ${styles.iconButtonDanger}`}
                                         aria-label={
                                           isFailed || isDoneJob(row.job.status)
-                                            ? `Delete ${row.job.title}`
-                                            : `Cancel ${row.job.title}`
+                                            ? t(
+                                                'downloads.actions.deleteNamed',
+                                                {
+                                                  name: row.job.title,
+                                                }
+                                              )
+                                            : t(
+                                                'downloads.actions.cancelNamed',
+                                                {
+                                                  name: row.job.title,
+                                                }
+                                              )
                                         }
-                                        title={isFailed ? 'Delete' : 'Cancel'}
+                                        title={
+                                          isFailed
+                                            ? t('downloads.actions.delete')
+                                            : t('downloads.actions.cancel')
+                                        }
                                       >
                                         <TrashIcon width={16} height={16} />
                                       </button>
@@ -825,13 +870,13 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                     }}
                                     title="Shared — click to open preview"
                                   >
-                                    Shared
+                                    {t('downloads.badge.shared')}
                                   </Link>
                                 )}
                               </td>
                               <td>
                                 <span className={sharedStyles.badge}>
-                                  {getSourceLabel(row.source)}
+                                  {getSourceLabel(row.source, t)}
                                 </span>
                               </td>
                               <td>
@@ -846,8 +891,11 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                   <a
                                     href={`/api/download/u/${u.key}`}
                                     className={styles.downloadAction}
-                                    aria-label={`Download ${u.filename}`}
-                                    title="Download"
+                                    aria-label={t(
+                                      'downloads.actions.downloadNamed',
+                                      { name: u.filename }
+                                    )}
+                                    title={t('downloads.actions.download')}
                                     onClick={() => {
                                       setHasDownloaded(true);
                                       fireAnalyticsEvent('deck_downloaded');
@@ -861,8 +909,11 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       <Link
                                         to={`/preview/apkg/${encodeURIComponent(u.key)}`}
                                         className={styles.iconButton}
-                                        aria-label={`Preview ${u.filename}`}
-                                        title="Preview"
+                                        aria-label={t(
+                                          'downloads.actions.previewNamed',
+                                          { name: u.filename }
+                                        )}
+                                        title={t('downloads.actions.preview')}
                                       >
                                         <EyeIcon width={16} height={16} />
                                       </Link>
@@ -877,8 +928,11 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       type="button"
                                       onClick={() => handleDeleteUpload(u.key)}
                                       className={`${styles.iconButton} ${styles.iconButtonDanger}`}
-                                      aria-label={`Delete ${u.filename}`}
-                                      title="Delete"
+                                      aria-label={t(
+                                        'downloads.actions.deleteNamed',
+                                        { name: u.filename }
+                                      )}
+                                      title={t('downloads.actions.delete')}
                                     >
                                       <TrashIcon width={16} height={16} />
                                     </button>
@@ -906,7 +960,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               </td>
                               <td>
                                 <span className={sharedStyles.badge}>
-                                  Dropbox
+                                  {t('downloads.source.dropbox')}
                                 </span>
                               </td>
                               <td>
@@ -923,8 +977,11 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       type="button"
                                       className={`${styles.iconButton} ${styles.iconButtonDanger}`}
                                       onClick={() => deleteDropboxUpload(d.id)}
-                                      aria-label={`Remove ${d.name}`}
-                                      title="Remove"
+                                      aria-label={t(
+                                        'downloads.actions.removeNamed',
+                                        { name: d.name }
+                                      )}
+                                      title={t('downloads.actions.remove')}
                                     >
                                       <TrashIcon width={16} height={16} />
                                     </button>
@@ -952,7 +1009,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                               </td>
                               <td>
                                 <span className={sharedStyles.badge}>
-                                  Drive
+                                  {t('downloads.source.drive')}
                                 </span>
                               </td>
                               <td>
@@ -971,8 +1028,11 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       onClick={() =>
                                         deleteGoogleDriveUpload(g.id)
                                       }
-                                      aria-label={`Remove ${g.name}`}
-                                      title="Remove"
+                                      aria-label={t(
+                                        'downloads.actions.removeNamed',
+                                        { name: g.name }
+                                      )}
+                                      title={t('downloads.actions.remove')}
                                     >
                                       <TrashIcon width={16} height={16} />
                                     </button>
@@ -1006,7 +1066,7 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                       navigate('/upload');
                     }}
                   >
-                    Make another deck
+                    {t('downloads.makeAnotherDeck')}
                   </button>
                 </div>
               )}

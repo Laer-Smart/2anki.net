@@ -5,6 +5,7 @@ import {
   type MouseEvent,
   type ReactNode,
 } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { classifyUploadError } from '../../../../components/errors/helpers/getErrorMessage';
 import { parseAmbiguousColumnsPayload } from '../../../../lib/fieldMapping/types';
@@ -25,10 +26,7 @@ type Source = 'notion' | 'upload' | 'dropbox' | 'drive';
 
 const NOTION_TOKEN_EXPIRED_REASON = 'notion_token_expired';
 const EMPTY_DECK_REASON_PREFIX = 'No cards in this deck yet.';
-const TOGGLES_DOCS_LABEL = 'See how toggles become cards';
 const TOGGLES_DOCS_HREF = '/documentation/cards/notion-blocks';
-const EMPTY_DECK_TEACHING_COPY =
-  "2anki makes a card from every Notion toggle — the toggle title becomes the question, what's inside becomes the answer. Wrap your key terms in toggles, then convert again.";
 
 interface ProcessingProps {
   variant: 'processing';
@@ -63,26 +61,13 @@ type ConversionResultProps =
   | FailedProps
   | SuccessProps;
 
-function buildPaywallHeadline(cardsUsed: number, limit: number): string {
-  if (cardsUsed >= limit) {
-    return `You've reached your ${limit} free cards this month`;
-  }
-  return `You've used ${cardsUsed} of your ${limit} free cards this month`;
-}
-
-function buildPaywallBody(resetDate: string | null): string {
-  if (resetDate == null) {
-    return "This conversion would go past your free limit, so it didn't finish. Get a pass to keep converting now.";
-  }
-  return `This conversion would go past your free limit, so it didn't finish. Your free cards refresh on ${resetDate}, or get a pass to keep converting now.`;
-}
-
 function PaywalledVariant({
   limit,
   cardsUsed,
   resetOn,
   email,
 }: Omit<PaywalledProps, 'variant' | 'title'>) {
+  const { t } = useTranslation();
   const shownFiredRef = useRef(false);
   const [pendingKind, setPendingKind] = useState<'24h' | '7d' | null>(null);
   const upgradeHref = getSubscribeLink(email);
@@ -126,9 +111,15 @@ function PaywalledVariant({
   return (
     <div className={styles.paywalled}>
       <p className={styles.paywallHeadline}>
-        {buildPaywallHeadline(cardsUsed, limit)}
+        {cardsUsed >= limit
+          ? t('conversionResult.paywall.headlineReached', { limit })
+          : t('conversionResult.paywall.headlineUsed', { cardsUsed, limit })}
       </p>
-      <p className={styles.paywallBody}>{buildPaywallBody(resetDate)}</p>
+      <p className={styles.paywallBody}>
+        {resetDate == null
+          ? t('conversionResult.paywall.bodyNoReset')
+          : t('conversionResult.paywall.bodyWithReset', { resetDate })}
+      </p>
       <div className={styles.paywallActions}>
         <button
           type="button"
@@ -137,8 +128,10 @@ function PaywalledVariant({
           disabled={pendingKind != null}
         >
           {pendingKind === '24h'
-            ? 'Opening checkout'
-            : `Get Day Pass — ${PASS_PRICES['24h']}`}
+            ? t('conversionResult.paywall.openingCheckout')
+            : t('conversionResult.paywall.getDayPass', {
+                price: PASS_PRICES['24h'],
+              })}
         </button>
         <button
           type="button"
@@ -147,8 +140,10 @@ function PaywalledVariant({
           disabled={pendingKind != null}
         >
           {pendingKind === '7d'
-            ? 'Opening checkout'
-            : `Get Week Pass — ${PASS_PRICES['7d']}`}
+            ? t('conversionResult.paywall.openingCheckout')
+            : t('conversionResult.paywall.getWeekPass', {
+                price: PASS_PRICES['7d'],
+              })}
         </button>
         <a
           href={upgradeHref}
@@ -157,7 +152,7 @@ function PaywalledVariant({
           aria-disabled={pendingKind != null}
           tabIndex={pendingKind == null ? undefined : -1}
         >
-          Upgrade to Unlimited
+          {t('conversionResult.paywall.upgradeUnlimited')}
         </a>
       </div>
     </div>
@@ -169,12 +164,13 @@ function FailedVariant({
   source,
   onMapColumns,
 }: Omit<FailedProps, 'variant' | 'title'>) {
+  const { t } = useTranslation();
   if (source === 'notion' && failureReason === NOTION_TOKEN_EXPIRED_REASON) {
     return (
       <div>
-        <p>Notion connection expired. Reconnect to keep converting pages.</p>
+        <p>{t('conversionResult.notionExpired')}</p>
         <a href="/notion" className={sharedStyles.btnPrimary}>
-          Reconnect Notion
+          {t('conversionResult.reconnectNotion')}
         </a>
       </div>
     );
@@ -183,12 +179,12 @@ function FailedVariant({
   if (failureReason.startsWith(EMPTY_DECK_REASON_PREFIX)) {
     return (
       <div>
-        <p>{EMPTY_DECK_TEACHING_COPY}</p>
+        <p>{t('conversionResult.emptyDeckTeaching')}</p>
         <Link
           to={TOGGLES_DOCS_HREF}
           className={`${sharedStyles.btnPrimary} ${sharedStyles.btnInline}`}
         >
-          {TOGGLES_DOCS_LABEL}
+          {t('conversionResult.togglesDocs')}
         </Link>
       </div>
     );
@@ -197,16 +193,13 @@ function FailedVariant({
   if (parseAmbiguousColumnsPayload(failureReason) != null) {
     return (
       <div>
-        <p>
-          This database has more than two columns. Pick which column should be
-          the front and back of each card.
-        </p>
+        <p>{t('conversionResult.ambiguousColumns')}</p>
         <button
           type="button"
           className={sharedStyles.btnPrimary}
           onClick={onMapColumns}
         >
-          Map columns
+          {t('conversionResult.mapColumns')}
         </button>
       </div>
     );
@@ -229,22 +222,25 @@ function FailedVariant({
           : friendly.title}
       </p>
       <p>
-        Something looks off? <Link to="/status">Check status.</Link>
+        {t('conversionResult.checkStatusPrefix')}
+        <Link to="/status">{t('conversionResult.checkStatus')}</Link>
       </p>
     </>
   );
 }
 
 function SuccessVariant({ count }: Omit<SuccessProps, 'variant'>) {
-  const noun = count === 1 ? 'card' : 'cards';
+  const { t } = useTranslation();
   return (
     <div className={styles.success}>
       <span className={styles.cardCount}>
         <span className={styles.cardCountNumber}>{count}</span>
-        <span className={styles.cardCountLabel}>{noun}</span>
+        <span className={styles.cardCountLabel}>
+          {t('conversionResult.success.card', { count })}
+        </span>
       </span>
       <span className={styles.helperText}>
-        No empty backs, no stray characters. Ready for Anki.
+        {t('conversionResult.success.helper')}
       </span>
     </div>
   );

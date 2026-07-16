@@ -5,6 +5,7 @@ import { MemoryRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { DownloadsPage, renderJobStatusCell } from './DownloadsPage';
+import i18n from '../../lib/i18n';
 import JobResponse from '../../schemas/public/JobResponse';
 import { JobsId } from '../../schemas/public/Jobs';
 
@@ -405,7 +406,7 @@ describe('renderJobStatusCell — URL construction', () => {
       download_key: 'abc123.apkg',
       upload_id: 5,
     });
-    const result = renderJobStatusCell(job);
+    const result = renderJobStatusCell(job, i18n.t);
     const { container } = render(<>{result}</>);
     const link = container.querySelector('a');
     expect(link?.getAttribute('href')).toBe('/api/download/u/abc123.apkg');
@@ -418,7 +419,7 @@ describe('renderJobStatusCell — URL construction', () => {
       download_key: null,
       upload_id: null,
     });
-    const result = renderJobStatusCell(job);
+    const result = renderJobStatusCell(job, i18n.t);
     expect(result).toBeNull();
   });
 
@@ -428,7 +429,7 @@ describe('renderJobStatusCell — URL construction', () => {
       download_key: null,
       upload_id: null,
     });
-    const result = renderJobStatusCell(job);
+    const result = renderJobStatusCell(job, i18n.t);
     expect(result).not.toBeNull();
   });
 });
