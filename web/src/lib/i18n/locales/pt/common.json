@@ -306,9 +306,9 @@
   "pricing": {
     "kicker": "Planos",
     "title": "Preços",
-    "contextBanner": "Você está no plano grátis — 100 cards per month.",
+    "contextBanner": "Você está no plano grátis — 100 cartões por mês.",
     "introUS": "Feito para repetição espaçada — MCAT, USMLE, exame da OAB e estudo de idiomas. Transforme páginas do Notion, PDFs e fotos em baralhos do Anki com IA — sem precisar de conta para começar.",
-    "introDefault": "Transforme páginas do Notion, PDFs e fotos em baralhos do Anki com IA — sem precisar de conta para começar. Cadastre-se grátis para 100 cards per month e depois pague uma vez por dia ou por semana.",
+    "introDefault": "Transforme páginas do Notion, PDFs e fotos em baralhos do Anki com IA — sem precisar de conta para começar. Cadastre-se grátis para 100 cartões por mês e depois pague uma vez por dia ou por semana.",
     "tryFree": "Converter um baralho grátis",
     "socialProof": "Confiado por mais de 19.000 estudantes no mundo todo",
     "payOnceSection": "Pague uma vez — sem assinatura",

@@ -92,6 +92,6 @@ describe('Dutch (nl) locale parity', () => {
     const common = flatten(nlCommon);
     expect(common['pricing.pass.getDayPass']).toBe('Get Day Pass');
     expect(common['pricing.unlimited.getUnlimited']).toBe('Get Unlimited');
-    expect(common['pricing.contextBanner']).toContain('100 cards per month');
+    expect(common['pricing.contextBanner']).toContain('100 kaarten per maand');
   });
 });

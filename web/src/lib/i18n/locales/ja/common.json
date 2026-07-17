@@ -304,9 +304,9 @@
   "pricing": {
     "kicker": "プラン",
     "title": "料金",
-    "contextBanner": "無料プランをご利用中です — 100 cards per month.",
+    "contextBanner": "無料プランをご利用中です — 毎月100枚のカード。",
     "introUS": "間隔反復学習のために作られました — MCAT、USMLE、司法試験、語学対策に。Notion ページ、PDF、写真を AI で Anki デッキに変換 — アカウントなしで始められます。",
-    "introDefault": "Notion ページ、PDF、写真を AI で Anki デッキに変換 — アカウントなしで始められます。無料登録で 100 cards per month、その後は 1 日または 1 週間ごとに一度だけお支払いください。",
+    "introDefault": "Notion ページ、PDF、写真を AI で Anki デッキに変換 — アカウントなしで始められます。無料登録で毎月100枚のカード、その後は 1 日または 1 週間ごとに一度だけお支払いください。",
     "tryFree": "デッキを無料で変換",
     "socialProof": "世界中の 19,000 人以上の学習者に利用されています",
     "payOnceSection": "一度だけのお支払い — サブスクリプションなし",
