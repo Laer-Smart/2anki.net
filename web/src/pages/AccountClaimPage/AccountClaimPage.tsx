@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { post } from '../../lib/backend/api';
 import { SkeletonPage } from '../../components/Skeleton/Skeleton';
@@ -14,6 +15,7 @@ type State =
   | 'error';
 
 export default function AccountClaimPage() {
+  const { t } = useTranslation('accountx');
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token') ?? '';
   const [state, setState] = useState<State>('loading');
@@ -59,48 +61,39 @@ export default function AccountClaimPage() {
       <div className={sharedStyles.card}>
         {state === 'success' && (
           <>
-            <h1 className={sharedStyles.title}>Subscription claimed.</h1>
-            <p>Your subscription is now attached to this account.</p>
+            <h1 className={sharedStyles.title}>{t('claim.successTitle')}</h1>
+            <p>{t('claim.successBody')}</p>
             <a href="/account" className={sharedStyles.btnPrimary}>
-              Go to account
+              {t('claim.goToAccount')}
             </a>
           </>
         )}
         {(state === 'expired' || state === 'error') && (
           <>
-            <h1 className={sharedStyles.title}>Invalid or expired link.</h1>
-            <p>
-              This confirmation link is no longer valid. Start over from your
-              account to request a new one.
-            </p>
+            <h1 className={sharedStyles.title}>{t('claim.expiredTitle')}</h1>
+            <p>{t('claim.expiredBody')}</p>
             <a href="/account" className={sharedStyles.btnPrimary}>
-              Go to account
+              {t('claim.goToAccount')}
             </a>
           </>
         )}
         {state === 'already_claimed' && (
           <>
-            <h1 className={sharedStyles.title}>Link already used.</h1>
-            <p>
-              This link is already used. Sign in and try again from your account
-              page if you need to reclaim.
-            </p>
+            <h1 className={sharedStyles.title}>
+              {t('claim.alreadyUsedTitle')}
+            </h1>
+            <p>{t('claim.alreadyUsedBody')}</p>
             <a href="/account" className={sharedStyles.btnPrimary}>
-              Go to account
+              {t('claim.goToAccount')}
             </a>
           </>
         )}
         {state === 'active_sub' && (
           <>
-            <h1 className={sharedStyles.title}>
-              Account already has a subscription.
-            </h1>
-            <p>
-              This account already has an active subscription. Cancel it first
-              or contact support.
-            </p>
+            <h1 className={sharedStyles.title}>{t('claim.activeSubTitle')}</h1>
+            <p>{t('claim.activeSubBody')}</p>
             <a href="/account" className={sharedStyles.btnPrimary}>
-              Go to account
+              {t('claim.goToAccount')}
             </a>
           </>
         )}

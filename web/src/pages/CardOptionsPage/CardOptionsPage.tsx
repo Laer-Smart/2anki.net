@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Link,
   useLocation,
@@ -25,32 +26,40 @@ interface Props {
 
 interface RelativeUnit {
   ms: number;
-  label: string;
+  unit: Intl.RelativeTimeFormatUnit;
 }
 
 const RELATIVE_UNITS: RelativeUnit[] = [
-  { ms: 60_000, label: 'minute' },
-  { ms: 3_600_000, label: 'hour' },
-  { ms: 86_400_000, label: 'day' },
-  { ms: 2_592_000_000, label: 'month' },
-  { ms: 31_536_000_000, label: 'year' },
+  { ms: 60_000, unit: 'minute' },
+  { ms: 3_600_000, unit: 'hour' },
+  { ms: 86_400_000, unit: 'day' },
+  { ms: 2_592_000_000, unit: 'month' },
+  { ms: 31_536_000_000, unit: 'year' },
 ];
 
-function formatUpdatedAt(value: string | null): string | null {
+function formatUpdatedAt(
+  value: string | null,
+  language: string,
+  momentLabel: string
+): string | null {
   if (!value) return null;
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   const diffMs = Date.now() - date.getTime();
-  if (diffMs < RELATIVE_UNITS[0].ms) return 'a moment ago';
+  if (diffMs < RELATIVE_UNITS[0].ms) return momentLabel;
   let unit: RelativeUnit = RELATIVE_UNITS[0];
   for (const candidate of RELATIVE_UNITS) {
     if (diffMs >= candidate.ms) unit = candidate;
   }
   const count = Math.floor(diffMs / unit.ms);
-  return `${count} ${unit.label}${count === 1 ? '' : 's'} ago`;
+  return new Intl.RelativeTimeFormat(language, { numeric: 'always' }).format(
+    -count,
+    unit.unit
+  );
 }
 
 export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
+  const { t, i18n } = useTranslation('accountx');
   const [params] = useSearchParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -124,7 +133,7 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
       ]);
       setPerPageItems((prev) => prev.filter((p) => p.pageId !== item.pageId));
     } catch {
-      setRowError("Couldn't reset. Try again.");
+      setRowError(t('cardOptions.rowResetError'));
     } finally {
       setPendingResetIds((prev) => {
         const next = new Set(prev);
@@ -143,9 +152,7 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
       setConfirmOpen(false);
       loadSettings();
     } catch {
-      setBulkError(
-        "Couldn't reset all pages. Some may have been reset — refresh to check."
-      );
+      setBulkError(t('cardOptions.bulkResetError'));
       setConfirmOpen(false);
     } finally {
       setBulkPending(false);
@@ -161,36 +168,32 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
         <header className={sharedStyles.pageHeader}>
           {pageId != null && (
             <button type="button" onClick={goBack} className={styles.backLink}>
-              ← Back
+              {t('cardOptions.back')}
             </button>
           )}
-          <h1 className={sharedStyles.title}>Settings</h1>
+          <h1 className={sharedStyles.title}>{t('cardOptions.title')}</h1>
           {pageId == null && (
             <p className={sharedStyles.subtitle}>
-              Control how 2anki converts your content into Anki cards — deck
-              names, templates, card types, and more. Changes here apply to
-              every new conversion.
-              {cameFromNotion && (
-                <>
-                  {' '}
-                  To adjust settings for a single Notion page, open it from the
-                  list below.
-                </>
-              )}{' '}
-              <Link to="/documentation">Read the docs</Link> for a full
-              explanation of each option.
+              {t('cardOptions.subtitle')}
+              {cameFromNotion && <> {t('cardOptions.subtitleNotion')}</>}{' '}
+              <Link to="/documentation">{t('cardOptions.readDocs')}</Link>{' '}
+              {t('cardOptions.readDocsSuffix')}
             </p>
           )}
           {pageId == null && !isLoggedIn && (
             <p className={sharedStyles.smallDescription}>
-              Your settings are saved on this device.{' '}
-              <Link to="/login?redirect=/card-options">Sign in</Link> to keep
-              them across browsers and devices.
+              {t('cardOptions.savedOnDevice')}{' '}
+              <Link to="/login?redirect=/card-options">
+                {t('cardOptions.signIn')}
+              </Link>{' '}
+              {t('cardOptions.keepAcrossDevices')}
             </p>
           )}
           {pageId != null && (
             <p className={sharedStyles.subtitle}>
-              {`Custom options for ${pageTitle ?? 'this page'}. Saved changes apply only to this page.`}
+              {t('cardOptions.perPageSubtitle', {
+                title: pageTitle ?? t('cardOptions.thisPage'),
+              })}
             </p>
           )}
         </header>
@@ -201,13 +204,13 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
             role="status"
             aria-live="polite"
           >
-            <p>All custom settings reset to defaults</p>
+            <p>{t('cardOptions.resetToastSuccess')}</p>
             <button
               type="button"
               className={sharedStyles.btnGhost}
               onClick={() => setBulkSuccess(false)}
             >
-              Dismiss
+              {t('cardOptions.dismiss')}
             </button>
           </div>
         )}
@@ -221,7 +224,7 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
         {pageId == null && showPagesSection && (
           <section className={`${styles.pagesSection} ${styles.pagesCard}`}>
             <h2 className={styles.pagesHeading}>
-              Pages with custom settings
+              {t('cardOptions.pagesWithCustom')}
               {perPageItems.length > 0 && (
                 <span className={styles.sectionCount}>
                   {perPageItems.length}
@@ -237,8 +240,7 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
 
             {perPageItems.length === 0 ? (
               <p className={styles.emptyInCard}>
-                When you save options for a specific Notion page, it shows up
-                here. Every other page uses your defaults below.
+                {t('cardOptions.emptyPages')}
               </p>
             ) : (
               <>
@@ -256,19 +258,25 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
                           <Link
                             to={rulesHref}
                             className={styles.entryMeta}
-                            aria-label={`Edit settings for ${displayTitle ?? item.pageId}`}
+                            aria-label={t('cardOptions.editSettingsFor', {
+                              name: displayTitle ?? item.pageId,
+                            })}
                           >
                             <div className={styles.entryText}>
                               <span className={styles.entryTitle}>
-                                {displayTitle ?? 'Untitled page'}
+                                {displayTitle ?? t('cardOptions.untitledPage')}
                               </span>
                               {(() => {
                                 const updatedLabel = formatUpdatedAt(
-                                  item.updatedAt
+                                  item.updatedAt,
+                                  i18n.language,
+                                  t('cardOptions.moment')
                                 );
                                 return updatedLabel ? (
                                   <span className={styles.entryTimestamp}>
-                                    Updated {updatedLabel}
+                                    {t('cardOptions.updated', {
+                                      time: updatedLabel,
+                                    })}
                                   </span>
                                 ) : null;
                               })()}
@@ -280,17 +288,22 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
                               className={styles.resetButton}
                               onClick={() => handleRowReset(item)}
                               disabled={isResetting || bulkPending}
-                              aria-label={`Reset ${displayTitle ?? item.pageId} to defaults`}
+                              aria-label={t('cardOptions.resetNameToDefaults', {
+                                name: displayTitle ?? item.pageId,
+                              })}
                             >
-                              Reset to defaults
+                              {t('cardOptions.resetToDefaults')}
                             </button>
                             <a
                               href={`https://www.notion.so/${item.pageId.replaceAll('-', '')}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className={styles.actionButton}
-                              aria-label={`Open ${displayTitle ?? 'page'} in Notion`}
-                              title="Open in Notion"
+                              aria-label={t('cardOptions.openNameInNotion', {
+                                name:
+                                  displayTitle ?? t('cardOptions.pageFallback'),
+                              })}
+                              title={t('cardOptions.openInNotion')}
                             >
                               <img
                                 src="/icons/Notion_app_logo.png"
@@ -317,7 +330,7 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
                     onClick={() => setConfirmOpen(true)}
                     disabled={anyRowPending || bulkPending}
                   >
-                    Reset all to defaults
+                    {t('cardOptions.resetAllToDefaults')}
                   </button>
                 </div>
               </>
@@ -328,11 +341,13 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
         {pageId == null && (
           <div className={styles.formHeader}>
             <hr className={styles.divider} />
-            <h2 className={styles.formHeading}>Default options</h2>
+            <h2 className={styles.formHeading}>
+              {t('cardOptions.defaultOptions')}
+            </h2>
             <p className={sharedStyles.smallDescription}>
               {cameFromNotion || perPageItems.length > 0
-                ? 'Used for every file upload and any Notion page without saved overrides.'
-                : 'Used for every file upload.'}
+                ? t('cardOptions.defaultOptionsWithOverrides')
+                : t('cardOptions.defaultOptionsUpload')}
             </p>
           </div>
         )}
@@ -358,24 +373,19 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
               id="bulk-reset-dialog-title"
               className={sharedStyles.modalHeaderTitle}
             >
-              Reset all custom settings?
+              {t('cardOptions.resetAllTitle')}
             </span>
             <button
               type="button"
               className={sharedStyles.modalClose}
               onClick={() => setConfirmOpen(false)}
-              aria-label="Close"
+              aria-label={t('cardOptions.close')}
             >
               &times;
             </button>
           </div>
           <div className={sharedStyles.modalBody}>
-            <p>
-              {itemCount} {itemCount === 1 ? 'page' : 'pages'} will go back to
-              your default options. The custom options and parser rules saved
-              for these pages are removed. You can save new options for any page
-              later.
-            </p>
+            <p>{t('cardOptions.bulkBody', { count: itemCount })}</p>
           </div>
           <div className={sharedStyles.modalFooter}>
             <button
@@ -383,7 +393,7 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
               className={sharedStyles.btnSecondary}
               onClick={() => setConfirmOpen(false)}
             >
-              Cancel
+              {t('cardOptions.cancel')}
             </button>
             <button
               type="button"
@@ -391,7 +401,7 @@ export default function CardOptionsPage({ setErrorMessage }: Readonly<Props>) {
               onClick={handleBulkConfirm}
               disabled={bulkPending}
             >
-              Reset {itemCount} {itemCount === 1 ? 'page' : 'pages'}
+              {t('cardOptions.resetPages', { count: itemCount })}
             </button>
           </div>
         </div>

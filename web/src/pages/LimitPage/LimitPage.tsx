@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { track } from '../../lib/analytics/track';
@@ -13,14 +14,9 @@ const REF = 'limit-wall';
 const ANONYMOUS_CARD_CAP = 21;
 const FREE_MONTHLY_CARDS = 100;
 
-const UNLIMITED_BENEFITS = [
-  'Unlimited flashcards',
-  'Run multiple conversions at once',
-  'PDFs and large Notion exports',
-  'Cancel anytime',
-];
-
 function AnonymousLimit() {
+  const { t } = useTranslation('accountx');
+
   useEffect(() => {
     track('paywall_shown', { surface: REF, variant: 'anonymous' });
   }, []);
@@ -28,16 +24,14 @@ function AnonymousLimit() {
   return (
     <div className={styles.page}>
       <Helmet>
-        <title>You reached the conversion limit | 2anki</title>
+        <title>{t('limit.helmetAnon')}</title>
       </Helmet>
 
       <header className={styles.header}>
         <p className={styles.statusLine}>
-          Conversion stopped — you reached the {ANONYMOUS_CARD_CAP}-card limit
+          {t('limit.statusLine', { count: ANONYMOUS_CARD_CAP })}
         </p>
-        <h1 className={styles.heading}>
-          You hit the limit for converting without an account
-        </h1>
+        <h1 className={styles.heading}>{t('limit.anonHeading')}</h1>
         <p className={styles.subheading}>
           Without an account, conversions stop at {ANONYMOUS_CARD_CAP} cards. A
           free account raises that to {FREE_MONTHLY_CARDS} cards a month — same
@@ -47,17 +41,13 @@ function AnonymousLimit() {
 
       <div className={styles.singlePlan}>
         <div className={`${styles.planCard} ${styles.planCardFeatured}`}>
-          <p className={styles.planTitle}>Free account</p>
+          <p className={styles.planTitle}>{t('limit.freeAccount')}</p>
           <ul className={styles.planBenefits}>
             <li className={styles.planBenefit}>
               Convert up to {FREE_MONTHLY_CARDS} cards a month
             </li>
-            <li className={styles.planBenefit}>
-              Save and re-download your decks
-            </li>
-            <li className={styles.planBenefit}>
-              Connect Notion, Dropbox, and Google Drive
-            </li>
+            <li className={styles.planBenefit}>{t('limit.saveRedownload')}</li>
+            <li className={styles.planBenefit}>{t('limit.connectServices')}</li>
           </ul>
           <Link
             to="/register?redirect=/upload"
@@ -69,20 +59,21 @@ function AnonymousLimit() {
               })
             }
           >
-            Sign up free and finish converting
+            {t('limit.signUpFinish')}
           </Link>
         </div>
       </div>
 
       <p className={styles.backLink}>
-        Already have an account?{' '}
-        <Link to="/login?redirect=/upload">Sign in</Link>
+        {t('limit.alreadyHaveAccount')}{' '}
+        <Link to="/login?redirect=/upload">{t('limit.signIn')}</Link>
       </p>
     </div>
   );
 }
 
 export function LimitPage() {
+  const { t } = useTranslation('accountx');
   const { data: userLocals, isLoading } = useUserLocals();
   const email = userLocals?.user?.email;
   const isLoggedIn = userLocals?.user?.id != null;
@@ -130,9 +121,7 @@ export function LimitPage() {
         globalThis.location.href = result.url;
         return;
       }
-      setPassError(
-        "Couldn't start checkout. Try again or email support@2anki.net."
-      );
+      setPassError(t('limit.checkoutError'));
     } finally {
       setDayPassPending(false);
       setWeekPassPending(false);
@@ -151,12 +140,10 @@ export function LimitPage() {
 
       <header className={styles.header}>
         <h1 className={styles.heading}>You reached 100 cards this month</h1>
-        <p className={styles.subheading}>
-          Upgrade to keep converting — no cap, no wait.
-        </p>
+        <p className={styles.subheading}>{t('limit.upgradeSubheading')}</p>
       </header>
 
-      <p className={styles.sectionLabel}>Pay once — no subscription</p>
+      <p className={styles.sectionLabel}>{t('limit.payOnce')}</p>
       <PassCards
         onDayPass={() => handlePassCheckout('24h')}
         onWeekPass={() => handlePassCheckout('7d')}
@@ -170,12 +157,17 @@ export function LimitPage() {
         </p>
       )}
 
-      <p className={styles.sectionLabel}>Skip the cap for good</p>
+      <p className={styles.sectionLabel}>{t('limit.skipCap')}</p>
       <div className={styles.singlePlan}>
         <div className={styles.planCard}>
-          <p className={styles.planTitle}>Unlimited</p>
+          <p className={styles.planTitle}>{t('limit.unlimited')}</p>
           <ul className={styles.planBenefits}>
-            {UNLIMITED_BENEFITS.map((b) => (
+            {[
+              t('limit.benefitUnlimited'),
+              t('limit.benefitMultiple'),
+              t('limit.benefitPdf'),
+              t('limit.benefitCancel'),
+            ].map((b) => (
               <li key={b} className={styles.planBenefit}>
                 {b}
               </li>
@@ -191,13 +183,13 @@ export function LimitPage() {
               })
             }
           >
-            Upgrade to Unlimited
+            {t('limit.upgradeToUnlimited')}
           </a>
         </div>
       </div>
 
       <p className={styles.backLink}>
-        <Link to="/upload">Back to upload</Link>
+        <Link to="/upload">{t('limit.backToUpload')}</Link>
       </p>
     </div>
   );
