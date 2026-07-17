@@ -30,6 +30,12 @@ const FREE_CUSTOMER_FILTER =
   "(users.stripe_customer_id IS NULL OR users.stripe_customer_id = '')";
 
 const PLAN_LIMIT_REASON_PATTERN = '%"code":"monthly_limit"%';
+// Empty-deck outcomes are not engine failures: the conversion ran fine, the
+// input simply had no card-yielding toggles. Excluded from the success-rate
+// denominator alongside plan blocks so user-content outcomes don't trip the
+// pipeline-health floor. Prefix matches EMPTY_DECK_FAILURE_REASON, the same
+// prefix normalizeFailureReasons keys the empty_deck code on.
+const EMPTY_DECK_REASON_PATTERN = 'No cards in this deck yet.%';
 
 export class JobsMetricsRepository implements IJobsMetricsRepository {
   constructor(private readonly database: Knex) {}
@@ -74,8 +80,8 @@ export class JobsMetricsRepository implements IJobsMetricsRepository {
           ['done']
         ),
         this.database.raw(
-          'COUNT(CASE WHEN jobs.status = ? AND (jobs.job_reason_failure IS NULL OR jobs.job_reason_failure NOT LIKE ?) THEN 1 END) as technical',
-          ['failed', PLAN_LIMIT_REASON_PATTERN]
+          'COUNT(CASE WHEN jobs.status = ? AND (jobs.job_reason_failure IS NULL OR (jobs.job_reason_failure NOT LIKE ? AND jobs.job_reason_failure NOT LIKE ?)) THEN 1 END) as technical',
+          ['failed', PLAN_LIMIT_REASON_PATTERN, EMPTY_DECK_REASON_PATTERN]
         )
       )
       .first();
