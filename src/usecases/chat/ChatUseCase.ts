@@ -83,6 +83,12 @@ const FREE_MONTHLY_LIMIT = 20;
 const FREE_MODEL = 'claude-haiku-4-5-20251001';
 const PATREON_MODEL = 'claude-sonnet-4-6';
 const MAX_HISTORY_TURNS = 10;
+// A follow-up turn replays the attachment text folded into its original user
+// message, so a large PDF would otherwise be re-sent on every subsequent turn.
+// The current turn still receives the full extracted text (up to
+// extractAttachmentText's 200 000-char budget); only the copy carried forward
+// as conversation memory is capped here.
+const MAX_ATTACHMENT_TEXT_IN_HISTORY = 20_000;
 const MAX_TOKENS = 4096;
 // MCQ is emitted as forced tool-use JSON (stem + 4 options + rationale per
 // card). At 4096 the structured output truncates on multi-card batches, the
@@ -186,6 +192,19 @@ function buildAutoTitle(firstMessage: string): string {
   if (trimmed.length === 0) return 'New conversation';
   if (trimmed.length <= AUTO_TITLE_MAX_LENGTH) return trimmed;
   return `${trimmed.slice(0, AUTO_TITLE_MAX_LENGTH).trimEnd()}…`;
+}
+
+function capAttachmentTextForHistory(block: string): string {
+  if (block.length <= MAX_ATTACHMENT_TEXT_IN_HISTORY) return block;
+  return `${block.slice(0, MAX_ATTACHMENT_TEXT_IN_HISTORY)}\n[…truncated]`;
+}
+
+function foldAttachmentIntoContent(
+  content: string,
+  attachmentText: string | null
+): string {
+  if (attachmentText == null || attachmentText.length === 0) return content;
+  return `${attachmentText}\n\n${content}`;
 }
 
 export class ChatRateLimitError extends Error {
@@ -477,7 +496,6 @@ export class ChatUseCase {
       });
     }
 
-    const recentHistory = conversationHistory.slice(-MAX_HISTORY_TURNS);
     const attachmentBlocks = buildAttachmentBlocks(attachments);
     const extractedText = await extractAttachmentText(attachments);
     const attachmentTextBlock = buildAttachmentTextBlock(extractedText);
@@ -490,24 +508,53 @@ export class ChatUseCase {
         ? [...attachmentBlocks, { type: 'text', text: promptText }]
         : promptText;
 
+    const historyMessages = await this.assembleHistory({
+      userId: user.owner,
+      conversationId,
+      isExistingConversation: input.conversationId != null,
+      clientHistory: conversationHistory,
+    });
+
     await this.messagesRepo.insert({
       userId: user.owner,
       conversationId,
       role: 'user',
       content,
+      attachmentText:
+        attachmentTextBlock.length > 0
+          ? capAttachmentTextForHistory(attachmentTextBlock)
+          : null,
     });
 
     return this.streamAssistantTurn({
       user,
       conversationId,
       templateSlug: input.templateSlug,
-      historyMessages: recentHistory.map((m) => ({
-        role: m.role,
-        content: m.content,
-      })),
+      historyMessages,
       userContent,
       onToken,
     });
+  }
+
+  private async assembleHistory(input: {
+    userId: number;
+    conversationId: number;
+    isExistingConversation: boolean;
+    clientHistory: ChatMessage[];
+  }): Promise<Array<{ role: 'user' | 'assistant'; content: string }>> {
+    if (input.isExistingConversation) {
+      const persisted = await this.messagesRepo.listForConversation({
+        userId: input.userId,
+        conversationId: input.conversationId,
+      });
+      return persisted.slice(-MAX_HISTORY_TURNS).map((m) => ({
+        role: m.role,
+        content: foldAttachmentIntoContent(m.content, m.attachmentText),
+      }));
+    }
+    return input.clientHistory
+      .slice(-MAX_HISTORY_TURNS)
+      .map((m) => ({ role: m.role, content: m.content }));
   }
 
   async regenerate(input: {

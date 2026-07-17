@@ -6,6 +6,7 @@ export interface ChatMessageRow {
   conversation_id: number | null;
   role: 'user' | 'assistant';
   content: string;
+  attachment_text: string | null;
   created_at: Date;
 }
 
@@ -14,11 +15,22 @@ export interface ChatMessageInsert {
   conversationId: number | null;
   role: 'user' | 'assistant';
   content: string;
+  attachmentText?: string | null;
+}
+
+export interface ChatHistoryMessage {
+  role: 'user' | 'assistant';
+  content: string;
+  attachmentText: string | null;
 }
 
 export interface IChatMessagesRepository {
   insert(entry: ChatMessageInsert): Promise<void>;
   countThisMonth(userId: number): Promise<number>;
+  listForConversation(input: {
+    userId: number;
+    conversationId: number;
+  }): Promise<ChatHistoryMessage[]>;
   findLatestAssistantInConversation(input: {
     userId: number;
     conversationId: number;
@@ -42,6 +54,7 @@ export class ChatMessagesRepository implements IChatMessagesRepository {
       conversation_id: entry.conversationId,
       role: entry.role,
       content: entry.content,
+      attachment_text: entry.attachmentText ?? null,
     });
   }
 
@@ -57,6 +70,31 @@ export class ChatMessagesRepository implements IChatMessagesRepository {
       .first();
 
     return Number(result?.count ?? 0);
+  }
+
+  async listForConversation(input: {
+    userId: number;
+    conversationId: number;
+  }): Promise<ChatHistoryMessage[]> {
+    const rows = await this.database(this.table)
+      .where({
+        user_id: input.userId,
+        conversation_id: input.conversationId,
+      })
+      .orderBy('created_at', 'asc')
+      .orderBy('id', 'asc')
+      .select<
+        {
+          role: 'user' | 'assistant';
+          content: string;
+          attachment_text: string | null;
+        }[]
+      >('role', 'content', 'attachment_text');
+    return rows.map((row) => ({
+      role: row.role,
+      content: row.content,
+      attachmentText: row.attachment_text,
+    }));
   }
 
   async findLatestAssistantInConversation(input: {
@@ -103,6 +141,7 @@ export class InMemoryChatMessagesRepository implements IChatMessagesRepository {
     conversation_id: number | null;
     role: 'user' | 'assistant';
     content: string;
+    attachment_text: string | null;
     created_at: Date;
   }> = [];
   private nextId = 1;
@@ -114,6 +153,7 @@ export class InMemoryChatMessagesRepository implements IChatMessagesRepository {
       conversation_id: entry.conversationId,
       role: entry.role,
       content: entry.content,
+      attachment_text: entry.attachmentText ?? null,
       created_at: new Date(),
     });
   }
@@ -126,6 +166,27 @@ export class InMemoryChatMessagesRepository implements IChatMessagesRepository {
     return this.rows.filter(
       (r) => r.user_id === userId && r.created_at >= firstOfMonth
     ).length;
+  }
+
+  async listForConversation(input: {
+    userId: number;
+    conversationId: number;
+  }): Promise<ChatHistoryMessage[]> {
+    return this.rows
+      .filter(
+        (r) =>
+          r.user_id === input.userId &&
+          r.conversation_id === input.conversationId
+      )
+      .sort((a, b) => {
+        const t = a.created_at.getTime() - b.created_at.getTime();
+        return t === 0 ? a.id - b.id : t;
+      })
+      .map((r) => ({
+        role: r.role,
+        content: r.content,
+        attachmentText: r.attachment_text,
+      }));
   }
 
   async findLatestAssistantInConversation(input: {
