@@ -52,3 +52,21 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: out/${{ matrix.asset }}
+
+  publish-npm:
+    # Publishes @2anki/cli so `npx @2anki/cli` works with no Gatekeeper.
+    # Needs an NPM_TOKEN secret (npm Automation token with @2anki publish access).
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22.20.0'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Assemble the npm package
+        run: node scripts/build-cli-npm.mjs "${{ github.ref_name }}"
+      - name: Publish to npm
+        working-directory: npm-dist
+        run: npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

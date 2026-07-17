@@ -6,6 +6,15 @@ Turn your notes into Anki decks, using a 2anki API key.
 > people who have been granted developer access. Request access from the
 > [Developers page](https://2anki.net/developers).
 
+## Install (npm)
+
+```bash
+npx @2anki/cli login          # run without installing
+npm i -g @2anki/cli && 2anki login   # or install globally
+```
+
+Node users get zero macOS Gatekeeper prompts this way.
+
 ## Install (binary)
 
 Download the binary for your platform from the

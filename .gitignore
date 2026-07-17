@@ -106,6 +106,7 @@ test/artifacts/*.apkg
 
 dist/*.js
 dist/cli/
+npm-dist/
 
 # Electron builder
 
