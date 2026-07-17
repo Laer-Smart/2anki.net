@@ -32,7 +32,10 @@ describe('GrantDeveloperAccessUseCase', () => {
 
   it('rejects a value that is not an email', async () => {
     await expect(
-      new GrantDeveloperAccessUseCase(makeUsersRepo(0)).execute('notanemail', true)
+      new GrantDeveloperAccessUseCase(makeUsersRepo(0)).execute(
+        'notanemail',
+        true
+      )
     ).rejects.toBeInstanceOf(InvalidEmailError);
   });
 });

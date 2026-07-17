@@ -38,7 +38,9 @@ describe('apiKeyToken', () => {
     });
 
     it('returns null for a non-key bearer (session JWT), so it falls through to cookie auth', () => {
-      expect(extractApiKeyFromHeader('Bearer eyJhbGci.session.token')).toBeNull();
+      expect(
+        extractApiKeyFromHeader('Bearer eyJhbGci.session.token')
+      ).toBeNull();
     });
 
     it('returns null for absent or malformed headers', () => {

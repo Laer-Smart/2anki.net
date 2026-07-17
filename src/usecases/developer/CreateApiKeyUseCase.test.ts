@@ -51,9 +51,9 @@ describe('CreateApiKeyUseCase', () => {
 
   it('rejects an empty name', async () => {
     const { repo } = makeRepo();
-    await expect(new CreateApiKeyUseCase(repo).execute(7, '  ')).rejects.toBeInstanceOf(
-      InvalidApiKeyNameError
-    );
+    await expect(
+      new CreateApiKeyUseCase(repo).execute(7, '  ')
+    ).rejects.toBeInstanceOf(InvalidApiKeyNameError);
   });
 
   it('rejects once the per-user key limit is reached', async () => {

@@ -5,13 +5,28 @@ import RequestDeveloperAccessUseCase, {
 describe('resolvePayingStatus', () => {
   it('reports lifetime, subscriber, or free in priority order', () => {
     expect(
-      resolvePayingStatus({ userId: 1, email: 'a@b.c', patreon: true, subscriber: true })
+      resolvePayingStatus({
+        userId: 1,
+        email: 'a@b.c',
+        patreon: true,
+        subscriber: true,
+      })
     ).toBe('lifetime');
     expect(
-      resolvePayingStatus({ userId: 1, email: 'a@b.c', patreon: false, subscriber: true })
+      resolvePayingStatus({
+        userId: 1,
+        email: 'a@b.c',
+        patreon: false,
+        subscriber: true,
+      })
     ).toBe('subscriber');
     expect(
-      resolvePayingStatus({ userId: 1, email: 'a@b.c', patreon: false, subscriber: false })
+      resolvePayingStatus({
+        userId: 1,
+        email: 'a@b.c',
+        patreon: false,
+        subscriber: false,
+      })
     ).toBe('free');
   });
 });

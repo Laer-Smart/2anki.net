@@ -18,7 +18,8 @@ export function hashApiKey(raw: string): string {
 }
 
 export function generateApiKey(): GeneratedApiKey {
-  const raw = API_KEY_PREFIX + crypto.randomBytes(RANDOM_BYTES).toString('base64url');
+  const raw =
+    API_KEY_PREFIX + crypto.randomBytes(RANDOM_BYTES).toString('base64url');
   return {
     raw,
     hash: hashApiKey(raw),
@@ -27,7 +28,9 @@ export function generateApiKey(): GeneratedApiKey {
 }
 
 export function looksLikeApiKey(value: string): boolean {
-  return value.startsWith(API_KEY_PREFIX) && value.length > API_KEY_PREFIX.length;
+  return (
+    value.startsWith(API_KEY_PREFIX) && value.length > API_KEY_PREFIX.length
+  );
 }
 
 /**
