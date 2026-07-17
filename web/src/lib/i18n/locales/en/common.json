@@ -147,7 +147,70 @@
       "driveHint": "Docs work best as a bulleted outline — top bullet asks, indented bullet answers.",
       "chooseFromDrive": "Choose from Google Drive",
       "openingDrive": "Opening Google Drive"
-    }
+    },
+    "page": {
+      "title": "Convert your notes",
+      "subtitle": "Drop a file and get a deck you don't have to fix — proper cloze, atomic cards, the right note types. Notion, PDF, Markdown, HTML, Word, and CSV too.",
+      "reattachPrefix": "Re-attach",
+      "reattachSuffix": "to convert",
+      "aiOn": "AI is on",
+      "aiOnBody": "Cards are written by Claude.",
+      "aiOff": "AI is off",
+      "aiOffBody": "You'll get rule-based cards from your file's structure.",
+      "turnOnClaudeCards": "Turn on Claude cards",
+      "upgradeClaude": "Upgrade to write cards with Claude",
+      "aiAnonIntro": "Claude can write your cards —",
+      "signInToTurnOn": "sign in to turn on AI",
+      "manageInSettings": "Manage in Settings",
+      "turnAiOff": "Turn AI off",
+      "turnAiOn": "Turn AI on",
+      "contactAria": "Contact us",
+      "howItWorks": "How it works",
+      "filesDeleted": "Files are deleted after 2 hours.",
+      "step1Title": "Drop or choose a file",
+      "step1Body": "PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or PowerPoint. In Word docs, headings become card fronts; each bullet under a heading becomes its own card, and other text becomes the back. Images land on the back, and strikethrough text on a card becomes an Anki tag.",
+      "comingFromNotion": "Coming from Notion?",
+      "howToExport": "How to export your pages.",
+      "step2Title": "Your deck is built",
+      "step2Body": "Images, code blocks, cloze, and formatting carry over. Usually a few seconds.",
+      "step3Title": "Open in Anki",
+      "step3Body": "Your .apkg downloads automatically. Import it into Anki or AnkiDroid to start studying.",
+      "contactPrefix": "Something not working?",
+      "tellUs": "Tell us",
+      "orEmail": "or email"
+    },
+    "explore": {
+      "heading": "Make better decks",
+      "sub": "Three settings worth knowing about.",
+      "mcqBody": "Turn on MCQ and your next conversion includes multiple-choice cards alongside standard ones.",
+      "mcqCta": "Turn on MCQ",
+      "photoBody": "Snap a textbook page, lecture slide, or handwritten notes — 2anki builds the cards from the image.",
+      "freePhotoHint": "Free plan: 5 photos per month",
+      "deckDefaults": "Deck defaults",
+      "deckDefaultsBody": "Set the deck name, card style (cloze or Q&A), card size (Short, Medium, Detailed), and AI options before you convert."
+    },
+    "recent": {
+      "title": "Recent",
+      "convertAgain": "Convert again"
+    },
+    "onboarding": {
+      "aria": "Quick tour",
+      "step1Title": "Drop a file, or pick a Notion page.",
+      "step1Hint": "Supported: .zip (Notion export), .html, .md, .pdf, .docx, .xlsx, .pptx, .csv",
+      "step2Title": "Pick deck settings.",
+      "step2Hint": "Rename the deck, choose a card template, and set conversion options in Card options.",
+      "step3Title": "Convert your file into a deck.",
+      "step3Hint": "Press Convert — 2anki builds your .apkg in seconds.",
+      "step4Title": "Download the deck, or send it to AnkiWeb.",
+      "step4Hint": "Your deck downloads automatically. Import it in Anki or sync via AnkiWeb.",
+      "back": "Back",
+      "next": "Next",
+      "skip": "Skip"
+    },
+    "chips": {
+      "groupAria": "Other upload sources"
+    },
+    "overSplit": "Many card fronts are just one or two words, which usually means the file split mid-sentence. Look over the deck before you study, or upload the original Word or Notion file for cleaner cards."
   },
   "auth": {
     "common": {

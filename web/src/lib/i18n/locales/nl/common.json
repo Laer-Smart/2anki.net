@@ -147,7 +147,70 @@
       "driveHint": "Docs werken het best als een opsomming met bullets — bovenste bullet is de vraag, ingesprongen bullet is het antwoord.",
       "chooseFromDrive": "Kies uit Google Drive",
       "openingDrive": "Google Drive openen"
-    }
+    },
+    "page": {
+      "title": "Zet je notities om",
+      "subtitle": "Zet een bestand neer en krijg een deck dat je niet hoeft bij te werken — nette cloze, atomische kaarten, de juiste notitietypen. Ook Notion, PDF, Markdown, HTML, Word en CSV.",
+      "reattachPrefix": "Voeg opnieuw toe",
+      "reattachSuffix": "om te converteren",
+      "aiOn": "AI staat aan",
+      "aiOnBody": "Kaarten worden door Claude geschreven.",
+      "aiOff": "AI staat uit",
+      "aiOffBody": "Je krijgt op regels gebaseerde kaarten uit de structuur van je bestand.",
+      "turnOnClaudeCards": "Claude-kaarten inschakelen",
+      "upgradeClaude": "Upgrade om kaarten met Claude te schrijven",
+      "aiAnonIntro": "Claude kan je kaarten schrijven —",
+      "signInToTurnOn": "log in om AI in te schakelen",
+      "manageInSettings": "Beheren in Instellingen",
+      "turnAiOff": "AI uitschakelen",
+      "turnAiOn": "AI inschakelen",
+      "contactAria": "Neem contact op",
+      "howItWorks": "Zo werkt het",
+      "filesDeleted": "Bestanden worden na 2 uur verwijderd.",
+      "step1Title": "Zet een bestand neer of kies er een",
+      "step1Body": "PDF, Word, Notion-export, Markdown, HTML, Excel, CSV of PowerPoint. In Word-documenten worden koppen de voorkant van kaarten; elke opsomming onder een kop wordt een eigen kaart, en de overige tekst wordt de achterkant. Afbeeldingen komen op de achterkant, en doorgehaalde tekst op een kaart wordt een Anki-tag.",
+      "comingFromNotion": "Kom je van Notion?",
+      "howToExport": "Zo exporteer je je pagina's.",
+      "step2Title": "Je deck wordt gemaakt",
+      "step2Body": "Afbeeldingen, codeblokken, cloze en opmaak worden overgenomen. Meestal een paar seconden.",
+      "step3Title": "Openen in Anki",
+      "step3Body": "Je .apkg wordt automatisch gedownload. Importeer het in Anki of AnkiDroid om te gaan studeren.",
+      "contactPrefix": "Werkt er iets niet?",
+      "tellUs": "Laat het ons weten",
+      "orEmail": "of e-mail"
+    },
+    "explore": {
+      "heading": "Maak betere decks",
+      "sub": "Drie instellingen die het waard zijn om te kennen.",
+      "mcqBody": "Schakel MCQ in en je volgende conversie bevat meerkeuzekaarten naast de standaardkaarten.",
+      "mcqCta": "MCQ inschakelen",
+      "photoBody": "Maak een foto van een boekpagina, collegeslide of handgeschreven notities — 2anki maakt de kaarten van de afbeelding.",
+      "freePhotoHint": "Gratis plan: 5 foto's per maand",
+      "deckDefaults": "Standaardinstellingen voor decks",
+      "deckDefaultsBody": "Stel de decknaam, kaartstijl (cloze of vraag en antwoord), kaartgrootte (Kort, Gemiddeld, Uitgebreid) en AI-opties in voordat je converteert."
+    },
+    "recent": {
+      "title": "Recent",
+      "convertAgain": "Opnieuw converteren"
+    },
+    "onboarding": {
+      "aria": "Snelle rondleiding",
+      "step1Title": "Zet een bestand neer of kies een Notion-pagina.",
+      "step1Hint": "Ondersteund: .zip (Notion-export), .html, .md, .pdf, .docx, .xlsx, .pptx, .csv",
+      "step2Title": "Kies de deckinstellingen.",
+      "step2Hint": "Hernoem het deck, kies een kaartsjabloon en stel de conversieopties in bij Kaartopties.",
+      "step3Title": "Zet je bestand om in een deck.",
+      "step3Hint": "Druk op Converteren — 2anki maakt je .apkg in seconden.",
+      "step4Title": "Download het deck of stuur het naar AnkiWeb.",
+      "step4Hint": "Je deck wordt automatisch gedownload. Importeer het in Anki of synchroniseer via AnkiWeb.",
+      "back": "Terug",
+      "next": "Volgende",
+      "skip": "Overslaan"
+    },
+    "chips": {
+      "groupAria": "Andere uploadbronnen"
+    },
+    "overSplit": "Veel voorkanten van kaarten bestaan uit slechts één of twee woorden, wat meestal betekent dat het bestand middenin een zin is gesplitst. Bekijk het deck voordat je studeert, of upload het oorspronkelijke Word- of Notion-bestand voor nettere kaarten."
   },
   "auth": {
     "common": {

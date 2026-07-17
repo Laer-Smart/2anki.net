@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import styles from './UploadSourceChips.module.css';
 
 export type UploadSource = 'local' | 'dropbox' | 'google_drive';
@@ -69,15 +70,16 @@ export function UploadSourceChips({
   dropboxAvailable,
   googleDriveAvailable,
 }: Readonly<Props>) {
+  const { t } = useTranslation();
   return (
     <div className={styles.wrapper}>
       <div className={styles.divider} aria-hidden="true">
-        <span className={styles.dividerText}>or</span>
+        <span className={styles.dividerText}>{t('upload.dropzone.or')}</span>
       </div>
       <div
         className={styles.chips}
         role="group"
-        aria-label="Other upload sources"
+        aria-label={t('upload.chips.groupAria')}
       >
         <button
           type="button"

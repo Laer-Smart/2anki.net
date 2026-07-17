@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import { getDistance } from '../../../../lib/getDistance';
@@ -7,6 +8,7 @@ import { getRecentSources, RecentSource } from './getRecentSources';
 import styles from './RecentSources.module.css';
 
 function RecentSourceRow({ source }: Readonly<{ source: RecentSource }>) {
+  const { t } = useTranslation();
   return (
     <li className={styles.row}>
       <div className={styles.meta}>
@@ -22,13 +24,14 @@ function RecentSourceRow({ source }: Readonly<{ source: RecentSource }>) {
           track('recent_page_reconvert_clicked', { type: source.type })
         }
       >
-        Convert again
+        {t('upload.recent.convertAgain')}
       </Link>
     </li>
   );
 }
 
 export function RecentSources() {
+  const { t } = useTranslation();
   const { data: sources } = useQuery({
     queryKey: ['recentSources'],
     queryFn: getRecentSources,
@@ -39,8 +42,12 @@ export function RecentSources() {
   }
 
   return (
-    <section className={styles.section} aria-label="Recent" translate="no">
-      <h2 className={styles.heading}>Recent</h2>
+    <section
+      className={styles.section}
+      aria-label={t('upload.recent.title')}
+      translate="no"
+    >
+      <h2 className={styles.heading}>{t('upload.recent.title')}</h2>
       <ul className={styles.list}>
         {sources.map((source) => (
           <RecentSourceRow

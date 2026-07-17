@@ -147,7 +147,70 @@
       "driveHint": "Les Docs fonctionnent mieux sous forme de liste à puces — la puce du haut pose la question, la puce en retrait donne la réponse.",
       "chooseFromDrive": "Choisir depuis Google Drive",
       "openingDrive": "Ouverture de Google Drive"
-    }
+    },
+    "page": {
+      "title": "Convertis tes notes",
+      "subtitle": "Dépose un fichier et récupère un paquet que tu n'auras pas à corriger — cloze propre, cartes atomiques, les bons types de notes. Notion, PDF, Markdown, HTML, Word et CSV aussi.",
+      "reattachPrefix": "Rattache",
+      "reattachSuffix": "pour convertir",
+      "aiOn": "L'IA est activée",
+      "aiOnBody": "Les cartes sont écrites par Claude.",
+      "aiOff": "L'IA est désactivée",
+      "aiOffBody": "Tu obtiendras des cartes basées sur des règles à partir de la structure de ton fichier.",
+      "turnOnClaudeCards": "Activer les cartes Claude",
+      "upgradeClaude": "Passe à une offre supérieure pour écrire des cartes avec Claude",
+      "aiAnonIntro": "Claude peut écrire tes cartes —",
+      "signInToTurnOn": "connecte-toi pour activer l'IA",
+      "manageInSettings": "Gérer dans les Réglages",
+      "turnAiOff": "Désactiver l'IA",
+      "turnAiOn": "Activer l'IA",
+      "contactAria": "Nous contacter",
+      "howItWorks": "Comment ça marche",
+      "filesDeleted": "Les fichiers sont supprimés après 2 heures.",
+      "step1Title": "Dépose ou choisis un fichier",
+      "step1Body": "PDF, Word, export Notion, Markdown, HTML, Excel, CSV ou PowerPoint. Dans les documents Word, les titres deviennent le recto des cartes ; chaque puce sous un titre devient sa propre carte, et le reste du texte passe au verso. Les images vont au verso, et le texte barré d'une carte devient une étiquette Anki.",
+      "comingFromNotion": "Tu viens de Notion ?",
+      "howToExport": "Comment exporter tes pages.",
+      "step2Title": "Ton paquet est créé",
+      "step2Body": "Les images, les blocs de code, le cloze et la mise en forme sont conservés. En général quelques secondes.",
+      "step3Title": "Ouvre dans Anki",
+      "step3Body": "Ton .apkg se télécharge automatiquement. Importe-le dans Anki ou AnkiDroid pour commencer à réviser.",
+      "contactPrefix": "Quelque chose ne fonctionne pas ?",
+      "tellUs": "Dis-le-nous",
+      "orEmail": "ou écris à"
+    },
+    "explore": {
+      "heading": "Crée de meilleurs paquets",
+      "sub": "Trois réglages à connaître.",
+      "mcqBody": "Active MCQ et ta prochaine conversion inclura des cartes à choix multiple en plus des cartes standard.",
+      "mcqCta": "Activer MCQ",
+      "photoBody": "Prends en photo une page de manuel, une diapo de cours ou des notes manuscrites — 2anki crée les cartes à partir de l'image.",
+      "freePhotoHint": "Offre gratuite : 5 photos par mois",
+      "deckDefaults": "Réglages par défaut du paquet",
+      "deckDefaultsBody": "Définis le nom du paquet, le style de carte (cloze ou question-réponse), la taille de carte (Court, Moyen, Détaillé) et les options d'IA avant de convertir."
+    },
+    "recent": {
+      "title": "Récents",
+      "convertAgain": "Reconvertir"
+    },
+    "onboarding": {
+      "aria": "Visite rapide",
+      "step1Title": "Dépose un fichier ou choisis une page Notion.",
+      "step1Hint": "Pris en charge : .zip (export Notion), .html, .md, .pdf, .docx, .xlsx, .pptx, .csv",
+      "step2Title": "Choisis les réglages du paquet.",
+      "step2Hint": "Renomme le paquet, choisis un modèle de carte et définis les options de conversion dans Options de carte.",
+      "step3Title": "Convertis ton fichier en paquet.",
+      "step3Hint": "Appuie sur Convertir — 2anki crée ton .apkg en quelques secondes.",
+      "step4Title": "Télécharge le paquet ou envoie-le vers AnkiWeb.",
+      "step4Hint": "Ton paquet se télécharge automatiquement. Importe-le dans Anki ou synchronise-le via AnkiWeb.",
+      "back": "Retour",
+      "next": "Suivant",
+      "skip": "Passer"
+    },
+    "chips": {
+      "groupAria": "Autres sources d'import"
+    },
+    "overSplit": "Beaucoup de rectos de cartes ne comptent qu'un ou deux mots, ce qui signifie généralement que le fichier a été coupé au milieu d'une phrase. Vérifie le paquet avant de réviser ou importe le fichier Word ou Notion d'origine pour des cartes plus propres."
   },
   "auth": {
     "common": {

@@ -151,7 +151,70 @@
       "driveHint": "Dokumenty działają najlepiej jako lista wypunktowana — górny punkt pyta, wcięty punkt odpowiada.",
       "chooseFromDrive": "Wybierz z Google Drive",
       "openingDrive": "Otwieranie Google Drive"
-    }
+    },
+    "page": {
+      "title": "Przekształć swoje notatki",
+      "subtitle": "Upuść plik i odbierz talię, której nie musisz poprawiać — poprawne cloze, atomowe karty, właściwe typy notatek. Także Notion, PDF, Markdown, HTML, Word i CSV.",
+      "reattachPrefix": "Dołącz ponownie",
+      "reattachSuffix": "aby przekonwertować",
+      "aiOn": "AI jest włączone",
+      "aiOnBody": "Karty pisze Claude.",
+      "aiOff": "AI jest wyłączone",
+      "aiOffBody": "Otrzymasz karty tworzone według reguł na podstawie struktury Twojego pliku.",
+      "turnOnClaudeCards": "Włącz karty Claude",
+      "upgradeClaude": "Ulepsz plan, aby pisać karty z Claude",
+      "aiAnonIntro": "Claude może napisać Twoje karty —",
+      "signInToTurnOn": "zaloguj się, aby włączyć AI",
+      "manageInSettings": "Zarządzaj w Ustawieniach",
+      "turnAiOff": "Wyłącz AI",
+      "turnAiOn": "Włącz AI",
+      "contactAria": "Skontaktuj się z nami",
+      "howItWorks": "Jak to działa",
+      "filesDeleted": "Pliki są usuwane po 2 godzinach.",
+      "step1Title": "Upuść lub wybierz plik",
+      "step1Body": "PDF, Word, eksport z Notion, Markdown, HTML, Excel, CSV lub PowerPoint. W dokumentach Word nagłówki stają się przodem kart; każdy punktor pod nagłówkiem staje się osobną kartą, a pozostały tekst trafia na tył. Obrazy trafiają na tył, a przekreślony tekst na karcie staje się tagiem Anki.",
+      "comingFromNotion": "Zaczynasz od Notion?",
+      "howToExport": "Jak wyeksportować swoje strony.",
+      "step2Title": "Twoja talia jest tworzona",
+      "step2Body": "Obrazy, bloki kodu, cloze i formatowanie zostają zachowane. Zwykle kilka sekund.",
+      "step3Title": "Otwórz w Anki",
+      "step3Body": "Twój plik .apkg pobiera się automatycznie. Zaimportuj go do Anki lub AnkiDroid, aby zacząć naukę.",
+      "contactPrefix": "Coś nie działa?",
+      "tellUs": "Daj nam znać",
+      "orEmail": "lub napisz na"
+    },
+    "explore": {
+      "heading": "Twórz lepsze talie",
+      "sub": "Trzy ustawienia, które warto znać.",
+      "mcqBody": "Włącz MCQ, a Twoja następna konwersja obejmie karty wielokrotnego wyboru obok standardowych.",
+      "mcqCta": "Włącz MCQ",
+      "photoBody": "Zrób zdjęcie strony podręcznika, slajdu z wykładu lub odręcznych notatek — 2anki tworzy karty z obrazu.",
+      "freePhotoHint": "Plan darmowy: 5 zdjęć miesięcznie",
+      "deckDefaults": "Domyślne ustawienia talii",
+      "deckDefaultsBody": "Ustaw nazwę talii, styl karty (cloze lub pytanie i odpowiedź), rozmiar karty (Krótki, Średni, Szczegółowy) oraz opcje AI przed konwersją."
+    },
+    "recent": {
+      "title": "Ostatnie",
+      "convertAgain": "Konwertuj ponownie"
+    },
+    "onboarding": {
+      "aria": "Szybkie wprowadzenie",
+      "step1Title": "Upuść plik lub wybierz stronę Notion.",
+      "step1Hint": "Obsługiwane: .zip (eksport z Notion), .html, .md, .pdf, .docx, .xlsx, .pptx, .csv",
+      "step2Title": "Wybierz ustawienia talii.",
+      "step2Hint": "Zmień nazwę talii, wybierz szablon karty i ustaw opcje konwersji w Opcjach karty.",
+      "step3Title": "Przekształć plik w talię.",
+      "step3Hint": "Naciśnij Konwertuj — 2anki tworzy Twój plik .apkg w kilka sekund.",
+      "step4Title": "Pobierz talię lub wyślij ją do AnkiWeb.",
+      "step4Hint": "Twoja talia pobiera się automatycznie. Zaimportuj ją do Anki lub zsynchronizuj przez AnkiWeb.",
+      "back": "Wstecz",
+      "next": "Dalej",
+      "skip": "Pomiń"
+    },
+    "chips": {
+      "groupAria": "Inne źródła przesyłania"
+    },
+    "overSplit": "Wiele przodów kart ma tylko jedno lub dwa słowa, co zwykle oznacza, że plik został podzielony w środku zdania. Przejrzyj talię przed nauką lub prześlij oryginalny plik Word albo Notion, aby uzyskać czytelniejsze karty."
   },
   "auth": {
     "common": {

@@ -147,7 +147,70 @@
       "driveHint": "Los documentos funcionan mejor como un esquema con viñetas — la viñeta superior pregunta, la viñeta con sangría responde.",
       "chooseFromDrive": "Elegir de Google Drive",
       "openingDrive": "Abriendo Google Drive"
-    }
+    },
+    "page": {
+      "title": "Convierte tus notas",
+      "subtitle": "Suelta un archivo y obtén un mazo que no tienes que arreglar — cloze bien hechos, tarjetas atómicas, los tipos de nota correctos. También Notion, PDF, Markdown, HTML, Word y CSV.",
+      "reattachPrefix": "Vuelve a adjuntar",
+      "reattachSuffix": "para convertir",
+      "aiOn": "La IA está activada",
+      "aiOnBody": "Claude escribe las tarjetas.",
+      "aiOff": "La IA está desactivada",
+      "aiOffBody": "Obtendrás tarjetas basadas en reglas a partir de la estructura de tu archivo.",
+      "turnOnClaudeCards": "Activar tarjetas de Claude",
+      "upgradeClaude": "Mejora tu plan para escribir tarjetas con Claude",
+      "aiAnonIntro": "Claude puede escribir tus tarjetas —",
+      "signInToTurnOn": "inicia sesión para activar la IA",
+      "manageInSettings": "Gestionar en Ajustes",
+      "turnAiOff": "Desactivar la IA",
+      "turnAiOn": "Activar la IA",
+      "contactAria": "Contáctanos",
+      "howItWorks": "Cómo funciona",
+      "filesDeleted": "Los archivos se eliminan después de 2 horas.",
+      "step1Title": "Suelta o elige un archivo",
+      "step1Body": "PDF, Word, exportación de Notion, Markdown, HTML, Excel, CSV o PowerPoint. En los documentos de Word, los títulos se convierten en el anverso de las tarjetas; cada viñeta bajo un título se convierte en su propia tarjeta, y el resto del texto pasa al reverso. Las imágenes van al reverso, y el texto tachado de una tarjeta se convierte en una etiqueta de Anki.",
+      "comingFromNotion": "¿Vienes de Notion?",
+      "howToExport": "Cómo exportar tus páginas.",
+      "step2Title": "Se crea tu mazo",
+      "step2Body": "Las imágenes, los bloques de código, el cloze y el formato se conservan. Normalmente unos segundos.",
+      "step3Title": "Ábrelo en Anki",
+      "step3Body": "Tu .apkg se descarga automáticamente. Impórtalo en Anki o AnkiDroid para empezar a estudiar.",
+      "contactPrefix": "¿Algo no funciona?",
+      "tellUs": "Cuéntanos",
+      "orEmail": "o escribe a"
+    },
+    "explore": {
+      "heading": "Crea mejores mazos",
+      "sub": "Tres ajustes que vale la pena conocer.",
+      "mcqBody": "Activa MCQ y tu próxima conversión incluirá tarjetas de opción múltiple junto a las estándar.",
+      "mcqCta": "Activar MCQ",
+      "photoBody": "Haz una foto de una página de un libro, una diapositiva de clase o notas escritas a mano — 2anki crea las tarjetas a partir de la imagen.",
+      "freePhotoHint": "Plan gratuito: 5 fotos al mes",
+      "deckDefaults": "Valores por defecto del mazo",
+      "deckDefaultsBody": "Define el nombre del mazo, el estilo de tarjeta (cloze o pregunta y respuesta), el tamaño de tarjeta (Corto, Medio, Detallado) y las opciones de IA antes de convertir."
+    },
+    "recent": {
+      "title": "Recientes",
+      "convertAgain": "Convertir de nuevo"
+    },
+    "onboarding": {
+      "aria": "Recorrido rápido",
+      "step1Title": "Suelta un archivo o elige una página de Notion.",
+      "step1Hint": "Compatibles: .zip (exportación de Notion), .html, .md, .pdf, .docx, .xlsx, .pptx, .csv",
+      "step2Title": "Elige los ajustes del mazo.",
+      "step2Hint": "Cambia el nombre del mazo, elige una plantilla de tarjeta y ajusta las opciones de conversión en Opciones de tarjeta.",
+      "step3Title": "Convierte tu archivo en un mazo.",
+      "step3Hint": "Pulsa Convertir — 2anki crea tu .apkg en segundos.",
+      "step4Title": "Descarga el mazo o envíalo a AnkiWeb.",
+      "step4Hint": "Tu mazo se descarga automáticamente. Impórtalo en Anki o sincronízalo mediante AnkiWeb.",
+      "back": "Atrás",
+      "next": "Siguiente",
+      "skip": "Omitir"
+    },
+    "chips": {
+      "groupAria": "Otras fuentes de subida"
+    },
+    "overSplit": "Muchos anversos de tarjeta tienen solo una o dos palabras, lo que suele significar que el archivo se dividió a mitad de una frase. Revisa el mazo antes de estudiar o sube el archivo original de Word o Notion para obtener tarjetas más limpias."
   },
   "auth": {
     "common": {

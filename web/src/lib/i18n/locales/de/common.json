@@ -147,7 +147,70 @@
       "driveHint": "Docs funktionieren am besten als Aufzählungsgliederung — der oberste Punkt fragt, der eingerückte Punkt antwortet.",
       "chooseFromDrive": "Aus Google Drive wählen",
       "openingDrive": "Google Drive wird geöffnet"
-    }
+    },
+    "page": {
+      "title": "Konvertiere deine Notizen",
+      "subtitle": "Wirf eine Datei rein und erhalte einen Stapel, den du nicht nachbessern musst — sauberes Cloze, atomare Karten, die richtigen Notiztypen. Auch Notion, PDF, Markdown, HTML, Word und CSV.",
+      "reattachPrefix": "Erneut anhängen",
+      "reattachSuffix": "zum Konvertieren",
+      "aiOn": "KI ist an",
+      "aiOnBody": "Karten werden von Claude geschrieben.",
+      "aiOff": "KI ist aus",
+      "aiOffBody": "Du erhältst regelbasierte Karten aus der Struktur deiner Datei.",
+      "turnOnClaudeCards": "Claude-Karten aktivieren",
+      "upgradeClaude": "Upgrade, um Karten mit Claude zu schreiben",
+      "aiAnonIntro": "Claude kann deine Karten schreiben —",
+      "signInToTurnOn": "melde dich an, um die KI zu aktivieren",
+      "manageInSettings": "In den Einstellungen verwalten",
+      "turnAiOff": "KI ausschalten",
+      "turnAiOn": "KI einschalten",
+      "contactAria": "Kontakt",
+      "howItWorks": "So funktioniert's",
+      "filesDeleted": "Dateien werden nach 2 Stunden gelöscht.",
+      "step1Title": "Datei ablegen oder auswählen",
+      "step1Body": "PDF, Word, Notion-Export, Markdown, HTML, Excel, CSV oder PowerPoint. In Word-Dokumenten werden Überschriften zu Kartenvorderseiten; jeder Aufzählungspunkt unter einer Überschrift wird zu einer eigenen Karte, und der übrige Text wird zur Rückseite. Bilder landen auf der Rückseite, und durchgestrichener Text auf einer Karte wird zu einem Anki-Tag.",
+      "comingFromNotion": "Kommst du von Notion?",
+      "howToExport": "So exportierst du deine Seiten.",
+      "step2Title": "Dein Stapel wird erstellt",
+      "step2Body": "Bilder, Codeblöcke, Cloze und Formatierung werden übernommen. Meist nur ein paar Sekunden.",
+      "step3Title": "In Anki öffnen",
+      "step3Body": "Deine .apkg wird automatisch heruntergeladen. Importiere sie in Anki oder AnkiDroid, um mit dem Lernen zu beginnen.",
+      "contactPrefix": "Etwas funktioniert nicht?",
+      "tellUs": "Sag uns Bescheid",
+      "orEmail": "oder schreib an"
+    },
+    "explore": {
+      "heading": "Bessere Stapel erstellen",
+      "sub": "Drei Einstellungen, die du kennen solltest.",
+      "mcqBody": "Aktiviere MCQ, und deine nächste Konvertierung enthält neben den Standardkarten auch Multiple-Choice-Karten.",
+      "mcqCta": "MCQ aktivieren",
+      "photoBody": "Fotografiere eine Lehrbuchseite, eine Vorlesungsfolie oder handschriftliche Notizen — 2anki erstellt die Karten aus dem Bild.",
+      "freePhotoHint": "Kostenloser Plan: 5 Fotos pro Monat",
+      "deckDefaults": "Stapel-Voreinstellungen",
+      "deckDefaultsBody": "Lege vor dem Konvertieren den Stapelnamen, den Kartenstil (Cloze oder Frage & Antwort), die Kartengröße (Kurz, Mittel, Ausführlich) und die KI-Optionen fest."
+    },
+    "recent": {
+      "title": "Zuletzt",
+      "convertAgain": "Erneut konvertieren"
+    },
+    "onboarding": {
+      "aria": "Kurze Tour",
+      "step1Title": "Lege eine Datei ab oder wähle eine Notion-Seite.",
+      "step1Hint": "Unterstützt: .zip (Notion-Export), .html, .md, .pdf, .docx, .xlsx, .pptx, .csv",
+      "step2Title": "Wähle die Stapel-Einstellungen.",
+      "step2Hint": "Benenne den Stapel um, wähle eine Kartenvorlage und lege die Konvertierungsoptionen unter „Kartenoptionen“ fest.",
+      "step3Title": "Wandle deine Datei in einen Stapel um.",
+      "step3Hint": "Klick auf Konvertieren — 2anki erstellt deine .apkg in Sekunden.",
+      "step4Title": "Lade den Stapel herunter oder sende ihn an AnkiWeb.",
+      "step4Hint": "Dein Stapel wird automatisch heruntergeladen. Importiere ihn in Anki oder synchronisiere ihn über AnkiWeb.",
+      "back": "Zurück",
+      "next": "Weiter",
+      "skip": "Überspringen"
+    },
+    "chips": {
+      "groupAria": "Andere Upload-Quellen"
+    },
+    "overSplit": "Viele Kartenvorderseiten bestehen nur aus ein oder zwei Wörtern, was meist bedeutet, dass die Datei mitten im Satz getrennt wurde. Sieh den Stapel vor dem Lernen durch oder lade die ursprüngliche Word- oder Notion-Datei hoch, um sauberere Karten zu erhalten."
   },
   "auth": {
     "common": {

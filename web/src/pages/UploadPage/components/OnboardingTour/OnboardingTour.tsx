@@ -1,29 +1,25 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { track } from '../../../../lib/analytics/track';
 import { markOnboarded } from '../../../../lib/backend/markOnboarded';
 import styles from './OnboardingTour.module.css';
 
-interface Step {
-  title: string;
-  hint: string;
-}
-
-const STEPS: ReadonlyArray<Step> = [
+const STEP_KEYS: ReadonlyArray<{ title: string; hint: string }> = [
   {
-    title: 'Drop a file, or pick a Notion page.',
-    hint: 'Supported: .zip (Notion export), .html, .md, .pdf, .docx, .xlsx, .pptx, .csv',
+    title: 'upload.onboarding.step1Title',
+    hint: 'upload.onboarding.step1Hint',
   },
   {
-    title: 'Pick deck settings.',
-    hint: 'Rename the deck, choose a card template, and set conversion options in Card options.',
+    title: 'upload.onboarding.step2Title',
+    hint: 'upload.onboarding.step2Hint',
   },
   {
-    title: 'Convert your file into a deck.',
-    hint: 'Press Convert — 2anki builds your .apkg in seconds.',
+    title: 'upload.onboarding.step3Title',
+    hint: 'upload.onboarding.step3Hint',
   },
   {
-    title: 'Download the deck, or send it to AnkiWeb.',
-    hint: 'Your deck downloads automatically. Import it in Anki or sync via AnkiWeb.',
+    title: 'upload.onboarding.step4Title',
+    hint: 'upload.onboarding.step4Hint',
   },
 ];
 
@@ -50,6 +46,7 @@ export function OnboardingTour({
   onboardedAt,
   migrationDate = MIGRATION_CUTOFF,
 }: Readonly<OnboardingTourProps>) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(0);
   const [dismissed, setDismissed] = useState(false);
   const shownTracked = useRef(false);
@@ -66,9 +63,9 @@ export function OnboardingTour({
 
   if (!visible) return null;
 
-  const current = STEPS[step];
+  const current = STEP_KEYS[step];
   const isFirst = step === 0;
-  const isLast = step === STEPS.length - 1;
+  const isLast = step === STEP_KEYS.length - 1;
 
   const handleSkip = () => {
     track(isLast ? 'onboarding_completed' : 'onboarding_skipped');
@@ -80,11 +77,11 @@ export function OnboardingTour({
     <div
       className={styles.tour}
       role="dialog"
-      aria-label="Quick tour"
+      aria-label={t('upload.onboarding.aria')}
       aria-modal="true"
     >
       <div className={styles.progress}>
-        {STEPS.map((s, i) => (
+        {STEP_KEYS.map((s, i) => (
           <span
             key={s.title}
             className={i === step ? styles.dotActive : styles.dot}
@@ -92,8 +89,8 @@ export function OnboardingTour({
           />
         ))}
       </div>
-      <p className={styles.title}>{current.title}</p>
-      <p className={styles.hint}>{current.hint}</p>
+      <p className={styles.title}>{t(current.title)}</p>
+      <p className={styles.hint}>{t(current.hint)}</p>
       <div className={styles.controls}>
         {!isFirst && (
           <button
@@ -101,7 +98,7 @@ export function OnboardingTour({
             className={styles.btnSecondary}
             onClick={() => setStep((s) => s - 1)}
           >
-            Back
+            {t('upload.onboarding.back')}
           </button>
         )}
         {!isLast && (
@@ -110,11 +107,11 @@ export function OnboardingTour({
             className={styles.btnPrimary}
             onClick={() => setStep((s) => s + 1)}
           >
-            Next
+            {t('upload.onboarding.next')}
           </button>
         )}
         <button type="button" className={styles.btnSkip} onClick={handleSkip}>
-          Skip
+          {t('upload.onboarding.skip')}
         </button>
       </div>
     </div>
