@@ -79,3 +79,24 @@ export function effectiveTemplateForCards(
     return 'basic';
   return selected;
 }
+
+const DECK_LINE = /^[ \t]*Deck:[ \t]*(.+?)[ \t]*$/im;
+const EMPHASIS_EDGES = /^[*_`]+|[*_`]+$/g;
+
+export function parseDeckName(text: string): string | null {
+  if (typeof text !== 'string') return null;
+  const match = DECK_LINE.exec(text);
+  if (match == null) return null;
+  const name = match[1].replace(EMPHASIS_EDGES, '').trim();
+  return name.length > 0 ? name : null;
+}
+
+export function suggestDeckName(
+  messageText: string,
+  conversationTitle?: string | null
+): string | null {
+  const fromDeckLine = parseDeckName(messageText);
+  if (fromDeckLine != null) return fromDeckLine;
+  const title = conversationTitle?.trim();
+  return title != null && title.length > 0 ? title : null;
+}

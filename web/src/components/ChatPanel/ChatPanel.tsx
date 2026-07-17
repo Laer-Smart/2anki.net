@@ -4,7 +4,9 @@ import { get, patch, post, postMultipart } from '../../lib/backend/api';
 import {
   type ChatCardTemplate,
   DEFAULT_TEMPLATE,
+  effectiveTemplateForCards,
   isPureClientReshape,
+  suggestDeckName,
 } from '../../lib/chat/templates';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import AssistantMarkdown from '../../pages/Chat/AssistantMarkdown';
@@ -58,6 +60,7 @@ export interface ChatPanelProps {
   initialConversationId?: number | null;
   initialMessages?: Message[];
   initialTemplateSlug?: ChatCardTemplate | null;
+  initialTitle?: string;
   onConversationCreated?: (id: number, title: string) => void;
   onConversationNotFound?: () => void;
   onTemplateChange?: (slug: ChatCardTemplate) => void;
@@ -269,6 +272,20 @@ function UserMessage({
   );
 }
 
+function messageDeckName(
+  message: Message,
+  conversationTitle?: string
+): string | undefined {
+  const messageText = [
+    message.contentBefore,
+    message.content,
+    message.contentAfter,
+  ]
+    .filter((s): s is string => s != null)
+    .join('\n');
+  return suggestDeckName(messageText, conversationTitle) ?? undefined;
+}
+
 function AssistantMessage({
   message,
   onSave,
@@ -279,6 +296,7 @@ function AssistantMessage({
   isRegenerating,
   onAddTags,
   isTagging,
+  conversationTitle,
 }: {
   message: Message;
   onSave?: (cards: ChatCard[], deckName: string) => void;
@@ -289,6 +307,7 @@ function AssistantMessage({
   isRegenerating?: boolean;
   onAddTags?: () => void;
   isTagging?: boolean;
+  conversationTitle?: string;
 }) {
   const hasCards = message.cards != null && message.cards.length > 0;
   const selectorOnlyPreview =
@@ -319,6 +338,7 @@ function AssistantMessage({
           isRegenerating={isRegenerating}
           onAddTags={onAddTags}
           isTagging={isTagging}
+          suggestedDeckName={messageDeckName(message, conversationTitle)}
         />
       )}
       {message.contentAfter != null && (
@@ -579,6 +599,7 @@ export default function ChatPanel({
   initialConversationId,
   initialMessages,
   initialTemplateSlug,
+  initialTitle,
   onConversationCreated,
   onConversationNotFound,
   onTemplateChange,
@@ -593,6 +614,9 @@ export default function ChatPanel({
     number | null
   >(initialConversationId ?? null);
   const [messages, setMessages] = useState<Message[]>(initialMessages ?? []);
+  const [conversationTitle, setConversationTitle] = useState(
+    initialTitle ?? ''
+  );
   const [activeTemplate, setActiveTemplate] = useState<ChatCardTemplate>(
     initialTemplateSlug ?? DEFAULT_TEMPLATE
   );
@@ -844,6 +868,9 @@ export default function ChatPanel({
       lastSavedDraftRef.current = '';
       const provisionalTitle =
         content.length > 60 ? `${content.slice(0, 60).trimEnd()}…` : content;
+      setConversationTitle((prev) =>
+        prev.trim().length > 0 ? prev : provisionalTitle
+      );
       onConversationCreated?.(result.conversationId, provisionalTitle);
       if (result.cards != null && result.cards.length > 0) {
         onCardsGenerated?.(result.cards);
@@ -887,7 +914,8 @@ export default function ChatPanel({
   }
 
   function handleSaveAsDeck(cards: ChatCard[], deckName: string) {
-    downloadDeck(cards, deckName, activeTemplate).catch(() => {
+    const templateForCards = effectiveTemplateForCards(cards, activeTemplate);
+    downloadDeck(cards, deckName, templateForCards).catch(() => {
       setNetworkError(t('errors.deckGenerate'));
     });
   }
@@ -938,7 +966,20 @@ export default function ChatPanel({
   }
 
   function handleTemplateChange(slug: ChatCardTemplate) {
-    if (slug === activeTemplate) return;
+    const lastAssistant = findLastAssistantIdx(messages);
+    const lastTurnCards =
+      lastAssistant === -1 ? [] : (messages[lastAssistant].cards ?? []);
+    const cardsMatchSlug =
+      effectiveTemplateForCards(lastTurnCards, activeTemplate) === slug;
+
+    if (slug === activeTemplate) {
+      if (cardsMatchSlug) return;
+      if (lastAssistant !== -1 && !isLoading) {
+        regenerateLastTurn(slug, lastAssistant);
+      }
+      return;
+    }
+
     const reshapeOnly = isPureClientReshape(activeTemplate, slug);
     setActiveTemplate(slug);
     onTemplateChange?.(slug);
@@ -948,7 +989,6 @@ export default function ChatPanel({
       }).catch(() => {});
     }
     if (reshapeOnly) return;
-    const lastAssistant = findLastAssistantIdx(messages);
     if (lastAssistant !== -1 && !isLoading) {
       regenerateLastTurn(slug, lastAssistant);
     }
@@ -1199,6 +1239,7 @@ export default function ChatPanel({
                             : undefined
                         }
                         isTagging={i === taggingIdx}
+                        conversationTitle={conversationTitle}
                       />
                     );
                   });

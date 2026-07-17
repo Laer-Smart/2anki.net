@@ -31,6 +31,7 @@ interface CardPreviewProps {
   isRegenerating?: boolean;
   onAddTags?: () => void;
   isTagging?: boolean;
+  suggestedDeckName?: string;
 }
 
 const MAX_VISIBLE_TAGS = 3;
@@ -126,12 +127,13 @@ export default function CardPreview({
   isRegenerating,
   onAddTags,
   isTagging,
+  suggestedDeckName,
 }: CardPreviewProps) {
   const { t } = useTranslation('chat');
   const [expanded, setExpanded] = useState(false);
   const [saveState, setSaveState] = useState<SaveState>('idle');
-  const [deckNameDraft, setDeckNameDraft] = useState(() =>
-    t('cardPreview.untitledDeck')
+  const [deckNameDraft, setDeckNameDraft] = useState(
+    () => suggestedDeckName ?? t('cardPreview.untitledDeck')
   );
   const [savedName, setSavedName] = useState<string | null>(null);
   const [showHint, setShowHint] = useState(false);

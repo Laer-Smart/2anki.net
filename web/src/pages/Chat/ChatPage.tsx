@@ -40,6 +40,7 @@ interface PanelSeed {
   messages: Message[];
   draft: string;
   templateSlug: ChatCardTemplate | null;
+  title: string;
 }
 
 export default function ChatPage() {
@@ -63,6 +64,7 @@ export default function ChatPage() {
     messages: [],
     draft: prefilledPrompt,
     templateSlug: null,
+    title: '',
   });
   const [loadError, setLoadError] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -119,6 +121,7 @@ export default function ChatPage() {
         draft: data.draft ?? '',
         templateSlug:
           validSlug == null ? null : (data.templateSlug as ChatCardTemplate),
+        title: data.title ?? '',
       });
     } catch {
       setLoadError(t('page.loadError'));
@@ -134,6 +137,7 @@ export default function ChatPage() {
       messages: [],
       draft: '',
       templateSlug: null,
+      title: '',
     });
     setLoadError(null);
   }
@@ -241,6 +245,7 @@ export default function ChatPage() {
           initialConversationId={panelSeed.conversationId}
           initialMessages={panelSeed.messages}
           initialTemplateSlug={panelSeed.templateSlug}
+          initialTitle={panelSeed.title}
           onConversationCreated={(id, title) => {
             upsertConversation(id, title);
             setActiveConversationId(id);
