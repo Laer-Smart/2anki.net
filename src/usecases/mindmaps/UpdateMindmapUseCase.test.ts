@@ -1,6 +1,8 @@
 import {
   UpdateMindmapUseCase,
   MindmapLimitError,
+  FREE_NODE_LIMIT,
+  SUBSCRIBER_NODE_LIMIT,
 } from './UpdateMindmapUseCase';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import Mindmaps, { MindmapsId } from '../../data_layer/public/Mindmaps';
@@ -58,6 +60,7 @@ describe('UpdateMindmapUseCase', () => {
       data,
       user: FREE_USER,
       subscriptions: [],
+      isPaying: false,
     });
 
     expect((result?.data as MindmapData).nodes.length).toBe(10);
@@ -83,8 +86,9 @@ describe('UpdateMindmapUseCase', () => {
         data,
         user: FREE_USER,
         subscriptions: [],
+        isPaying: false,
       })
-    ).rejects.toBeInstanceOf(MindmapLimitError);
+    ).rejects.toEqual(new MindmapLimitError(FREE_NODE_LIMIT));
     expect(repo.update).not.toHaveBeenCalled();
   });
 
@@ -107,6 +111,7 @@ describe('UpdateMindmapUseCase', () => {
       data,
       user: PAID_USER,
       subscriptions: [],
+      isPaying: true,
     });
 
     expect((result?.data as MindmapData).nodes.length).toBe(100);
@@ -132,9 +137,61 @@ describe('UpdateMindmapUseCase', () => {
       data,
       user: FREE_USER,
       subscriptions: [],
+      isPaying: false,
     });
 
     expect((result?.data as MindmapData).nodes.length).toBe(50);
+  });
+
+  it('lets a paying subscriber exceed the free node cap', async () => {
+    const map = makeMap(120);
+    const repo = makeRepo(map);
+    const useCase = new UpdateMindmapUseCase(repo);
+
+    const data: MindmapData = {
+      nodes: Array.from({ length: 120 }, (_, i) => ({
+        id: String(i),
+        label: `N${i}`,
+      })),
+      edges: [],
+    };
+
+    const result = await useCase.execute({
+      id: 'map-1' as MindmapsId,
+      userId: 1 as UsersId,
+      data,
+      user: FREE_USER,
+      subscriptions: [],
+      isPaying: true,
+    });
+
+    expect((result?.data as MindmapData).nodes.length).toBe(120);
+    expect(repo.update).toHaveBeenCalled();
+  });
+
+  it('throws MindmapLimitError carrying 250 when a subscriber exceeds the subscriber node cap', async () => {
+    const repo = makeRepo(null);
+    const useCase = new UpdateMindmapUseCase(repo);
+
+    const data: MindmapData = {
+      nodes: Array.from({ length: SUBSCRIBER_NODE_LIMIT + 1 }, (_, i) => ({
+        id: String(i),
+        label: `N${i}`,
+      })),
+      edges: [],
+    };
+
+    await expect(
+      useCase.execute({
+        id: 'map-1' as MindmapsId,
+        userId: 1 as UsersId,
+        data,
+        user: FREE_USER,
+        subscriptions: [],
+        isPaying: true,
+      })
+    ).rejects.toEqual(new MindmapLimitError(SUBSCRIBER_NODE_LIMIT));
+    expect(repo.update).not.toHaveBeenCalled();
   });
 
   it('strips presigned URL back to s3Key before persisting', async () => {
@@ -158,6 +215,7 @@ describe('UpdateMindmapUseCase', () => {
       },
       user: FREE_USER,
       subscriptions: [],
+      isPaying: false,
     });
 
     const saved = (repo.update as jest.Mock).mock.calls[0][2] as {
@@ -190,6 +248,7 @@ describe('UpdateMindmapUseCase', () => {
       },
       user: FREE_USER,
       subscriptions: [],
+      isPaying: false,
     });
 
     const saved = (repo.update as jest.Mock).mock.calls[0][2] as {
@@ -219,6 +278,7 @@ describe('UpdateMindmapUseCase', () => {
       },
       user: FREE_USER,
       subscriptions: [],
+      isPaying: false,
     });
 
     const saved = (repo.update as jest.Mock).mock.calls[0][2] as {
@@ -251,6 +311,7 @@ describe('UpdateMindmapUseCase', () => {
       },
       user: FREE_USER,
       subscriptions: [],
+      isPaying: false,
     });
 
     const saved = (repo.update as jest.Mock).mock.calls[0][2] as {
@@ -282,6 +343,7 @@ describe('UpdateMindmapUseCase', () => {
       },
       user: FREE_USER,
       subscriptions: [],
+      isPaying: false,
     });
 
     const saved = (repo.update as jest.Mock).mock.calls[0][2] as {

@@ -6,8 +6,8 @@ import {
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import Mindmaps from '../../data_layer/public/Mindmaps';
 import { UsersId } from '../../data_layer/public/Users';
-import { FREE_MAP_LIMIT } from './CreateMindmapUseCase';
-import { FREE_NODE_LIMIT } from './UpdateMindmapUseCase';
+import { resolveMapLimit, FREE_MAP_LIMIT } from './CreateMindmapUseCase';
+import { resolveNodeLimit, FREE_NODE_LIMIT } from './UpdateMindmapUseCase';
 
 export interface MindmapAccessInfo {
   hasUnlimited: boolean;
@@ -26,13 +26,20 @@ interface ListInput {
   user: AnkifyAccessUser;
   subscriptions: AnkifyAccessSubscription[];
   autoSyncProductId?: string;
+  isPaying: boolean;
 }
 
 export class ListMindmapsUseCase {
   constructor(private readonly repo: MindmapRepositoryInterface) {}
 
   async execute(input: ListInput): Promise<ListMindmapsResult> {
-    const { userId, user, subscriptions, autoSyncProductId = '' } = input;
+    const {
+      userId,
+      user,
+      subscriptions,
+      autoSyncProductId = '',
+      isPaying,
+    } = input;
     const [maps, currentCount] = await Promise.all([
       this.repo.findByUserId(userId),
       this.repo.countByUserId(userId),
@@ -47,8 +54,9 @@ export class ListMindmapsUseCase {
       access: {
         hasUnlimited,
         currentCount,
-        freeMapLimit: FREE_MAP_LIMIT,
-        maxNodesPerMap: FREE_NODE_LIMIT,
+        freeMapLimit: resolveMapLimit(hasUnlimited, isPaying) ?? FREE_MAP_LIMIT,
+        maxNodesPerMap:
+          resolveNodeLimit(hasUnlimited, isPaying) ?? FREE_NODE_LIMIT,
       },
     };
   }

@@ -41,7 +41,12 @@ export function MindmapList() {
   }
 
   if (showLimitModal) {
-    return <MindmapLimitModal onClose={() => setShowLimitModal(false)} />;
+    return (
+      <MindmapLimitModal
+        limit={data?.access.freeMapLimit ?? 3}
+        onClose={() => setShowLimitModal(false)}
+      />
+    );
   }
 
   if (isLoading) {
@@ -89,7 +94,9 @@ export function MindmapList() {
           className={shared.notificationInfo}
           style={{ marginBottom: '1rem' }}
         >
-          {t('mindmaps.monthlyLimit')}
+          {t('mindmaps.monthlyLimit', {
+            limit: data?.access.freeMapLimit ?? 3,
+          })}
         </div>
       )}
 
