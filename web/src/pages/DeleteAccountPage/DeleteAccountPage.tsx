@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
 import Cookies from 'universal-cookie';
 import { redirectToFrontPage } from '../../lib/redirects';
@@ -12,9 +13,11 @@ interface Prop {
 }
 
 export function DeleteAccountPage({ setError }: Readonly<Prop>) {
+  const { t } = useTranslation('accountx');
   const [count, setCount] = React.useState(0);
   const [isDeleting, setIsDeleting] = React.useState(false);
-  const deleteButtonText = count === 0 ? 'Delete' : 'Yes, delete account';
+  const deleteButtonText =
+    count === 0 ? t('deleteAccount.delete') : t('deleteAccount.confirmDelete');
 
   const handleDelete = async () => {
     if (count < 1) {
@@ -38,22 +41,19 @@ export function DeleteAccountPage({ setError }: Readonly<Prop>) {
   return (
     <div className={styles.page}>
       <header className={sharedStyles.pageHeader}>
-        <h1 className={sharedStyles.title}>Delete account</h1>
-        <p className={sharedStyles.subtitle}>
-          This action is irreversible and will cancel any active subscriptions.
-        </p>
+        <h1 className={sharedStyles.title}>{t('deleteAccount.title')}</h1>
+        <p className={sharedStyles.subtitle}>{t('deleteAccount.subtitle')}</p>
       </header>
       <div className={styles.mainCard}>
         <p
           className={`${sharedStyles.smallDescription} ${sharedStyles.marginBottomLg}`}
         >
-          Are you sure you want to delete your account? All of your uploads,
-          favorites, and preferences will be removed.
+          {t('deleteAccount.confirmQuestion')}
         </p>
 
         {isDeleting && (
           <div className={sharedStyles.infoBox} role="status">
-            Deleting your account and cancelling subscriptions
+            {t('deleteAccount.deleting')}
           </div>
         )}
 
@@ -63,18 +63,18 @@ export function DeleteAccountPage({ setError }: Readonly<Prop>) {
           type="button"
           disabled={isDeleting}
         >
-          {isDeleting ? 'Deleting' : deleteButtonText}
+          {isDeleting ? t('deleteAccount.deletingShort') : deleteButtonText}
         </button>
         <p
           className={`${sharedStyles.smallDescription} ${sharedStyles.marginTopLg}`}
         >
-          You may also want to{' '}
+          {t('deleteAccount.disconnectPrefix')}
           <a
             href="https://www.notion.so/help/add-and-manage-integrations-with-the-api"
             target="_blank"
             rel="noreferrer"
           >
-            disconnect 2anki from your Notion workspace
+            {t('deleteAccount.disconnectLink')}
           </a>
           .
         </p>

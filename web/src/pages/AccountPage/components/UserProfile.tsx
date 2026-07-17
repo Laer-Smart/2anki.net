@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import styles from '../AccountPage.module.css';
 
 interface User {
@@ -10,6 +11,7 @@ interface UserProfileProps {
 }
 
 export function UserProfile({ user }: UserProfileProps) {
+  const { t } = useTranslation('accountx');
   const isPrivateRelay = user.email.endsWith('@privaterelay.appleid.com');
 
   return (
@@ -21,9 +23,7 @@ export function UserProfile({ user }: UserProfileProps) {
         {user.email}
       </p>
       {isPrivateRelay && (
-        <p className={styles.privacyNote}>
-          Hide My Email — Apple forwards messages to your real inbox.
-        </p>
+        <p className={styles.privacyNote}>{t('profile.hideMyEmailNote')}</p>
       )}
     </section>
   );

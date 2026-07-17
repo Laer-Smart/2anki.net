@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import { get2ankiApi } from '../../lib/backend/get2ankiApi';
@@ -13,6 +14,7 @@ type MagicLinkState =
   | { status: 'success' };
 
 function MagicLinkPage() {
+  const { t } = useTranslation('accountx');
   const [searchParams] = useSearchParams();
   const [, setCookie] = useCookies(['token']);
   const [state, setState] = useState<MagicLinkState>({ status: 'loading' });
@@ -29,7 +31,7 @@ function MagicLinkPage() {
     if (token == null) {
       setState({
         status: 'error',
-        message: 'This link is invalid or has expired. Request a new one.',
+        message: t('magicLink.invalidOrExpired'),
       });
       return;
     }
@@ -58,16 +60,14 @@ function MagicLinkPage() {
           const errorData = await response.json().catch(() => ({}));
           setState({
             status: 'error',
-            message:
-              errorData.message ??
-              'This link is invalid or has expired. Request a new one.',
+            message: errorData.message ?? t('magicLink.invalidOrExpired'),
           });
         }
       } catch {
         if (cancelled) return;
         setState({
           status: 'error',
-          message: 'Something went wrong. Try again.',
+          message: t('magicLink.somethingWrong'),
         });
       }
     }
@@ -76,7 +76,7 @@ function MagicLinkPage() {
     return () => {
       cancelled = true;
     };
-  }, [token, redirect, setCookie]);
+  }, [token, redirect, setCookie, t]);
 
   const handleResendLink = async (event: React.SyntheticEvent) => {
     event.preventDefault();
@@ -88,7 +88,7 @@ function MagicLinkPage() {
     } catch {
       setState({
         status: 'error',
-        message: 'Could not send a new link. Try again.',
+        message: t('magicLink.couldNotSend'),
       });
     } finally {
       setRetrySending(false);
@@ -99,10 +99,12 @@ function MagicLinkPage() {
     return (
       <div className={styles.formPage}>
         <div className={styles.formCard}>
-          <h1 className={styles.formTitle}>Verifying your link</h1>
+          <h1 className={styles.formTitle}>{t('magicLink.verifying')}</h1>
           <div className={sharedStyles.flexCenter} role="status">
             <div className={sharedStyles.spinner} />
-            <span className={sharedStyles.srOnly}>Verifying your link</span>
+            <span className={sharedStyles.srOnly}>
+              {t('magicLink.verifying')}
+            </span>
           </div>
         </div>
       </div>
@@ -113,24 +115,24 @@ function MagicLinkPage() {
     return (
       <div className={styles.formPage}>
         <div className={styles.formCard}>
-          <h1 className={styles.formTitle}>Link expired or invalid</h1>
+          <h1 className={styles.formTitle}>{t('magicLink.expiredTitle')}</h1>
           <p className={sharedStyles.formDescription}>{state.message}</p>
           {retryDone ? (
             <p className={styles.helpSuccess}>
-              A new link has been sent to {retryEmail}.
+              {t('magicLink.newLinkSent', { email: retryEmail })}
             </p>
           ) : (
             <form onSubmit={handleResendLink}>
               <div className={styles.field}>
                 <label htmlFor="retry-email">
-                  <span>Email</span>
+                  <span>{t('magicLink.emailLabel')}</span>
                   <input
                     id="retry-email"
                     name="email"
                     type="email"
                     value={retryEmail}
                     onChange={(e) => setRetryEmail(e.target.value)}
-                    placeholder="Email address"
+                    placeholder={t('magicLink.emailPlaceholder')}
                     required
                   />
                 </label>
@@ -141,14 +143,16 @@ function MagicLinkPage() {
                   className={styles.submitButton}
                   disabled={retrySending || retryEmail.length === 0}
                 >
-                  {retrySending ? 'Sending' : 'Send a new link'}
+                  {retrySending
+                    ? t('magicLink.sending')
+                    : t('magicLink.sendNewLink')}
                 </button>
               </div>
             </form>
           )}
           <p className={styles.footerText}>
             <a rel="noreferrer" href="/login">
-              Back to login
+              {t('magicLink.backToLogin')}
             </a>
           </p>
         </div>
