@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
 import { ErrorPresenter } from '../../components/errors/ErrorPresenter';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
@@ -27,6 +28,7 @@ interface PreviewApkgPageProps {
 export default function PreviewApkgPage({
   setError,
 }: Readonly<PreviewApkgPageProps>) {
+  const { t } = useTranslation('previews');
   const { key } = useParams<{ key: string }>();
   const sentinelRef = useRef<HTMLDivElement>(null);
   const [deckId, setDeckId] = useState<number | null>(null);
@@ -123,7 +125,7 @@ export default function PreviewApkgPage({
   if (!key) {
     return (
       <div className={sharedStyles.page}>
-        <p className={styles.empty}>Missing upload id.</p>
+        <p className={styles.empty}>{t('apkg.missingId')}</p>
       </div>
     );
   }
@@ -134,9 +136,9 @@ export default function PreviewApkgPage({
       <div className={sharedStyles.page}>
         <header className={sharedStyles.pageHeader}>
           <Link to="/downloads" className={styles.backLink}>
-            ← Back to downloads
+            {t('apkg.backToDownloads')}
           </Link>
-          <h1 className={sharedStyles.title}>Preview</h1>
+          <h1 className={sharedStyles.title}>{t('apkg.previewTitle')}</h1>
         </header>
         <ErrorPresenter
           error={stream.error as Error}
@@ -167,31 +169,36 @@ export default function PreviewApkgPage({
           }}
         >
           <Link to="/downloads" className={styles.backLink}>
-            ← Back to downloads
+            {t('apkg.backToDownloads')}
           </Link>
           {isApkgKey && <SharePopover uploadKey={key} />}
         </div>
         <h1 className={sharedStyles.title} data-hj-suppress>
-          Deck preview
+          {t('apkg.deckPreview')}
         </h1>
         <p className={styles.summary}>
           {selectedDeck ? (
             <>
-              {selectedDeck.fullName} · {loadedCount} of{' '}
-              {filteredTotal ?? selectedDeck.cardCount} cards loaded
+              {selectedDeck.fullName} ·{' '}
+              {t('apkg.cardsLoaded', {
+                loaded: loadedCount,
+                total: filteredTotal ?? selectedDeck.cardCount,
+              })}
             </>
           ) : (
             <>
-              {decks.length > 1 ? `${decks.length} decks · ` : ''}
+              {decks.length > 1
+                ? `${t('apkg.decksCount', { count: decks.length })} · `
+                : ''}
               {totalAll === 0
-                ? 'Loading your deck'
-                : `${loadedCount} of ${totalAll} cards loaded`}
+                ? t('apkg.loadingDeck')
+                : t('apkg.cardsLoaded', { loaded: loadedCount, total: totalAll })}
             </>
           )}
         </p>
         {decks.length > 1 && (
           <label className={styles.deckFilter}>
-            <span>Deck:</span>
+            <span>{t('apkg.deckLabel')}</span>
             <select
               value={deckId ?? ''}
               onChange={(event) => {
@@ -199,7 +206,9 @@ export default function PreviewApkgPage({
                 setDeckId(raw === '' ? null : Number.parseInt(raw, 10));
               }}
             >
-              <option value="">All decks ({totalAll ?? '…'} cards)</option>
+              <option value="">
+                {t('apkg.allDecks', { count: totalAll })}
+              </option>
               {decks.map((deck) => (
                 <option key={deck.id} value={deck.id}>
                   {indent(Math.max(0, deck.path.length - 1))}
@@ -213,14 +222,15 @@ export default function PreviewApkgPage({
         {isApkgKey && totalAll > 0 && (
           <div className={styles.editStrip}>
             <span>
-              <span className={styles.editStripCount}>{totalAll}</span> cards
+              <span className={styles.editStripCount}>{totalAll}</span>{' '}
+              {t('apkg.cardsWord', { count: totalAll })}
               {deletedCount > 0 && (
                 <>
                   {' · '}
                   <span className={styles.editStripCount}>
                     {deletedCount}
                   </span>{' '}
-                  deleted
+                  {t('apkg.deleted')}
                 </>
               )}
               {suspendedCount > 0 && (
@@ -229,7 +239,7 @@ export default function PreviewApkgPage({
                   <span className={styles.editStripCount}>
                     {suspendedCount}
                   </span>{' '}
-                  suspended
+                  {t('apkg.suspended')}
                 </>
               )}
             </span>
@@ -239,7 +249,7 @@ export default function PreviewApkgPage({
                 className={styles.restoreButton}
                 onClick={handleRestoreAll}
               >
-                Restore all
+                {t('apkg.restoreAll')}
               </button>
             )}
             <button
@@ -249,8 +259,8 @@ export default function PreviewApkgPage({
               disabled={downloading}
             >
               {hasEdits
-                ? `Download deck (${activeCards} cards)`
-                : 'Download deck'}
+                ? t('apkg.downloadDeckCount', { count: activeCards })
+                : t('apkg.downloadDeck')}
             </button>
           </div>
         )}
@@ -262,8 +272,8 @@ export default function PreviewApkgPage({
         <div className={styles.cards}>
           {cards.length === 0 && (
             <EmptyState
-              title="Empty deck"
-              description="This deck has no cards to preview."
+              title={t('apkg.emptyTitle')}
+              description={t('apkg.emptyDescription')}
             />
           )}
           {cards.map((card, idx) => (
@@ -282,7 +292,7 @@ export default function PreviewApkgPage({
       <div ref={sentinelRef} className={styles.sentinel} aria-hidden="true" />
 
       {stream.isFetchingNextPage && (
-        <div className={styles.loadingRow}>Loading more cards</div>
+        <div className={styles.loadingRow}>{t('apkg.loadingMoreCards')}</div>
       )}
     </div>
   );

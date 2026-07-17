@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 
 import { EmptyState } from '../../components/EmptyState/EmptyState';
@@ -24,10 +25,11 @@ function truncateCell(value: string): string {
 }
 
 function StatsLine({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
+  const { t } = useTranslation('previews');
   const rowsCopy = data.hasMore
-    ? `${data.rowCount}+ rows`
-    : `${data.rowCount} ${data.rowCount === 1 ? 'row' : 'rows'}`;
-  const columnsLabel = `${data.columns.length} ${data.columns.length === 1 ? 'column' : 'columns'}`;
+    ? t('database.rowsMore', { value: data.rowCount })
+    : t('database.rows', { count: data.rowCount });
+  const columnsLabel = t('database.columns', { count: data.columns.length });
   const mapping = data.mapping;
 
   if (
@@ -40,29 +42,33 @@ function StatsLine({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
         <span>
           {rowsCopy} · {columnsLabel} ·{' '}
         </span>
-        <span className={styles.statsWarning}>Column mapping needed</span>
+        <span className={styles.statsWarning}>
+          {t('database.columnMappingNeeded')}
+        </span>
       </p>
     );
   }
 
   return (
     <p className={styles.stats} aria-live="polite">
-      {rowsCopy} · {columnsLabel} · Front: {mapping.frontField} · Back:{' '}
-      {mapping.backField}
+      {rowsCopy} · {columnsLabel} ·{' '}
+      {t('database.front', { field: mapping.frontField })} ·{' '}
+      {t('database.back', { field: mapping.backField })}
     </p>
   );
 }
 
 function SampleFraming({ count }: Readonly<{ count: number }>) {
+  const { t } = useTranslation('previews');
   return (
     <p className={styles.sampleFraming} aria-live="polite">
-      Preview of the first {count} {count === 1 ? 'row' : 'rows'}. Converting to
-      Anki includes every row in this database.
+      {t('database.sampleFraming', { count })}
     </p>
   );
 }
 
 function PreviewTable({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
+  const { t } = useTranslation('previews');
   const { columns, samples, mapping } = data;
   return (
     <div className={styles.tableScroll}>
@@ -73,8 +79,8 @@ function PreviewTable({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
               const isFront = col === mapping.frontField;
               const isBack = col === mapping.backField;
               let tooltip: string | undefined;
-              if (isFront) tooltip = 'Used as card front';
-              else if (isBack) tooltip = 'Used as card back';
+              if (isFront) tooltip = t('database.usedAsFront');
+              else if (isBack) tooltip = t('database.usedAsBack');
               return (
                 <th key={col} scope="col" title={tooltip}>
                   {(isFront || isBack) && (
@@ -95,7 +101,11 @@ function PreviewTable({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
                 const value = sample.values[col] ?? '';
                 if (value === '') {
                   return (
-                    <td key={col} className={styles.cellEmpty} title="(empty)">
+                    <td
+                      key={col}
+                      className={styles.cellEmpty}
+                      title={t('database.empty')}
+                    >
                       —
                     </td>
                   );
@@ -117,6 +127,7 @@ function PreviewTable({ data }: Readonly<{ data: DatabasePreviewResponse }>) {
 export default function DatabasePreviewPage({
   setError,
 }: Readonly<DatabasePreviewPageProps>) {
+  const { t } = useTranslation('previews');
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [converting, setConverting] = useState(false);
@@ -145,7 +156,7 @@ export default function DatabasePreviewPage({
   if (!id) {
     return (
       <div className={sharedStyles.pageWide}>
-        <p className={styles.empty}>Missing database id.</p>
+        <p className={styles.empty}>{t('database.missingId')}</p>
       </div>
     );
   }
@@ -157,15 +168,15 @@ export default function DatabasePreviewPage({
       return (
         <div className={sharedStyles.pageWide}>
           <header className={sharedStyles.pageHeader}>
-            <h1 className={sharedStyles.title}>Database preview</h1>
+            <h1 className={sharedStyles.title}>{t('database.title')}</h1>
           </header>
           <EmptyState
-            title="This database is no longer available"
-            description="It may have been deleted or moved in Notion."
+            title={t('database.unavailableTitle')}
+            description={t('database.unavailableDescription')}
           />
           <p>
             <Link to="/notion" className={sharedStyles.btnSecondary}>
-              Back to Notion search
+              {t('database.backToNotionSearch')}
             </Link>
           </p>
         </div>
@@ -174,15 +185,11 @@ export default function DatabasePreviewPage({
     return (
       <div className={sharedStyles.pageWide}>
         <header className={sharedStyles.pageHeader}>
-          <h1 className={sharedStyles.title}>Database preview</h1>
+          <h1 className={sharedStyles.title}>{t('database.title')}</h1>
         </header>
         <ErrorPresenter
           error={
-            error instanceof Error
-              ? new Error(
-                  "We couldn't read this database. Check that 2anki still has access in Notion, then try again."
-                )
-              : error
+            error instanceof Error ? new Error(t('database.readError')) : error
           }
           onRetry={() => refetch()}
         />
@@ -194,7 +201,7 @@ export default function DatabasePreviewPage({
     return (
       <div className={sharedStyles.pageWide}>
         <p className={styles.loading} aria-live="polite">
-          Reading your database
+          {t('database.reading')}
         </p>
       </div>
     );
@@ -231,14 +238,14 @@ export default function DatabasePreviewPage({
     <div className={sharedStyles.pageWide}>
       <div className={styles.backRow}>
         <Link to="/notion" className={styles.backLink}>
-          ← Back to Notion search
+          {t('database.backToNotionSearch')}
         </Link>
       </div>
 
       <article className={sharedStyles.sectionCard}>
         <div className={styles.titleRow}>
           <h1 className={sharedStyles.title} data-hj-suppress>
-            {data.title || 'Untitled database'}
+            {data.title || t('database.untitledDatabase')}
           </h1>
           <span className={styles.headerLinks}>
             <button
@@ -247,7 +254,9 @@ export default function DatabasePreviewPage({
               onClick={handleConvert}
               disabled={converting}
             >
-              {converting ? 'Converting…' : 'Convert to Anki'}
+              {converting
+                ? t('database.converting')
+                : t('database.convertToAnki')}
             </button>
             {data.url && (
               <a
@@ -257,7 +266,7 @@ export default function DatabasePreviewPage({
                 rel="noreferrer"
               >
                 <ExternalLinkIcon width={16} height={16} />
-                <span>Open in Notion</span>
+                <span>{t('database.openInNotion')}</span>
               </a>
             )}
           </span>
@@ -266,15 +275,14 @@ export default function DatabasePreviewPage({
         <StatsLine data={data} />
 
         {data.rowCount === 0 ? (
-          <p className={styles.empty}>This database has no rows yet.</p>
+          <p className={styles.empty}>{t('database.noRows')}</p>
         ) : (
           <>
             {showSampleFraming && <SampleFraming count={data.rowCount} />}
             <PreviewTable data={data} />
             {showSampleFraming && (
               <p className={styles.rowCapFooter}>
-                Showing {data.rowCount} {data.rowCount === 1 ? 'row' : 'rows'}{' '}
-                here. Every row in this database is included when you convert.
+                {t('database.rowCapFooter', { count: data.rowCount })}
               </p>
             )}
           </>
