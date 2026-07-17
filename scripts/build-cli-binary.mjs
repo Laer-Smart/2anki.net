@@ -7,8 +7,8 @@
 // Output: dist/cli/2anki (or 2anki.exe on Windows). The release workflow runs
 // this on macOS, Linux, and Windows runners and uploads each artifact.
 import { execFileSync } from 'node:child_process';
-import { copyFileSync, mkdirSync } from 'node:fs';
-import { join } from 'node:path';
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 const FUSE = 'NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2';
 const isWindows = process.platform === 'win32';
@@ -17,10 +17,15 @@ const outDir = join('dist', 'cli');
 const binary = join(outDir, isWindows ? '2anki.exe' : '2anki');
 
 function run(cmd, args) {
-  // On Windows, npx is a .cmd shim that execFileSync can't spawn directly
-  // (ENOENT) — resolve it to npx.cmd. Other commands (node, codesign) are real
-  // executables and spawn fine.
-  const resolved = isWindows && cmd === 'npx' ? 'npx.cmd' : cmd;
+  // execFileSync can't resolve a bare `npx` from PATH (ENOENT), and on Windows
+  // it's a .cmd shim. npx sits next to the running node binary, so resolve it
+  // there. Other commands (node, codesign) are real executables and spawn fine.
+  let resolved = cmd;
+  if (cmd === 'npx') {
+    const name = isWindows ? 'npx.cmd' : 'npx';
+    const colocated = join(dirname(process.execPath), name);
+    resolved = existsSync(colocated) ? colocated : name;
+  }
   execFileSync(resolved, args, { stdio: 'inherit' });
 }
 
