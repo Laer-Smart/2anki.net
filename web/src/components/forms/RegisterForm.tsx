@@ -88,7 +88,7 @@ function RegisterForm({ setErrorMessage, redirect }: Props) {
         );
         globalThis.location.href = redirect
           ? `/${redirect.replace(/^\//, '')}`
-          : '/';
+          : '/upload';
       } else {
         track('signup_failed', { method: 'email' });
         const body = await res.json().catch(() => null);
