@@ -39,11 +39,11 @@ Der gleiche Rat, der für [KI-Karteikarten](/documentation/cards/ai-flashcards) 
 
 ## Unterhaltungsgrenzen
 
-|                    | Free             | Subscription       | Lifetime           |
-| ------------------ | ---------------- | ------------------ | ------------------ |
-| Nachrichten pro Monat | 20            | Unbegrenzt         | Unbegrenzt         |
-| Nachrichtenlänge   | 4 000 Zeichen    | 100 000 Zeichen    | 100 000 Zeichen    |
-| Modell             | Claude Haiku     | Claude Sonnet      | Claude Sonnet      |
+|                       | Free          | Subscription    | Lifetime        |
+| --------------------- | ------------- | --------------- | --------------- |
+| Nachrichten pro Monat | 20            | Unbegrenzt      | Unbegrenzt      |
+| Nachrichtenlänge      | 4 000 Zeichen | 100 000 Zeichen | 100 000 Zeichen |
+| Modell                | Claude Haiku  | Claude Sonnet   | Claude Sonnet   |
 
 Die Zählung setzt sich am Ersten des Folgemonats zurück. Das genaue Rücksetzdatum erscheint, wenn du das Limit erreichst. Siehe [Grenzen und Kontingente](/documentation/help/limits) für die vollständige Plantabelle.
 

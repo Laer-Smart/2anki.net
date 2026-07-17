@@ -76,13 +76,13 @@ Es wird auf der Kartenrückseite unter einer **Explanation**-Überschrift gerend
 
 Wenn der Parser keine einzelne richtige Antwort bestimmen kann, erstellt er stattdessen eine standardmäßige Toggle-Karte (kein MCQ-Verhalten, kein Fehler). Diese zählen zur Zahl `{n} skipped, no answer marked`, die nach der Konvertierung neben dem Badge gezeigt wird.
 
-| Situation                                     | Ergebnis   |
-| --------------------------------------------- | ---------- |
+| Situation                                          | Ergebnis    |
+| -------------------------------------------------- | ----------- |
 | Null Kontrollkästchen abgehakt, null Elemente fett | Basic-Karte |
-| Zwei oder mehr Kontrollkästchen abgehakt      | Basic-Karte |
-| Zwei oder mehr Elemente voll fett             | Basic-Karte |
-| Nur eine Option aufgelistet                   | Basic-Karte |
-| To-do + Aufzählungen im selben Toggle gemischt | Basic-Karte |
+| Zwei oder mehr Kontrollkästchen abgehakt           | Basic-Karte |
+| Zwei oder mehr Elemente voll fett                  | Basic-Karte |
+| Nur eine Option aufgelistet                        | Basic-Karte |
+| To-do + Aufzählungen im selben Toggle gemischt     | Basic-Karte |
 
 **Lösung:** öffne in Notion das Toggle, hake die richtige Option ab (oder setz sie fett), exportiere erneut und lade erneut hoch.
 

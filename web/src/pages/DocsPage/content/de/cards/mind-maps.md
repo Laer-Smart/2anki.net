@@ -18,11 +18,11 @@ Der Mindmap-Editor unter [2anki.net/mindmaps](https://2anki.net/mindmaps) lässt
 
 ## Tastaturmodell
 
-| Taste              | Was sie macht                                                       |
-| ------------------ | ------------------------------------------------------------------- |
-| Tab                | Fügt dem gewählten Knoten einen Kindknoten hinzu                    |
-| Enter              | Fügt einen Geschwisterknoten auf derselben Ebene hinzu             |
-| Backspace          | Löscht den gewählten Knoten (Bestätigung nötig, wenn er Kinder hat) |
+| Taste               | Was sie macht                                                       |
+| ------------------- | ------------------------------------------------------------------- |
+| Tab                 | Fügt dem gewählten Knoten einen Kindknoten hinzu                    |
+| Enter               | Fügt einen Geschwisterknoten auf derselben Ebene hinzu              |
+| Backspace           | Löscht den gewählten Knoten (Bestätigung nötig, wenn er Kinder hat) |
 | Doppelklick oder F2 | Bearbeitet die Knotenbeschriftung inline                            |
 
 ## Wie Karten erzeugt werden

@@ -28,11 +28,11 @@ Regeln gelten jeweils für **eine Notion-Seite**. Um die Deck-Grenzen zu ändern
 
 Die unterstützten Grenztypen sind `page` und `database`. Wähle mindestens einen — wenn du beide abwählst, nutzt 2anki den Standard, um ein leeres Deck zu vermeiden.
 
-| Auswahl                       | Was du bekommst                                                     |
-| ----------------------------- | ------------------------------------------------------------------- |
-| `page` + `database` (Standard) | Seiten und Datenbanken werden jeweils zu einem Deck                 |
-| nur `page`                    | Nur Seiten werden zu Decks; Datenbanken werden ins Elterndeck eingebettet |
-| nur `database`                | Nur Datenbanken werden zu Decks; Unterseiten werden eingebettet     |
+| Auswahl                        | Was du bekommst                                                           |
+| ------------------------------ | ------------------------------------------------------------------------- |
+| `page` + `database` (Standard) | Seiten und Datenbanken werden jeweils zu einem Deck                       |
+| nur `page`                     | Nur Seiten werden zu Decks; Datenbanken werden ins Elterndeck eingebettet |
+| nur `database`                 | Nur Datenbanken werden zu Decks; Unterseiten werden eingebettet           |
 
 ## Unterdecks vs. Deck-Grenzen
 

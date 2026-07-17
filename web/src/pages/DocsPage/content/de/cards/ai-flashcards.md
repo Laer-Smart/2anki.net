@@ -54,11 +54,11 @@ Nutze das, wenn du eine Fragenerstellung willst, die auf einen bestimmten Seite-
 
 KI-Konvertierungen dauern länger als der Standard-Parser — das Deck baut sich im Hintergrund und wird in deinem Konto gespeichert, damit du es erneut herunterladen kannst. Plan-Fenster:
 
-| Plan         | Wie lange das KI-Deck behalten wird       |
-| ------------ | ------------------------------------------ |
+| Plan         | Wie lange das KI-Deck behalten wird         |
+| ------------ | ------------------------------------------- |
 | Free         | Fällt auf Standard-Parser zurück (keine KI) |
-| Subscription | Behalten, solange dein Abo aktiv ist       |
-| Lifetime     | Unbegrenzt behalten                        |
+| Subscription | Behalten, solange dein Abo aktiv ist        |
+| Lifetime     | Unbegrenzt behalten                         |
 
 Wir schicken den Inhalt nur an das Modell, um dein Deck zu bauen. Wir trainieren nicht damit. Volle Details in der [Datenschutzerklärung](/documentation/reference/privacy).
 
