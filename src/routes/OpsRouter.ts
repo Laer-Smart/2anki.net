@@ -38,6 +38,7 @@ import RequireOpsAccess from './middleware/RequireOpsAccess';
 import InactivityEmailRepository from '../data_layer/InactivityEmailRepository';
 import { SendInactivityWarningsUseCase } from '../usecases/ops/SendInactivityWarningsUseCase';
 import { SendPassWinbackUseCase } from '../usecases/ops/SendPassWinbackUseCase';
+import GrantDeveloperAccessUseCase from '../usecases/developer/GrantDeveloperAccessUseCase';
 import PassWinbackRepository from '../data_layer/PassWinbackRepository';
 import { emailHash } from '../lib/emailHash';
 import { getEventsSink } from '../services/events/eventsSinkInstance';
@@ -184,7 +185,8 @@ const OpsRouter = () => {
           emailHash(email)
         ),
       getEventsSink()
-    )
+    ),
+    new GrantDeveloperAccessUseCase(new UsersRepository(database))
   );
 
   /**
@@ -374,6 +376,28 @@ const OpsRouter = () => {
    */
   router.post('/api/ops/delete-inactive-users', RequireOpsAccess, (req, res) =>
     controller.deleteInactiveUsers(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/developer-access:
+   *   post:
+   *     summary: Grant or revoke Developers API access for an account by email
+   *     description: |
+   *       Sets `users.developer_access` for the account matching the given email.
+   *       Grants access to the lifetime-gated Developers surface without making
+   *       the account lifetime. Internal endpoint locked to the ops owner.
+   *     tags: [Ops]
+   *     responses:
+   *       200:
+   *         description: Updated — returns the affected count and grant state
+   *       400:
+   *         description: Missing or invalid email
+   *       404:
+   *         description: No account found for that email
+   */
+  router.post('/api/ops/developer-access', RequireOpsAccess, (req, res) =>
+    controller.grantDeveloperAccess(req, res)
   );
 
   /**

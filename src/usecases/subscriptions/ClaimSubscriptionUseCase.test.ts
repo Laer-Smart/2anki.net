@@ -54,6 +54,7 @@ const makeEmailService = (
   sendSubscriptionScheduledCancellationEmail: jest.fn(),
   sendSubscriptionResumingSoonEmail: jest.fn().mockResolvedValue(undefined),
   sendHostedAnkiAccessRequestEmail: jest.fn(),
+  sendDeveloperAccessRequestEmail: jest.fn(),
   sendMagicLinkEmail: jest.fn(),
   sendReEngagementEmail: jest.fn(),
   sendInactivityWarningEmail: jest.fn(),

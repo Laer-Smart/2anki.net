@@ -23,6 +23,9 @@ import { ReconcileOrphanedSubscriptionsUseCase } from '../usecases/ops/Reconcile
 import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
 import { GetCustomerSignalsUseCase } from '../usecases/ops/GetCustomerSignalsUseCase';
 import { GetPassUnlockMonitorUseCase } from '../usecases/ops/GetPassUnlockMonitorUseCase';
+import GrantDeveloperAccessUseCase, {
+  InvalidEmailError,
+} from '../usecases/developer/GrantDeveloperAccessUseCase';
 
 class OpsController {
   constructor(
@@ -45,8 +48,37 @@ class OpsController {
     private readonly getLandingPageYieldUseCase?: GetLandingPageYieldUseCase,
     private readonly getCustomerSignalsUseCase?: GetCustomerSignalsUseCase,
     private readonly getPassUnlockMonitorUseCase?: GetPassUnlockMonitorUseCase,
-    private readonly sendPassWinbackUseCase?: SendPassWinbackUseCase
+    private readonly sendPassWinbackUseCase?: SendPassWinbackUseCase,
+    private readonly grantDeveloperAccessUseCase?: GrantDeveloperAccessUseCase
   ) {}
+
+  async grantDeveloperAccess(req: express.Request, res: express.Response) {
+    if (this.grantDeveloperAccessUseCase == null) {
+      res
+        .status(500)
+        .json({ message: 'Developer access grant not configured' });
+      return;
+    }
+    const { email, grant } = req.body as { email?: unknown; grant?: unknown };
+    try {
+      const result = await this.grantDeveloperAccessUseCase.execute(
+        email,
+        grant !== false
+      );
+      if (result.updated === 0) {
+        res.status(404).json({ message: 'No account found for that email' });
+        return;
+      }
+      res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof InvalidEmailError) {
+        res.status(400).json({ message: error.message });
+        return;
+      }
+      console.error('[ops] grantDeveloperAccess failed', error);
+      res.status(500).json({ message: 'Failed to update developer access' });
+    }
+  }
 
   async getMetrics(req: express.Request, res: express.Response) {
     try {

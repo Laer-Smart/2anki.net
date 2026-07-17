@@ -72,6 +72,7 @@ export const KNOWN_EVENTS = new Set([
   'native_app_activated',
   'native_deck_converted',
   'native_deck_exported',
+  'api_key_used',
   'checkout_started',
   'plan_interval_selected',
   'ankify_stats_viewed',

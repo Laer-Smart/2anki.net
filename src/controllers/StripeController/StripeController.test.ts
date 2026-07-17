@@ -49,6 +49,7 @@ function buildUser(overrides: Partial<UserWithOwner> = {}): UserWithOwner {
     reset_token: null,
     patreon: false,
     ankify_access: false,
+    developer_access: false,
     last_login_at: null,
     hosted_anki_requested_at: null,
     signup_origin: null,
