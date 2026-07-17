@@ -1,0 +1,138 @@
+.title {
+  font-size: var(--text-2xl);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+}
+
+.cardTitle {
+  font-size: var(--text-lg);
+  font-weight: var(--font-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.body {
+  color: var(--color-text-secondary);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+  margin-bottom: 1rem;
+}
+
+.createRow {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.textInput {
+  flex: 1;
+  min-width: 12rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+}
+
+.textInput:focus {
+  outline: none;
+  border-color: var(--color-accent);
+}
+
+.keyList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.keyRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.keyRow:last-child {
+  border-bottom: none;
+}
+
+.keyName {
+  display: block;
+  font-weight: var(--font-medium);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+}
+
+.keyMeta {
+  display: block;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-tertiary);
+  font-size: var(--text-xs);
+}
+
+.revokeButton {
+  background: none;
+  border: none;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  padding: 0.25rem 0.5rem;
+}
+
+.revokeButton:hover {
+  color: var(--color-danger);
+}
+
+.noticeSuccess {
+  color: var(--color-success);
+  font-size: var(--text-sm);
+}
+
+.noticeDanger {
+  color: var(--color-danger);
+  font-size: var(--text-sm);
+  margin-top: 0.5rem;
+}
+
+.revealBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+
+.revealCard {
+  background: var(--color-bg-primary);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  max-width: 32rem;
+  width: 100%;
+  box-shadow: var(--shadow-lg);
+}
+
+.keyReveal {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  padding: 0.75rem;
+  margin: 1rem 0;
+}
+
+.keyValue {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  word-break: break-all;
+  flex: 1;
+  color: var(--color-text-primary);
+}

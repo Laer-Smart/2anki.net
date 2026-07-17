@@ -65,6 +65,7 @@ function CardUsageCounter({ used, limit }: Readonly<CardUsageCounterProps>) {
 
 export interface SidebarLocals {
   patreon?: boolean;
+  developer_access?: boolean;
   subscriber?: boolean;
   autoSyncActive?: boolean;
   passExpiresAt?: string | null;
@@ -224,6 +225,8 @@ export function Sidebar({
   const logoSrc = getLogoSrc(collapsed, theme);
   const showAnkify =
     locals?.patreon === true || locals?.autoSyncActive === true;
+  const showDevelopers =
+    locals?.patreon === true || locals?.developer_access === true;
   const showFavorites = email != null && email !== '';
   const isLoggedIn = locals != null;
   const paying = isPayingUser(locals);
@@ -354,6 +357,16 @@ export function Sidebar({
                 icon={SparklesIcon}
               >
                 {t('nav.autoSync')}
+              </SidebarRow>
+            )}
+            {showDevelopers && (
+              <SidebarRow
+                href="/developers"
+                pathname={pathname}
+                onClick={handleNavClick()}
+                icon={CommandLineIcon}
+              >
+                {t('nav.developers')}
               </SidebarRow>
             )}
           </div>

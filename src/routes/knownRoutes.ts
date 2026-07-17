@@ -22,6 +22,7 @@ const APP_ROUTES = new Set<string>([
   '/ankify',
   '/ankify/setup',
   '/ankify/history',
+  '/developers',
   '/settings',
   '/settings/card-options',
   '/card-options',
