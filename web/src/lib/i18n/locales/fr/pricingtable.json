@@ -1,0 +1,67 @@
+{
+  "heading": "Comparez tous les forfaits",
+  "srFeature": "Fonctionnalité",
+  "included": "Inclus",
+  "notIncluded": "Non inclus",
+  "cells": {
+    "unlimited": "Illimité",
+    "photoPerMonth": "5 / mois",
+    "imagesQty": "3 images",
+    "printsPerMonth": "1 / mois"
+  },
+  "groups": {
+    "conversionLimits": "Limites de conversion",
+    "ai": "IA (Claude)",
+    "studyTools": "Outils d'étude",
+    "syncSupport": "Synchronisation et assistance",
+    "billing": "Facturation"
+  },
+  "rows": {
+    "cardsPerMonth": "Cartes par mois",
+    "conversionsAtOnce": "Conversions simultanées",
+    "pdfPagesPerFile": "Pages PDF par fichier",
+    "maxUploadSize": "Taille d'envoi maximale",
+    "ankiNotionNotes": "Notes Anki → Notion",
+    "aiFlashcards": "Cartes IA depuis des PDF et documents",
+    "photoToDeck": "Photo vers paquet (Claude Vision)",
+    "aiMcq": "QCM par IA (MCQ)",
+    "aiCardTemplate": "Ébauche de modèles de cartes par IA",
+    "imageOcclusion": "Occlusion d'image",
+    "mindMaps": "Cartes mentales",
+    "printsToPdf": "Impressions en PDF",
+    "autoSyncNotion": "Auto Sync depuis Notion",
+    "prioritySupport": "Assistance prioritaire",
+    "noSubscription": "Sans abonnement"
+  },
+  "faq": {
+    "heading": "Questions et réponses",
+    "q1": {
+      "question": "Combien de cartes puis-je créer gratuitement ?",
+      "answer": "100 cards per month sur le forfait gratuit. Aucun compte requis pour les conversions ponctuelles — déposez un fichier et téléchargez un paquet."
+    },
+    "q2": {
+      "question": "Existe-t-il une option de paiement unique ?",
+      "answer": "Day Pass ({{dayPrice}}) donne 24 heures d'accès illimité. Week Pass ({{weekPrice}}) donne 7 jours. Les deux sont des paiements uniques, sans abonnement."
+    },
+    "q3": {
+      "question": "Qu'est-ce que le forfait Unlimited ?",
+      "answer": "Unlimited supprime la limite de 100 cartes, ajoute la prise en charge du PDF, permet plusieurs conversions à la fois et inclut des imports Anki vers Notion illimités. Les tarifs figurent sur les cartes ci-dessus."
+    },
+    "q4": {
+      "question": "Et Lifetime ?",
+      "answer": "Lifetime débute à $345, payé une fois. Il inclut toutes les fonctionnalités Unlimited ainsi qu'Auto Sync. Faites la demande sur cette page ; l'accès est accordé après examen."
+    },
+    "q5": {
+      "question": "Puis-je annuler à tout moment ?",
+      "answer": "Annulez en un clic depuis votre compte — sans écrire à l'assistance. Sur un forfait annuel, l'annulation arrête le prochain renouvellement et votre accès reste actif jusqu'à la fin de l'année déjà payée ; le temps non utilisé n'est pas remboursé. Les passes sont uniques, il n'y a donc rien à annuler."
+    },
+    "q6": {
+      "question": "Existe-t-il une application ?",
+      "answer": "Oui — 2anki est gratuit sur l'App Store pour iPhone, iPad et Mac, en plus de l'application web. Les fichiers sont traités sur l'appareil. Les mêmes forfaits s'appliquent : Day Pass, Week Pass et Unlimited sont disponibles en achats intégrés."
+    },
+    "q7": {
+      "question": "Qu'advient-il de mes paquets si j'arrête de payer ?",
+      "answer": "Ils restent les vôtres. Chaque paquet s'exporte en .apkg natif qui fonctionne dans n'importe quel client Anki, hors ligne et sans verrouillage."
+    }
+  }
+}
