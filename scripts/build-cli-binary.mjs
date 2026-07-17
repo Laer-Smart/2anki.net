@@ -17,7 +17,11 @@ const outDir = join('dist', 'cli');
 const binary = join(outDir, isWindows ? '2anki.exe' : '2anki');
 
 function run(cmd, args) {
-  execFileSync(cmd, args, { stdio: 'inherit' });
+  // On Windows, npx is a .cmd shim that execFileSync can't spawn directly
+  // (ENOENT) — resolve it to npx.cmd. Other commands (node, codesign) are real
+  // executables and spawn fine.
+  const resolved = isWindows && cmd === 'npx' ? 'npx.cmd' : cmd;
+  execFileSync(resolved, args, { stdio: 'inherit' });
 }
 
 mkdirSync(outDir, { recursive: true });
