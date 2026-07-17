@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "mainNavigation": "navegación principal",
+    "menu": "menú",
+    "logoAlt": "Logo de 2anki",
+    "openNavigation": "Abrir navegación",
+    "home": "Inicio de 2anki"
+  },
+  "theme": {
+    "appearance": "Apariencia",
+    "group": "Tema",
+    "light": "Tema claro",
+    "dark": "Tema oscuro",
+    "gold": "Tema dorado",
+    "purple": "Tema morado",
+    "hotpink": "Tema rosa intenso",
+    "cycle": "Cambiar de tema"
+  },
+  "noteType": {
+    "yourNoteTypes": "Tus tipos de nota",
+    "officialTemplates": "Plantillas oficiales de 2anki",
+    "starterNoteTypes": "Tipos de nota para empezar",
+    "custom": "{{value}} (personalizado)"
+  },
+  "fieldMapping": {
+    "summary": "Asignación de campos",
+    "hint": "Dile a la IA qué poner en cada campo de tu plantilla de tarjeta. Deja un campo vacío para que la IA decida.",
+    "placeholder": "¿Qué va en {{field}}?"
+  },
+  "cloze": {
+    "previewAlt": "Vista previa: cada tarjeta oculta una línea de la lista",
+    "caption": "5 líneas se convierten en 5 tarjetas — cada una oculta una"
+  },
+  "textColor": {
+    "label": "Color del texto",
+    "description": "Define el color del texto en las tarjetas generadas. El valor predeterminado sigue el tema de Anki, así se mantiene legible en modo claro y oscuro."
+  },
+  "textAlign": {
+    "label": "Alineación del texto",
+    "description": "Define la alineación del texto en las tarjetas generadas. El valor predeterminado mantiene la alineación de la plantilla — elige Izquierda para que coincida con tu prosa de Notion."
+  },
+  "fontSize": {
+    "label": "Tamaño de fuente",
+    "description": "Controla el tamaño de fuente base de las tarjetas generadas. Rango: 10–100 px."
+  },
+  "fieldHint": {
+    "hide": "Ocultar descripción"
+  },
+  "whatsNew": {
+    "title": "Novedades",
+    "subtitle": "Todo lo que hemos lanzado, lo más reciente primero.",
+    "ratingPrompt": "¿Qué tal te funciona 2anki?",
+    "reportIssue": "Informar de un problema →",
+    "empty": "Aún no se ha lanzado nada.",
+    "badgeNew": "Nuevo",
+    "badgeFix": "Corrección",
+    "badgeDesign": "Diseño"
+  }
+}

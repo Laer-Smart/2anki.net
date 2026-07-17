@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "mainNavigation": "nawigacja główna",
+    "menu": "menu",
+    "logoAlt": "Logo 2anki",
+    "openNavigation": "Otwórz nawigację",
+    "home": "Strona główna 2anki"
+  },
+  "theme": {
+    "appearance": "Wygląd",
+    "group": "Motyw",
+    "light": "Motyw jasny",
+    "dark": "Motyw ciemny",
+    "gold": "Motyw złoty",
+    "purple": "Motyw fioletowy",
+    "hotpink": "Motyw różowy",
+    "cycle": "Zmień motyw"
+  },
+  "noteType": {
+    "yourNoteTypes": "Twoje typy notatek",
+    "officialTemplates": "Oficjalne szablony 2anki",
+    "starterNoteTypes": "Typy notatek na start",
+    "custom": "{{value}} (własny)"
+  },
+  "fieldMapping": {
+    "summary": "Przypisanie pól",
+    "hint": "Powiedz AI, co wstawić w każde pole szablonu karty. Zostaw pole puste, aby AI zdecydowało.",
+    "placeholder": "Co ma być w polu {{field}}?"
+  },
+  "cloze": {
+    "previewAlt": "Podgląd: każda karta ukrywa jeden wiersz listy",
+    "caption": "5 wierszy staje się 5 kartami — każda ukrywa jeden"
+  },
+  "textColor": {
+    "label": "Kolor tekstu",
+    "description": "Ustawia kolor tekstu na wygenerowanych kartach. Domyślnie zależy od motywu Anki, więc pozostaje czytelny w trybie jasnym i nocnym."
+  },
+  "textAlign": {
+    "label": "Wyrównanie tekstu",
+    "description": "Ustawia wyrównanie tekstu na wygenerowanych kartach. Domyślnie zachowuje wyrównanie szablonu — wybierz Do lewej, aby dopasować do tekstu z Notion."
+  },
+  "fontSize": {
+    "label": "Rozmiar czcionki",
+    "description": "Steruje bazowym rozmiarem czcionki na wygenerowanych kartach. Zakres: 10–100 px."
+  },
+  "fieldHint": {
+    "hide": "Ukryj opis"
+  },
+  "whatsNew": {
+    "title": "Co nowego",
+    "subtitle": "Wszystko, co wydaliśmy, od najnowszych.",
+    "ratingPrompt": "Jak sprawdza się 2anki?",
+    "reportIssue": "Zgłoś problem →",
+    "empty": "Nic jeszcze nie wydano.",
+    "badgeNew": "Nowość",
+    "badgeFix": "Poprawka",
+    "badgeDesign": "Projekt"
+  }
+}

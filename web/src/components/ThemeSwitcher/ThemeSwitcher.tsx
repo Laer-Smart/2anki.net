@@ -1,19 +1,21 @@
 import { type KeyboardEvent, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { type Theme, applyTheme, getStoredTheme } from '../../lib/theme';
 import styles from './ThemeSwitcher.module.css';
 
-const THEMES: readonly { value: Theme; label: string; icon: string }[] = [
-  { value: 'light', label: 'Light theme', icon: '☀' },
-  { value: 'dark', label: 'Dark theme', icon: '☾' },
-  { value: 'gold', label: 'Gold theme', icon: '✦' },
-  { value: 'purple', label: 'Purple theme', icon: '◆' },
-  { value: 'hotpink', label: 'Hot pink theme', icon: '✿' },
+const THEMES: readonly { value: Theme; labelKey: string; icon: string }[] = [
+  { value: 'light', labelKey: 'theme.light', icon: '☀' },
+  { value: 'dark', labelKey: 'theme.dark', icon: '☾' },
+  { value: 'gold', labelKey: 'theme.gold', icon: '✦' },
+  { value: 'purple', labelKey: 'theme.purple', icon: '◆' },
+  { value: 'hotpink', labelKey: 'theme.hotpink', icon: '✿' },
 ];
 
 const FORWARD_KEYS = new Set(['ArrowRight', 'ArrowDown']);
 const BACKWARD_KEYS = new Set(['ArrowLeft', 'ArrowUp']);
 
 export function ThemeSwitcher() {
+  const { t } = useTranslation('chrome');
   const [current, setCurrent] = useState<Theme>(getStoredTheme);
   const buttonRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
@@ -43,10 +45,15 @@ export function ThemeSwitcher() {
 
   return (
     <div className={styles.container}>
-      <span className={styles.label}>Appearance</span>
-      <div className={styles.switcher} role="radiogroup" aria-label="Theme">
-        {THEMES.map(({ value, label, icon }, index) => {
+      <span className={styles.label}>{t('theme.appearance')}</span>
+      <div
+        className={styles.switcher}
+        role="radiogroup"
+        aria-label={t('theme.group')}
+      >
+        {THEMES.map(({ value, labelKey, icon }, index) => {
           const isSelected = current === value;
+          const label = t(labelKey);
           return (
             <button
               key={value}

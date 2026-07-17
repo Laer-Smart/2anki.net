@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { FeedbackWidget } from '../../components/FeedbackWidget/FeedbackWidget';
 import { changelog, ChangelogEntry } from './changelog/index';
 import sharedStyles from '../../styles/shared.module.css';
@@ -11,10 +12,10 @@ interface DateGroup {
 
 const TYPE_ORDER: Record<string, number> = { feature: 0, style: 1, fix: 2 };
 
-const TYPE_LABELS: Record<string, string> = {
-  feature: 'New',
-  fix: 'Fix',
-  style: 'Design',
+const TYPE_LABEL_KEYS: Record<string, string> = {
+  feature: 'whatsNew.badgeNew',
+  fix: 'whatsNew.badgeFix',
+  style: 'whatsNew.badgeDesign',
 };
 
 function groupByDate(entries: ChangelogEntry[]): DateGroup[] {
@@ -50,18 +51,17 @@ const formatGroupDate = (dateStr: string): string => {
 };
 
 export default function WhatsNewPage() {
+  const { t } = useTranslation('chrome');
   const shipped = groupByDate(changelog);
 
   return (
     <div className={sharedStyles.page}>
       <header className={sharedStyles.pageHeader}>
-        <h1 className={sharedStyles.title}>What's new</h1>
-        <p className={sharedStyles.subtitle}>
-          Everything we've shipped, newest first.
-        </p>
+        <h1 className={sharedStyles.title}>{t('whatsNew.title')}</h1>
+        <p className={sharedStyles.subtitle}>{t('whatsNew.subtitle')}</p>
         <div className={styles.inlineRating}>
           <span className={styles.ratingPrompt}>
-            How&apos;s 2anki working for you?
+            {t('whatsNew.ratingPrompt')}
           </span>
           <FeedbackWidget page="/whats-new" compact />
           <a
@@ -70,14 +70,14 @@ export default function WhatsNewPage() {
             rel="noopener noreferrer"
             className={styles.reportLink}
           >
-            Report an issue →
+            {t('whatsNew.reportIssue')}
           </a>
         </div>
       </header>
 
       <div className={styles.board}>
         {shipped.length === 0 ? (
-          <p className={styles.emptyState}>Nothing shipped yet.</p>
+          <p className={styles.emptyState}>{t('whatsNew.empty')}</p>
         ) : (
           <div className={styles.timeline}>
             {shipped.map((group) => (
@@ -92,7 +92,9 @@ export default function WhatsNewPage() {
                       <span
                         className={`${styles.typeBadge} ${styles['badge_' + entry.type]}`}
                       >
-                        {TYPE_LABELS[entry.type] ?? entry.type}
+                        {TYPE_LABEL_KEYS[entry.type]
+                          ? t(TYPE_LABEL_KEYS[entry.type])
+                          : entry.type}
                       </span>
                       <span className={styles.commitText}>{entry.title}</span>
                     </li>

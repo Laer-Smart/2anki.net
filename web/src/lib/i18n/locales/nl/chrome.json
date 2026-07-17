@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "mainNavigation": "hoofdnavigatie",
+    "menu": "menu",
+    "logoAlt": "2anki-logo",
+    "openNavigation": "Navigatie openen",
+    "home": "2anki home"
+  },
+  "theme": {
+    "appearance": "Weergave",
+    "group": "Thema",
+    "light": "Licht thema",
+    "dark": "Donker thema",
+    "gold": "Goud thema",
+    "purple": "Paars thema",
+    "hotpink": "Felroze thema",
+    "cycle": "Thema wisselen"
+  },
+  "noteType": {
+    "yourNoteTypes": "Jouw notitietypen",
+    "officialTemplates": "Officiële 2anki-sjablonen",
+    "starterNoteTypes": "Notitietypen om te beginnen",
+    "custom": "{{value}} (aangepast)"
+  },
+  "fieldMapping": {
+    "summary": "Veldtoewijzing",
+    "hint": "Vertel de AI wat er in elk veld van je kaartsjabloon moet komen. Laat een veld leeg om de AI te laten beslissen.",
+    "placeholder": "Wat komt er in {{field}}?"
+  },
+  "cloze": {
+    "previewAlt": "Voorbeeld: elke kaart verbergt één regel van de lijst",
+    "caption": "5 regels worden 5 kaarten — elke verbergt er één"
+  },
+  "textColor": {
+    "label": "Tekstkleur",
+    "description": "Stelt de tekstkleur op je gegenereerde kaarten in. De standaard volgt het thema van Anki, zodat het leesbaar blijft in lichte en donkere modus."
+  },
+  "textAlign": {
+    "label": "Tekstuitlijning",
+    "description": "Stelt de tekstuitlijning op je gegenereerde kaarten in. De standaard behoudt de uitlijning van het sjabloon — kies Links om aan te sluiten op je Notion-tekst."
+  },
+  "fontSize": {
+    "label": "Lettergrootte",
+    "description": "Regelt de basislettergrootte op je gegenereerde kaarten. Bereik: 10–100 px."
+  },
+  "fieldHint": {
+    "hide": "Beschrijving verbergen"
+  },
+  "whatsNew": {
+    "title": "Wat is er nieuw",
+    "subtitle": "Alles wat we hebben uitgebracht, nieuwste eerst.",
+    "ratingPrompt": "Hoe bevalt 2anki je?",
+    "reportIssue": "Een probleem melden →",
+    "empty": "Nog niets uitgebracht.",
+    "badgeNew": "Nieuw",
+    "badgeFix": "Fix",
+    "badgeDesign": "Ontwerp"
+  }
+}

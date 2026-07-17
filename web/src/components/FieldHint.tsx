@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from '../styles/shared.module.css';
 
 interface Props {
@@ -6,6 +7,7 @@ interface Props {
 }
 
 export function FieldHint({ text }: Readonly<Props>) {
+  const { t } = useTranslation('chrome');
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -29,7 +31,7 @@ export function FieldHint({ text }: Readonly<Props>) {
       <button
         type="button"
         className={styles.infoButton}
-        aria-label={open ? 'Hide description' : text}
+        aria-label={open ? t('fieldHint.hide') : text}
         aria-expanded={open}
         onClick={() => setOpen((v) => !v)}
       >

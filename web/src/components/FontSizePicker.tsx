@@ -1,9 +1,7 @@
+import { useTranslation } from 'react-i18next';
 import styles from '../styles/shared.module.css';
 import { FieldHint } from './FieldHint';
 import localStyles from './FontSizePicker.module.css';
-
-const DESCRIPTION =
-  'Controls the base font size in your generated cards. Range: 10–100 px.';
 
 interface FontPickerDelegate {
   fontSize: string;
@@ -12,15 +10,16 @@ interface FontPickerDelegate {
 
 function FontSizePicker(delegate: Readonly<FontPickerDelegate>) {
   const { fontSize, pickedFontSize } = delegate;
+  const { t } = useTranslation('chrome');
   const displayValue = fontSize || '20';
 
   return (
     <div className={styles.flexColumn}>
       <div className={localStyles.labelRow}>
         <label htmlFor="font-size">
-          <strong>Font size</strong>
+          <strong>{t('fontSize.label')}</strong>
         </label>
-        <FieldHint text={DESCRIPTION} />
+        <FieldHint text={t('fontSize.description')} />
       </div>
       <div
         className={styles.flexRow}

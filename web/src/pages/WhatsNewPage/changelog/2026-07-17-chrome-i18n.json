@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-17-chrome-i18n",
+  "date": "2026-07-17",
+  "type": "fix",
+  "title": "Theme switcher, navigation, and form controls now translate when you switch language"
+}

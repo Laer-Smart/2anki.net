@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '../../lib/hooks/useTheme';
 import styles from './NavigationBar.module.css';
@@ -9,6 +10,7 @@ interface NavigationBarProps {
 }
 
 function NavigationBar({ isLoggedIn }: Readonly<NavigationBarProps>) {
+  const { t } = useTranslation('chrome');
   const [active, setActive] = useState(false);
   const path = globalThis.location.pathname;
   const theme = useTheme();
@@ -19,12 +21,12 @@ function NavigationBar({ isLoggedIn }: Readonly<NavigationBarProps>) {
   const isResolved = isLoggedIn !== undefined;
 
   return (
-    <nav className={styles.navbar} aria-label="main navigation">
+    <nav className={styles.navbar} aria-label={t('nav.mainNavigation')}>
       <div className={styles.brand}>
         <a className={styles.logoLink} href="/">
           <img
             src={logoSrc}
-            alt="2anki Logo"
+            alt={t('nav.logoAlt')}
             width={logoWidth}
             height={28}
             fetchPriority="high"
@@ -33,7 +35,7 @@ function NavigationBar({ isLoggedIn }: Readonly<NavigationBarProps>) {
         <button
           type="button"
           className={styles.burger}
-          aria-label="menu"
+          aria-label={t('nav.menu')}
           aria-expanded={active}
           onClick={() => setActive(!active)}
         >

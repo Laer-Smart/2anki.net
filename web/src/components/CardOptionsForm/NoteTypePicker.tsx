@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import sharedStyles from '../../styles/shared.module.css';
 import { FieldHint } from '../FieldHint';
 import { NoteTypeOption } from './useAvailableNoteTypes';
@@ -23,6 +24,7 @@ export function NoteTypePicker({
   onChange,
   hint,
 }: Readonly<NoteTypePickerProps>) {
+  const { t } = useTranslation('chrome');
   const selectedIsCustom =
     value.length > 0 && !options.some((option) => option.value === value);
 
@@ -50,7 +52,7 @@ export function NoteTypePicker({
       >
         <option value="">{placeholder}</option>
         {groupedByOrigin.user.length > 0 && (
-          <optgroup label="Your note types">
+          <optgroup label={t('noteType.yourNoteTypes')}>
             {groupedByOrigin.user.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -59,7 +61,7 @@ export function NoteTypePicker({
           </optgroup>
         )}
         {groupedByOrigin.official.length > 0 && (
-          <optgroup label="Official 2anki templates">
+          <optgroup label={t('noteType.officialTemplates')}>
             {groupedByOrigin.official.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -68,7 +70,7 @@ export function NoteTypePicker({
           </optgroup>
         )}
         {groupedByOrigin.starter.length > 0 && (
-          <optgroup label="Starter note types">
+          <optgroup label={t('noteType.starterNoteTypes')}>
             {groupedByOrigin.starter.map((option) => (
               <option key={option.value} value={option.value}>
                 {option.label}
@@ -76,7 +78,9 @@ export function NoteTypePicker({
             ))}
           </optgroup>
         )}
-        {selectedIsCustom && <option value={value}>{value} (custom)</option>}
+        {selectedIsCustom && (
+          <option value={value}>{t('noteType.custom', { value })}</option>
+        )}
       </select>
     </div>
   );

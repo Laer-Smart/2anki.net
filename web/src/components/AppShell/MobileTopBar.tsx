@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { useTheme } from '../../lib/hooks/useTheme';
 import styles from './AppShell.module.css';
 
@@ -12,6 +13,7 @@ export function MobileTopBar({
   onOpen,
   onClose,
 }: Readonly<MobileTopBarProps>) {
+  const { t } = useTranslation('chrome');
   const onClick = isOpen ? onClose : onOpen;
   const theme = useTheme();
   const logoSrc =
@@ -21,7 +23,7 @@ export function MobileTopBar({
       <button
         type="button"
         className={styles.mobileBurger}
-        aria-label="Open navigation"
+        aria-label={t('nav.openNavigation')}
         aria-expanded={isOpen}
         aria-controls="app-sidebar-drawer"
         onClick={onClick}
@@ -30,7 +32,7 @@ export function MobileTopBar({
         <span aria-hidden="true" />
         <span aria-hidden="true" />
       </button>
-      <a className={styles.mobileLogo} href="/" aria-label="2anki home">
+      <a className={styles.mobileLogo} href="/" aria-label={t('nav.home')}>
         <img src={logoSrc} alt="" />
       </a>
       <span aria-hidden="true" />
