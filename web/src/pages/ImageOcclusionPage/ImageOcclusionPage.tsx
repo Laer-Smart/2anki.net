@@ -142,7 +142,9 @@ export function ImageOcclusionPage() {
   const [hydrated, setHydrated] = useState(false);
   const [entries, setEntries] = useState<ImageEntry[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
-  const [deckName, setDeckName] = useState(() => t('occlusion.deckNamePlaceholder'));
+  const [deckName, setDeckName] = useState(() =>
+    t('occlusion.deckNamePlaceholder')
+  );
   const [mode, setMode] = useState<Mode>('hide_all');
   const [draftId, setDraftId] = useState<string | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
@@ -331,81 +333,84 @@ export function ImageOcclusionPage() {
     });
   }, []);
 
-  const handleAddFromNotion = useCallback(async (blockIds: string[]) => {
-    const placeholders: ImageEntry[] = blockIds.map(
-      (id) =>
-        ({
-          id: crypto.randomUUID(),
-          file: null,
-          imageName: `notion-${id.slice(0, 8)}`,
-          header: '',
-          rects: [],
-          previewUrl: '',
-          s3Key: null,
-          uploading: true,
-          _notionBlockId: id,
-        }) as ImageEntry & { _notionBlockId: string }
-    );
+  const handleAddFromNotion = useCallback(
+    async (blockIds: string[]) => {
+      const placeholders: ImageEntry[] = blockIds.map(
+        (id) =>
+          ({
+            id: crypto.randomUUID(),
+            file: null,
+            imageName: `notion-${id.slice(0, 8)}`,
+            header: '',
+            rects: [],
+            previewUrl: '',
+            s3Key: null,
+            uploading: true,
+            _notionBlockId: id,
+          }) as ImageEntry & { _notionBlockId: string }
+      );
 
-    setEntries((prev) => {
-      const next = [...prev, ...placeholders];
-      setActiveIndex(next.length - 1);
-      return next;
-    });
-
-    try {
-      const res = await fetch('/api/image-occlusion/draft/notion-image', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ blockIds }),
+      setEntries((prev) => {
+        const next = [...prev, ...placeholders];
+        setActiveIndex(next.length - 1);
+        return next;
       });
 
-      if (res.status === 401) {
-        setEntries((prev) =>
-          prev.filter((e) => !placeholders.some((p) => p.id === e.id))
-        );
-        setError(t('occlusion.notionRefresh'));
-        return;
-      }
-      if (!res.ok) {
+      try {
+        const res = await fetch('/api/image-occlusion/draft/notion-image', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ blockIds }),
+        });
+
+        if (res.status === 401) {
+          setEntries((prev) =>
+            prev.filter((e) => !placeholders.some((p) => p.id === e.id))
+          );
+          setError(t('occlusion.notionRefresh'));
+          return;
+        }
+        if (!res.ok) {
+          setEntries((prev) =>
+            prev.filter((e) => !placeholders.some((p) => p.id === e.id))
+          );
+          setError(t('occlusion.notionUnreachable'));
+          return;
+        }
+
+        const imported = (await res.json()) as Array<{
+          s3Key: string;
+          presignedUrl: string;
+        }>;
+
+        setEntries((prev) => {
+          const withoutPlaceholders = prev.filter(
+            (e) => !placeholders.some((p) => p.id === e.id)
+          );
+          const resolved: ImageEntry[] = imported.map((item, i) => ({
+            id: crypto.randomUUID(),
+            file: null,
+            imageName: placeholders[i]?.imageName ?? `notion-image-${i + 1}`,
+            header: '',
+            rects: [],
+            previewUrl: item.presignedUrl,
+            s3Key: item.s3Key,
+            uploading: false,
+          }));
+          const next = [...withoutPlaceholders, ...resolved];
+          if (resolved.length > 0) setActiveIndex(next.length - 1);
+          return next;
+        });
+      } catch {
         setEntries((prev) =>
           prev.filter((e) => !placeholders.some((p) => p.id === e.id))
         );
         setError(t('occlusion.notionUnreachable'));
-        return;
       }
-
-      const imported = (await res.json()) as Array<{
-        s3Key: string;
-        presignedUrl: string;
-      }>;
-
-      setEntries((prev) => {
-        const withoutPlaceholders = prev.filter(
-          (e) => !placeholders.some((p) => p.id === e.id)
-        );
-        const resolved: ImageEntry[] = imported.map((item, i) => ({
-          id: crypto.randomUUID(),
-          file: null,
-          imageName: placeholders[i]?.imageName ?? `notion-image-${i + 1}`,
-          header: '',
-          rects: [],
-          previewUrl: item.presignedUrl,
-          s3Key: item.s3Key,
-          uploading: false,
-        }));
-        const next = [...withoutPlaceholders, ...resolved];
-        if (resolved.length > 0) setActiveIndex(next.length - 1);
-        return next;
-      });
-    } catch {
-      setEntries((prev) =>
-        prev.filter((e) => !placeholders.some((p) => p.id === e.id))
-      );
-      setError(t('occlusion.notionUnreachable'));
-    }
-  }, [t]);
+    },
+    [t]
+  );
 
   const handleDownload = async () => {
     if (entries.length === 0) {

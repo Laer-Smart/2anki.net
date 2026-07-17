@@ -99,7 +99,9 @@ export function CanvasToolbar({
       <button
         type="button"
         className={`${styles.btn} ${masksHidden ? styles.btnActive : ''}`}
-        title={masksHidden ? t('occlusion.showMasks') : t('occlusion.hideMasks')}
+        title={
+          masksHidden ? t('occlusion.showMasks') : t('occlusion.hideMasks')
+        }
         aria-label={
           masksHidden ? t('occlusion.showMasks') : t('occlusion.hideMasks')
         }

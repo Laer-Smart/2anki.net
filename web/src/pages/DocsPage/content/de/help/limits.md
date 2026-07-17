@@ -7,11 +7,11 @@ description: Was auf jedem Plan erlaubt ist und wie lange deine Decks bleiben.
 
 ## Karten pro Monat
 
-| Plan                    | Karten pro Monat        |
-| ----------------------- | ----------------------- |
-| Anonym (kein Konto)     | 21 pro Konvertierung    |
-| Kostenloses Konto       | 100 pro Monat           |
-| Subscription / Lifetime | Unbegrenzt              |
+| Plan                    | Karten pro Monat     |
+| ----------------------- | -------------------- |
+| Anonym (kein Konto)     | 21 pro Konvertierung |
+| Kostenloses Konto       | 100 pro Monat        |
+| Subscription / Lifetime | Unbegrenzt           |
 
 Das kostenlose Monatslimit zählt Karten über **jeden** Konvertierungsweg — Datei-Uploads, `.zip`, Notion, alle davon — nicht nur Notion. Der Zähler setzt sich zu Beginn jedes Kalendermonats zurück.
 
@@ -19,10 +19,10 @@ Ohne Konto ist jede Konvertierung auf 21 Karten begrenzt. Registriere ein kosten
 
 ## Dateigröße
 
-| Plan                    | Max. Upload-Größe    |
-| ----------------------- | -------------------- |
-| Free                    | 100 MB pro Anfrage   |
-| Subscription / Lifetime | ~10 GB pro Anfrage   |
+| Plan                    | Max. Upload-Größe  |
+| ----------------------- | ------------------ |
+| Free                    | 100 MB pro Anfrage |
+| Subscription / Lifetime | ~10 GB pro Anfrage |
 
 Free umfasst anonyme und angemeldete Nutzer ohne kostenpflichtigen Plan.
 
@@ -43,11 +43,11 @@ Die Kartenoption **Use Claude AI** ist eine Subscription-/Lifetime-Funktion. Kos
 
 Der Chat-Lernassistent ist für alle angemeldeten Nutzer verfügbar.
 
-|                       | Free             | Subscription       | Lifetime           |
-| --------------------- | ---------------- | ------------------ | ------------------ |
-| Nachrichten pro Monat | 20               | Unbegrenzt         | Unbegrenzt         |
-| Nachrichtenlänge      | 4 000 Zeichen    | 100 000 Zeichen    | 100 000 Zeichen    |
-| Modell                | Claude Haiku     | Claude Sonnet      | Claude Sonnet      |
+|                       | Free          | Subscription    | Lifetime        |
+| --------------------- | ------------- | --------------- | --------------- |
+| Nachrichten pro Monat | 20            | Unbegrenzt      | Unbegrenzt      |
+| Nachrichtenlänge      | 4 000 Zeichen | 100 000 Zeichen | 100 000 Zeichen |
+| Modell                | Claude Haiku  | Claude Sonnet   | Claude Sonnet   |
 
 Kostenlose Nutzer, die 20 Nachrichten erreichen, sehen das genaue Reset-Datum (der Erste des Folgemonats). Der Nachrichtenzähler setzt sich monatlich zurück.
 
@@ -65,11 +65,11 @@ Deine Datei liegt nur so lange auf der Festplatte, wie es dauert, das Deck zu ba
 
 Diese Wege bauen dein Deck im Hintergrund und speichern die `.apkg` in unserem Bucket, damit du es unter **My Decks** erneut herunterladen kannst und damit [Sync](/documentation/sync/how-it-works) etwas zum Aktualisieren hat.
 
-| Plan               | Wie lange deine Decks im Bucket bleiben                    |
-| ------------------ | --------------------------------------------------------- |
+| Plan               | Wie lange deine Decks im Bucket bleiben                             |
+| ------------------ | ------------------------------------------------------------------- |
 | Kostenloses Konto  | In der nächsten täglichen Bereinigung entfernt (binnen 24 Stunden). |
-| Subscription       | Behalten, solange dein Abo aktiv ist.                     |
-| Lifetime (Patreon) | Unbegrenzt behalten.                                      |
+| Subscription       | Behalten, solange dein Abo aktiv ist.                               |
+| Lifetime (Patreon) | Unbegrenzt behalten.                                                |
 
 Wenn dein Abo ausläuft, werden deine gespeicherten Decks in der nächsten täglichen Bereinigung entfernt — konvertiere erneut, und sie kommen zurück. Du kannst ein Deck auch jederzeit selbst unter **My Decks** löschen.
 
@@ -77,15 +77,15 @@ Wenn dein Abo ausläuft, werden deine gespeicherten Decks in der nächsten tägl
 
 Free deckt die Konvertierungswege ab, die die meisten Leute brauchen: eine Datei hineinziehen, ein Deck zurückbekommen. Die kostenpflichtigen Pläne fügen KI-generierte Karteikarten, größere Uploads, längere Speicherung und Notion-Sync hinzu.
 
-| Fähigkeit                                          | Free               | Subscription  | Lifetime   |
-| -------------------------------------------------- | ------------------ | ------------- | ---------- |
-| Karten pro Monat                                   | 100 (21 anonym)    | Unbegrenzt    | Unbegrenzt |
-| Anonymer Datei-Upload                              | ✓                  | ✓             | ✓          |
-| Kontofunktionen (Verlauf, Favoriten, Vorlagen)     | Anmeldung nötig    | ✓             | ✓          |
-| KI-generierte Karteikarten (Claude)                | —                  | ✓             | ✓          |
-| Chat (Lernassistent)                               | 20 Nachr. / Monat  | Unbegrenzt    | Unbegrenzt |
-| Langzeit-Deckspeicherung                           | 24 h               | aktives Abo   | unbegrenzt |
-| Auto Sync (Notion → Anki)                          | —                  | 30 $/Mo. Add-on | ✓        |
+| Fähigkeit                                      | Free              | Subscription    | Lifetime   |
+| ---------------------------------------------- | ----------------- | --------------- | ---------- |
+| Karten pro Monat                               | 100 (21 anonym)   | Unbegrenzt      | Unbegrenzt |
+| Anonymer Datei-Upload                          | ✓                 | ✓               | ✓          |
+| Kontofunktionen (Verlauf, Favoriten, Vorlagen) | Anmeldung nötig   | ✓               | ✓          |
+| KI-generierte Karteikarten (Claude)            | —                 | ✓               | ✓          |
+| Chat (Lernassistent)                           | 20 Nachr. / Monat | Unbegrenzt      | Unbegrenzt |
+| Langzeit-Deckspeicherung                       | 24 h              | aktives Abo     | unbegrenzt |
+| Auto Sync (Notion → Anki)                      | —                 | 30 $/Mo. Add-on | ✓          |
 
 Siehe die [Preisseite](/pricing) für die aktuelle Planliste. Datenschutzdetails — was wir lesen, was nicht — findest du in der [Datenschutzerklärung](/documentation/reference/privacy).
 

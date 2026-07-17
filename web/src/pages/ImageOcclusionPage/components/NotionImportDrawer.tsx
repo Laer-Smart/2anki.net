@@ -226,7 +226,8 @@ export function NotionImportDrawer({
               ...prev,
               {
                 id,
-                title: title.trim().length > 0 ? title : t('occlusion.untitledPage'),
+                title:
+                  title.trim().length > 0 ? title : t('occlusion.untitledPage'),
                 icon,
                 images: uniqueImages,
                 loading: false,
@@ -484,7 +485,9 @@ export function NotionImportDrawer({
                             >
                               <img
                                 src={item.imageUrl}
-                                alt={item.caption || t('occlusion.notionImageAlt')}
+                                alt={
+                                  item.caption || t('occlusion.notionImageAlt')
+                                }
                                 className={styles.galleryTileImg}
                                 loading="lazy"
                                 decoding="async"

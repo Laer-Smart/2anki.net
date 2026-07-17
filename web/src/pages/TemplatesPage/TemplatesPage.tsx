@@ -119,7 +119,9 @@ function NoteTypeCard({
                   ? t('templates.editAria', { name: starter.name })
                   : t('templates.customizeAria', { name: starter.name })
               }
-              title={ownedByUser ? t('templates.edit') : t('templates.customize')}
+              title={
+                ownedByUser ? t('templates.edit') : t('templates.customize')
+              }
             >
               <PencilIcon width={16} height={16} />
             </Link>
@@ -301,9 +303,7 @@ export function TemplatesPage() {
         });
       } catch (error: unknown) {
         setDownloadError(
-          error instanceof Error
-            ? error.message
-            : t('templates.couldNotDelete')
+          error instanceof Error ? error.message : t('templates.couldNotDelete')
         );
       }
     },

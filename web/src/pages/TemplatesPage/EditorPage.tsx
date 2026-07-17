@@ -193,7 +193,9 @@ function AIGenerateSection({ onGenerated }: Readonly<AIGenerateSectionProps>) {
       onGenerated(result.starter);
     } catch (err: unknown) {
       setError(
-        err instanceof Error ? err.message : t('templates.couldNotGenerateShort')
+        err instanceof Error
+          ? err.message
+          : t('templates.couldNotGenerateShort')
       );
       if (err instanceof AiQuotaExceededError) {
         setQuotaUpgradeUrl(err.upgradeUrl);
@@ -435,9 +437,7 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
       URL.revokeObjectURL(url);
     } catch (error: unknown) {
       setSaveError(
-        error instanceof Error
-          ? error.message
-          : t('templates.couldNotGenerate')
+        error instanceof Error ? error.message : t('templates.couldNotGenerate')
       );
     }
   };
@@ -564,7 +564,9 @@ function EditorBody({ initialStarter, shouldFork }: Readonly<EditorBodyProps>) {
                   setDraft((current) => removeFieldOp(current, index))
                 }
                 disabled={draft.noteType.flds.length <= 1}
-                aria-label={t('templates.removeFieldAria', { name: field.name })}
+                aria-label={t('templates.removeFieldAria', {
+                  name: field.name,
+                })}
               >
                 {t('templates.remove')}
               </button>

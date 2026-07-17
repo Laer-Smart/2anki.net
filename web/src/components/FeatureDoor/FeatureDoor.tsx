@@ -20,11 +20,7 @@ interface FeatureDoorProps {
   question?: string;
 }
 
-export function FeatureDoor({
-  featureKey,
-  title,
-  question,
-}: FeatureDoorProps) {
+export function FeatureDoor({ featureKey, title, question }: FeatureDoorProps) {
   const { t } = useTranslation('marketing');
   const questionText = question ?? t('featureDoor.defaultQuestion');
   const [stage, setStage] = useState<Stage>({ kind: 'prompt' });

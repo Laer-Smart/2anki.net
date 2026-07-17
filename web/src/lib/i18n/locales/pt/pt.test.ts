@@ -54,11 +54,14 @@ function placeholders(value: string): string[] {
 }
 
 describe('Portuguese (pt) locale', () => {
-  it.each(namespaces)('%s has the exact same keys as English', (_name, en, pt) => {
-    const enKeys = Object.keys(flatten(en)).sort();
-    const ptKeys = Object.keys(flatten(pt)).sort();
-    expect(ptKeys).toEqual(enKeys);
-  });
+  it.each(namespaces)(
+    '%s has the exact same keys as English',
+    (_name, en, pt) => {
+      const enKeys = Object.keys(flatten(en)).sort();
+      const ptKeys = Object.keys(flatten(pt)).sort();
+      expect(ptKeys).toEqual(enKeys);
+    }
+  );
 
   it.each(namespaces)(
     '%s preserves every interpolation placeholder',

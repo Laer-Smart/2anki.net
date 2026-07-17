@@ -119,9 +119,7 @@ export default function ImportPage({ setError }: Readonly<ImportPageProps>) {
       <div className={sharedStyles.page}>
         <div className={sharedStyles.pageHeader}>
           <h1 className={sharedStyles.title}>{t('import.title')}</h1>
-          <p className={sharedStyles.subtitle}>
-            {t('import.connectSubtitle')}
-          </p>
+          <p className={sharedStyles.subtitle}>{t('import.connectSubtitle')}</p>
         </div>
         <div className={styles.connectCta}>
           <a href="/notion" className={sharedStyles.btnPrimary}>
