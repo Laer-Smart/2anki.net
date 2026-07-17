@@ -136,3 +136,44 @@
   flex: 1;
   color: var(--color-text-primary);
 }
+
+.endpointList {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+
+.endpointRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.endpointRow:last-child {
+  border-bottom: none;
+}
+
+.endpoint {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+}
+
+.method {
+  font-weight: var(--font-semibold);
+  color: var(--color-text-secondary);
+}
+
+.endpointLabel {
+  color: var(--color-text-tertiary);
+  font-size: var(--text-sm);
+}
+
+.linkRow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}

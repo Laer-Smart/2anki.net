@@ -216,6 +216,60 @@ function KeyManager() {
   );
 }
 
+const RELEVANT_ENDPOINTS = [
+  {
+    method: 'POST',
+    path: '/api/upload/file',
+    label: 'Convert a file into a deck',
+  },
+  { method: 'GET', path: '/api/upload/jobs', label: 'Check conversion status' },
+  {
+    method: 'GET',
+    path: '/api/apkg/:key/meta',
+    label: 'Deck preview — counts and decks',
+  },
+  { method: 'GET', path: '/api/apkg/:key/cards', label: 'Rendered cards' },
+];
+
+const CLI_RELEASES_URL = 'https://github.com/2anki/server/releases/latest';
+
+function ApiGuide() {
+  return (
+    <section className={sharedStyles.sectionCard}>
+      <h2 className={styles.cardTitle}>Using the API</h2>
+      <p className={styles.body}>
+        Send your key as a bearer token:{' '}
+        <code>Authorization: Bearer sk_live_…</code>. These are the endpoints a
+        converter client needs.
+      </p>
+      <ul className={styles.endpointList}>
+        {RELEVANT_ENDPOINTS.map((endpoint) => (
+          <li key={endpoint.path} className={styles.endpointRow}>
+            <code className={styles.endpoint}>
+              <span className={styles.method}>{endpoint.method}</span>{' '}
+              {endpoint.path}
+            </code>
+            <span className={styles.endpointLabel}>{endpoint.label}</span>
+          </li>
+        ))}
+      </ul>
+      <div className={styles.linkRow}>
+        <a className={sharedStyles.btnSecondary} href="/api/docs">
+          Full API docs
+        </a>
+        <a
+          className={sharedStyles.btnSecondary}
+          href={CLI_RELEASES_URL}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Download the CLI
+        </a>
+      </div>
+    </section>
+  );
+}
+
 export default function DevelopersPage() {
   const { data, isLoading } = useUserLocals();
   const hasAccess =
@@ -235,7 +289,10 @@ export default function DevelopersPage() {
       {isLoading ? (
         <p className={styles.body}>Loading</p>
       ) : hasAccess ? (
-        <KeyManager />
+        <>
+          <KeyManager />
+          <ApiGuide />
+        </>
       ) : (
         <LockedState />
       )}

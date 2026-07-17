@@ -44,6 +44,12 @@ describe('DevelopersPage', () => {
       expect(screen.getByText('API keys')).toBeInTheDocument()
     );
     expect(screen.getByText('Create key')).toBeInTheDocument();
+    expect(screen.getByText('Full API docs')).toHaveAttribute(
+      'href',
+      '/api/docs'
+    );
+    expect(screen.getByText('Download the CLI')).toBeInTheDocument();
+    expect(screen.getByText('Convert a file into a deck')).toBeInTheDocument();
   });
 
   test('shows the key manager for a granted developer_access account', async () => {
