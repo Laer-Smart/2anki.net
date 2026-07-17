@@ -1,0 +1,67 @@
+{
+  "heading": "Alle Tarife vergleichen",
+  "srFeature": "Funktion",
+  "included": "Enthalten",
+  "notIncluded": "Nicht enthalten",
+  "cells": {
+    "unlimited": "Unbegrenzt",
+    "photoPerMonth": "5 / Monat",
+    "imagesQty": "3 Bilder",
+    "printsPerMonth": "1 / Monat"
+  },
+  "groups": {
+    "conversionLimits": "Konvertierungslimits",
+    "ai": "KI (Claude)",
+    "studyTools": "Lernwerkzeuge",
+    "syncSupport": "Sync & Support",
+    "billing": "Abrechnung"
+  },
+  "rows": {
+    "cardsPerMonth": "Karten pro Monat",
+    "conversionsAtOnce": "Konvertierungen gleichzeitig",
+    "pdfPagesPerFile": "PDF-Seiten pro Datei",
+    "maxUploadSize": "Maximale Uploadgröße",
+    "ankiNotionNotes": "Anki → Notion Notizen",
+    "aiFlashcards": "KI-Karteikarten aus PDFs und Dokumenten",
+    "photoToDeck": "Foto zu Deck (Claude Vision)",
+    "aiMcq": "KI-Multiple-Choice (MCQ)",
+    "aiCardTemplate": "KI-Kartenvorlagen-Entwurf",
+    "imageOcclusion": "Bildausblendung",
+    "mindMaps": "Mindmaps",
+    "printsToPdf": "PDF-Drucke",
+    "autoSyncNotion": "Auto Sync von Notion",
+    "prioritySupport": "Bevorzugter Support",
+    "noSubscription": "Kein Abo"
+  },
+  "faq": {
+    "heading": "Fragen & Antworten",
+    "q1": {
+      "question": "Wie viele Karten kann ich kostenlos erstellen?",
+      "answer": "100 cards per month im kostenlosen Tarif. Für einmalige Konvertierungen ist kein Konto nötig — Datei ablegen und Deck herunterladen."
+    },
+    "q2": {
+      "question": "Gibt es eine Einmalzahlung?",
+      "answer": "Day Pass ({{dayPrice}}) gibt 24 Stunden unbegrenzten Zugriff. Week Pass ({{weekPrice}}) gibt 7 Tage. Beide sind Einmalzahlungen, kein Abo nötig."
+    },
+    "q3": {
+      "question": "Was ist der Unlimited-Tarif?",
+      "answer": "Unlimited entfernt das 100-Karten-Limit, fügt PDF-Unterstützung hinzu, erlaubt mehrere Konvertierungen gleichzeitig und umfasst unbegrenzte Anki-zu-Notion-Importe. Die Preise stehen auf den Karten oben."
+    },
+    "q4": {
+      "question": "Was ist mit Lifetime?",
+      "answer": "Lifetime beginnt bei $345, einmalig bezahlt. Es umfasst alle Unlimited-Funktionen plus Auto Sync. Bewirb dich auf dieser Seite; der Zugang wird nach Prüfung gewährt."
+    },
+    "q5": {
+      "question": "Kann ich jederzeit kündigen?",
+      "answer": "Kündige mit einem Klick in deinem Konto — keine E-Mail an den Support nötig. Bei einem Jahresplan stoppt die Kündigung die nächste Verlängerung und dein Zugang bleibt für das bereits bezahlte Jahr bestehen; nicht genutzte Zeit wird nicht erstattet. Pässe sind einmalig, es gibt also nichts zu kündigen."
+    },
+    "q6": {
+      "question": "Gibt es eine App?",
+      "answer": "Ja — 2anki ist kostenlos im App Store für iPhone, iPad und Mac, neben der Web-App. Dateien werden auf dem Gerät verarbeitet. Es gelten dieselben Tarife: Day Pass, Week Pass und Unlimited sind als In-App-Käufe verfügbar."
+    },
+    "q7": {
+      "question": "Was passiert mit meinen Decks, wenn ich nicht mehr zahle?",
+      "answer": "Sie bleiben deine. Jedes Deck wird als natives .apkg exportiert, das in jedem Anki-Client offline funktioniert, ohne Bindung."
+    }
+  }
+}

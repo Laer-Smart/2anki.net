@@ -1,0 +1,67 @@
+{
+  "heading": "すべてのプランを比較",
+  "srFeature": "機能",
+  "included": "含まれる",
+  "notIncluded": "含まれない",
+  "cells": {
+    "unlimited": "無制限",
+    "photoPerMonth": "5 / 月",
+    "imagesQty": "3枚",
+    "printsPerMonth": "1 / 月"
+  },
+  "groups": {
+    "conversionLimits": "変換の上限",
+    "ai": "AI（Claude）",
+    "studyTools": "学習ツール",
+    "syncSupport": "同期とサポート",
+    "billing": "請求"
+  },
+  "rows": {
+    "cardsPerMonth": "月あたりのカード数",
+    "conversionsAtOnce": "同時変換数",
+    "pdfPagesPerFile": "ファイルあたりのPDFページ数",
+    "maxUploadSize": "最大アップロードサイズ",
+    "ankiNotionNotes": "Anki → Notion のノート",
+    "aiFlashcards": "PDFや文書からのAIフラッシュカード",
+    "photoToDeck": "写真からデッキ（Claude Vision）",
+    "aiMcq": "AI多肢選択（MCQ）",
+    "aiCardTemplate": "AIカードテンプレートの下書き",
+    "imageOcclusion": "画像オクルージョン",
+    "mindMaps": "マインドマップ",
+    "printsToPdf": "PDFへの印刷",
+    "autoSyncNotion": "Notion からの Auto Sync",
+    "prioritySupport": "優先サポート",
+    "noSubscription": "サブスクリプション不要"
+  },
+  "faq": {
+    "heading": "質問と回答",
+    "q1": {
+      "question": "無料で何枚のカードを作れますか？",
+      "answer": "無料プランでは 100 cards per month です。単発の変換にアカウントは不要です。ファイルをドロップしてデッキをダウンロードできます。"
+    },
+    "q2": {
+      "question": "一回払いのオプションはありますか？",
+      "answer": "Day Pass（{{dayPrice}}）で24時間の無制限アクセス、Week Pass（{{weekPrice}}）で7日間です。どちらも一回払いで、サブスクリプションは不要です。"
+    },
+    "q3": {
+      "question": "Unlimited プランとは何ですか？",
+      "answer": "Unlimited は100枚の上限を解除し、PDF対応を追加し、複数の変換を同時に実行でき、Anki から Notion への無制限インポートを含みます。価格は上のカードに記載されています。"
+    },
+    "q4": {
+      "question": "Lifetime はどうですか？",
+      "answer": "Lifetime は $345 からで、一度の支払いです。Unlimited のすべての機能に加え Auto Sync が含まれます。このページで申請してください。アクセスは審査のうえ付与されます。"
+    },
+    "q5": {
+      "question": "いつでも解約できますか？",
+      "answer": "アカウントからワンクリックで解約できます。サポートへの連絡は不要です。年額プランでは、解約すると次回の更新が停止し、すでに支払った1年間はアクセスが継続します。未使用期間は返金されません。パスは一回払いなので、解約するものはありません。"
+    },
+    "q6": {
+      "question": "アプリはありますか？",
+      "answer": "はい — 2anki は iPhone、iPad、Mac 向けに App Store で無料で、ウェブアプリと併用できます。ファイルは端末上で処理されます。同じプランが適用され、Day Pass、Week Pass、Unlimited はアプリ内購入で利用できます。"
+    },
+    "q7": {
+      "question": "支払いをやめたらデッキはどうなりますか？",
+      "answer": "あなたのものです。各デッキはネイティブの .apkg としてエクスポートされ、どの Anki クライアントでもオフラインで、ロックインなく動作します。"
+    }
+  }
+}

@@ -1,0 +1,67 @@
+{
+  "heading": "Vergelijk alle abonnementen",
+  "srFeature": "Functie",
+  "included": "Inbegrepen",
+  "notIncluded": "Niet inbegrepen",
+  "cells": {
+    "unlimited": "Onbeperkt",
+    "photoPerMonth": "5 / mnd",
+    "imagesQty": "3 afbeeldingen",
+    "printsPerMonth": "1 / mnd"
+  },
+  "groups": {
+    "conversionLimits": "Conversielimieten",
+    "ai": "AI (Claude)",
+    "studyTools": "Studiehulpmiddelen",
+    "syncSupport": "Synchronisatie en ondersteuning",
+    "billing": "Facturering"
+  },
+  "rows": {
+    "cardsPerMonth": "Kaarten per maand",
+    "conversionsAtOnce": "Conversies tegelijk",
+    "pdfPagesPerFile": "PDF-pagina's per bestand",
+    "maxUploadSize": "Maximale uploadgrootte",
+    "ankiNotionNotes": "Anki → Notion notities",
+    "aiFlashcards": "AI-flashcards uit PDF's en documenten",
+    "photoToDeck": "Foto naar deck (Claude Vision)",
+    "aiMcq": "AI-meerkeuze (MCQ)",
+    "aiCardTemplate": "AI-kaartsjablonen opstellen",
+    "imageOcclusion": "Afbeeldingsocclusie",
+    "mindMaps": "Mindmaps",
+    "printsToPdf": "Afdrukken naar PDF",
+    "autoSyncNotion": "Auto Sync vanuit Notion",
+    "prioritySupport": "Prioriteitsondersteuning",
+    "noSubscription": "Geen abonnement"
+  },
+  "faq": {
+    "heading": "Vragen en antwoorden",
+    "q1": {
+      "question": "Hoeveel kaarten kan ik gratis maken?",
+      "answer": "100 cards per month op het gratis abonnement. Geen account nodig voor eenmalige conversies — zet een bestand neer en download een deck."
+    },
+    "q2": {
+      "question": "Is er een eenmalige betaaloptie?",
+      "answer": "Day Pass ({{dayPrice}}) geeft 24 uur onbeperkte toegang. Week Pass ({{weekPrice}}) geeft 7 dagen. Beide zijn eenmalige betalingen, geen abonnement nodig."
+    },
+    "q3": {
+      "question": "Wat is het Unlimited-abonnement?",
+      "answer": "Unlimited verwijdert de limiet van 100 kaarten, voegt PDF-ondersteuning toe, laat je meerdere conversies tegelijk uitvoeren en bevat onbeperkte Anki-naar-Notion-imports. De prijzen staan op de kaarten hierboven."
+    },
+    "q4": {
+      "question": "En Lifetime?",
+      "answer": "Lifetime begint bij $345, eenmalig betaald. Het bevat alle Unlimited-functies plus Auto Sync. Vraag het aan op deze pagina; toegang wordt na beoordeling verleend."
+    },
+    "q5": {
+      "question": "Kan ik altijd opzeggen?",
+      "answer": "Zeg met één klik op vanuit je account — geen e-mail naar support nodig. Bij een jaarabonnement stopt opzeggen de volgende verlenging en blijft je toegang gedurende het reeds betaalde jaar behouden; ongebruikte tijd wordt niet terugbetaald. Passes zijn eenmalig, dus er is niets op te zeggen."
+    },
+    "q6": {
+      "question": "Is er een app?",
+      "answer": "Ja — 2anki is gratis in de App Store voor iPhone, iPad en Mac, naast de webapp. Bestanden worden op het apparaat verwerkt. Dezelfde abonnementen gelden: Day Pass, Week Pass en Unlimited zijn beschikbaar als in-app-aankopen."
+    },
+    "q7": {
+      "question": "Wat gebeurt er met mijn decks als ik stop met betalen?",
+      "answer": "Ze blijven van jou. Elk deck wordt geëxporteerd als een native .apkg die in elke Anki-client offline werkt, zonder lock-in."
+    }
+  }
+}

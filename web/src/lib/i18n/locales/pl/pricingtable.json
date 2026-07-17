@@ -1,0 +1,67 @@
+{
+  "heading": "Porównaj wszystkie plany",
+  "srFeature": "Funkcja",
+  "included": "Dostępne",
+  "notIncluded": "Niedostępne",
+  "cells": {
+    "unlimited": "Bez limitu",
+    "photoPerMonth": "5 / mies.",
+    "imagesQty": "3 obrazy",
+    "printsPerMonth": "1 / mies."
+  },
+  "groups": {
+    "conversionLimits": "Limity konwersji",
+    "ai": "AI (Claude)",
+    "studyTools": "Narzędzia do nauki",
+    "syncSupport": "Synchronizacja i wsparcie",
+    "billing": "Rozliczenia"
+  },
+  "rows": {
+    "cardsPerMonth": "Karty na miesiąc",
+    "conversionsAtOnce": "Jednoczesne konwersje",
+    "pdfPagesPerFile": "Strony PDF na plik",
+    "maxUploadSize": "Maksymalny rozmiar przesyłania",
+    "ankiNotionNotes": "Notatki Anki → Notion",
+    "aiFlashcards": "Fiszki AI z plików PDF i dokumentów",
+    "photoToDeck": "Zdjęcie na talię (Claude Vision)",
+    "aiMcq": "Test wielokrotnego wyboru AI (MCQ)",
+    "aiCardTemplate": "Szkic szablonów kart AI",
+    "imageOcclusion": "Zasłanianie obrazu",
+    "mindMaps": "Mapy myśli",
+    "printsToPdf": "Wydruki do PDF",
+    "autoSyncNotion": "Auto Sync z Notion",
+    "prioritySupport": "Wsparcie priorytetowe",
+    "noSubscription": "Bez subskrypcji"
+  },
+  "faq": {
+    "heading": "Pytania i odpowiedzi",
+    "q1": {
+      "question": "Ile kart mogę stworzyć za darmo?",
+      "answer": "100 cards per month w planie darmowym. Do jednorazowych konwersji konto nie jest wymagane — upuść plik i pobierz talię."
+    },
+    "q2": {
+      "question": "Czy jest opcja jednorazowej płatności?",
+      "answer": "Day Pass ({{dayPrice}}) daje 24 godziny nieograniczonego dostępu. Week Pass ({{weekPrice}}) daje 7 dni. Oba to płatności jednorazowe, bez subskrypcji."
+    },
+    "q3": {
+      "question": "Czym jest plan Unlimited?",
+      "answer": "Unlimited usuwa limit 100 kart, dodaje obsługę PDF, pozwala uruchamiać wiele konwersji naraz i obejmuje nieograniczone importy z Anki do Notion. Ceny znajdziesz na kartach powyżej."
+    },
+    "q4": {
+      "question": "A co z Lifetime?",
+      "answer": "Lifetime zaczyna się od $345, płatne raz. Obejmuje wszystkie funkcje Unlimited oraz Auto Sync. Złóż wniosek na tej stronie; dostęp przyznawany jest po weryfikacji."
+    },
+    "q5": {
+      "question": "Czy mogę anulować w dowolnym momencie?",
+      "answer": "Anuluj jednym kliknięciem z poziomu konta — bez pisania do wsparcia. W planie rocznym anulowanie zatrzymuje następne odnowienie, a dostęp pozostaje przez opłacony już rok; niewykorzystany czas nie podlega zwrotowi. Przepustki są jednorazowe, więc nie ma czego anulować."
+    },
+    "q6": {
+      "question": "Czy jest aplikacja?",
+      "answer": "Tak — 2anki jest darmowe w App Store na iPhone'a, iPada i Maca, obok aplikacji webowej. Pliki są przetwarzane na urządzeniu. Obowiązują te same plany: Day Pass, Week Pass i Unlimited są dostępne jako zakupy w aplikacji."
+    },
+    "q7": {
+      "question": "Co stanie się z moimi taliami, jeśli przestanę płacić?",
+      "answer": "Pozostają twoje. Każda talia jest eksportowana jako natywny plik .apkg, który działa w dowolnym kliencie Anki, offline i bez blokad."
+    }
+  }
+}

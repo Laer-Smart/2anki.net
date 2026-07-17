@@ -1,4 +1,5 @@
 import { Fragment } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import styles from './ComparisonTable.module.css';
 
@@ -15,86 +16,6 @@ interface Group {
   name: string;
   rows: Row[];
 }
-
-const GROUPS: Group[] = [
-  {
-    name: 'Conversion limits',
-    rows: [
-      {
-        label: 'Cards per month',
-        values: ['100', 'Unlimited', 'Unlimited', 'Unlimited'],
-      },
-      {
-        label: 'Conversions at once',
-        values: ['1', 'Unlimited', 'Unlimited', 'Unlimited'],
-      },
-      {
-        label: 'PDF pages per file',
-        values: ['100', 'Unlimited', 'Unlimited', 'Unlimited'],
-      },
-      {
-        label: 'Max upload size',
-        values: ['100 MB', '10 GB', '10 GB', '10 GB'],
-      },
-      {
-        label: 'Anki → Notion notes',
-        values: ['1,000', '5,000', '5,000', '5,000'],
-      },
-    ],
-  },
-  {
-    name: 'AI (Claude)',
-    rows: [
-      {
-        label: 'AI flashcards from PDFs and docs',
-        values: [false, true, true, true],
-      },
-      {
-        label: 'Photo to deck (Claude Vision)',
-        values: ['5 / mo', 'Unlimited', 'Unlimited', 'Unlimited'],
-      },
-      {
-        label: 'AI multiple choice (MCQ)',
-        values: [false, true, true, true],
-      },
-      {
-        label: 'AI card-template drafting',
-        values: ['3', 'Unlimited', 'Unlimited', 'Unlimited'],
-      },
-    ],
-  },
-  {
-    name: 'Study tools',
-    rows: [
-      {
-        label: 'Image occlusion',
-        values: ['3 images', 'Unlimited', 'Unlimited', 'Unlimited'],
-      },
-      {
-        label: 'Mind maps',
-        values: ['3', 'Unlimited', 'Unlimited', 'Unlimited'],
-      },
-      {
-        label: 'Prints to PDF',
-        values: ['1 / mo', 'Unlimited', 'Unlimited', 'Unlimited'],
-      },
-    ],
-  },
-  {
-    name: 'Sync & support',
-    rows: [
-      {
-        label: 'Auto Sync from Notion',
-        values: [false, false, false, true],
-      },
-      { label: 'Priority support', values: [false, false, true, true] },
-    ],
-  },
-  {
-    name: 'Billing',
-    rows: [{ label: 'No subscription', values: [true, true, false, true] }],
-  },
-];
 
 function CheckIcon() {
   return (
@@ -115,28 +36,6 @@ function CheckIcon() {
   );
 }
 
-function renderCell(value: Cell) {
-  if (value === true) {
-    return (
-      <>
-        <CheckIcon />
-        <span className={styles.srOnly}>Included</span>
-      </>
-    );
-  }
-  if (value === false) {
-    return (
-      <>
-        <span className={styles.dash} aria-hidden="true">
-          –
-        </span>
-        <span className={styles.srOnly}>Not included</span>
-      </>
-    );
-  }
-  return value;
-}
-
 interface ComparisonTableProps {
   unlimitedMonthlyPrice: string;
 }
@@ -144,6 +43,120 @@ interface ComparisonTableProps {
 export function ComparisonTable({
   unlimitedMonthlyPrice,
 }: Readonly<ComparisonTableProps>) {
+  const { t } = useTranslation('pricingtable');
+
+  const unlimited = t('cells.unlimited');
+
+  const groups: Group[] = [
+    {
+      name: t('groups.conversionLimits'),
+      rows: [
+        {
+          label: t('rows.cardsPerMonth'),
+          values: ['100', unlimited, unlimited, unlimited],
+        },
+        {
+          label: t('rows.conversionsAtOnce'),
+          values: ['1', unlimited, unlimited, unlimited],
+        },
+        {
+          label: t('rows.pdfPagesPerFile'),
+          values: ['100', unlimited, unlimited, unlimited],
+        },
+        {
+          label: t('rows.maxUploadSize'),
+          values: ['100 MB', '10 GB', '10 GB', '10 GB'],
+        },
+        {
+          label: t('rows.ankiNotionNotes'),
+          values: ['1,000', '5,000', '5,000', '5,000'],
+        },
+      ],
+    },
+    {
+      name: t('groups.ai'),
+      rows: [
+        {
+          label: t('rows.aiFlashcards'),
+          values: [false, true, true, true],
+        },
+        {
+          label: t('rows.photoToDeck'),
+          values: [t('cells.photoPerMonth'), unlimited, unlimited, unlimited],
+        },
+        {
+          label: t('rows.aiMcq'),
+          values: [false, true, true, true],
+        },
+        {
+          label: t('rows.aiCardTemplate'),
+          values: ['3', unlimited, unlimited, unlimited],
+        },
+      ],
+    },
+    {
+      name: t('groups.studyTools'),
+      rows: [
+        {
+          label: t('rows.imageOcclusion'),
+          values: [t('cells.imagesQty'), unlimited, unlimited, unlimited],
+        },
+        {
+          label: t('rows.mindMaps'),
+          values: ['3', unlimited, unlimited, unlimited],
+        },
+        {
+          label: t('rows.printsToPdf'),
+          values: [t('cells.printsPerMonth'), unlimited, unlimited, unlimited],
+        },
+      ],
+    },
+    {
+      name: t('groups.syncSupport'),
+      rows: [
+        {
+          label: t('rows.autoSyncNotion'),
+          values: [false, false, false, true],
+        },
+        {
+          label: t('rows.prioritySupport'),
+          values: [false, false, true, true],
+        },
+      ],
+    },
+    {
+      name: t('groups.billing'),
+      rows: [
+        {
+          label: t('rows.noSubscription'),
+          values: [true, true, false, true],
+        },
+      ],
+    },
+  ];
+
+  const renderCell = (value: Cell) => {
+    if (value === true) {
+      return (
+        <>
+          <CheckIcon />
+          <span className={styles.srOnly}>{t('included')}</span>
+        </>
+      );
+    }
+    if (value === false) {
+      return (
+        <>
+          <span className={styles.dash} aria-hidden="true">
+            –
+          </span>
+          <span className={styles.srOnly}>{t('notIncluded')}</span>
+        </>
+      );
+    }
+    return value;
+  };
+
   const planPrices = [
     '$0',
     '$4 / $9',
@@ -154,14 +167,14 @@ export function ComparisonTable({
   return (
     <section className={styles.section} aria-labelledby="comparison-heading">
       <h2 id="comparison-heading" className={styles.heading}>
-        Compare every plan
+        {t('heading')}
       </h2>
       <div className={styles.scroll}>
         <table className={styles.table}>
           <thead>
             <tr>
               <th scope="col" className={styles.cornerCell}>
-                <span className={styles.srOnly}>Feature</span>
+                <span className={styles.srOnly}>{t('srFeature')}</span>
               </th>
               {PLANS.map((plan, i) => (
                 <th key={plan} scope="col" className={styles.planCell}>
@@ -172,7 +185,7 @@ export function ComparisonTable({
             </tr>
           </thead>
           <tbody>
-            {GROUPS.map((group) => (
+            {groups.map((group) => (
               <Fragment key={group.name}>
                 <tr className={styles.groupRow}>
                   <th
