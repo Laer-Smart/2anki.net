@@ -1,4 +1,3 @@
-import { post, del, get } from './api';
 import { get2ankiApi } from './get2ankiApi';
 
 export interface ApiKeySummary {
@@ -17,10 +16,15 @@ function base(): string {
   return `${get2ankiApi().baseURL}developer`;
 }
 
-async function unwrap(response: Response | null): Promise<unknown> {
-  if (response == null) {
-    throw new Error('Request was redirected');
-  }
+async function request(path: string, init: RequestInit = {}): Promise<unknown> {
+  const response = await fetch(`${base()}${path}`, {
+    credentials: 'include',
+    headers:
+      init.body != null
+        ? { 'Content-Type': 'application/json', Accept: 'application/json' }
+        : { Accept: 'application/json' },
+    ...init,
+  });
   const text = await response.text();
   if (!response.ok) {
     let message = `${response.status} ${response.statusText}`;
@@ -28,7 +32,7 @@ async function unwrap(response: Response | null): Promise<unknown> {
       const body = JSON.parse(text) as { message?: string };
       if (body.message != null) message = body.message;
     } catch {
-      // non-JSON error
+      // non-JSON error body
     }
     const error = new Error(message) as Error & { status?: number };
     error.status = response.status;
@@ -38,22 +42,24 @@ async function unwrap(response: Response | null): Promise<unknown> {
 }
 
 export async function listApiKeys(): Promise<ApiKeySummary[]> {
-  const body = (await unwrap(await get(`${base()}/keys`))) as {
-    keys?: ApiKeySummary[];
-  };
+  const body = (await request('/keys')) as { keys?: ApiKeySummary[] };
   return body.keys ?? [];
 }
 
 export async function createApiKey(name: string): Promise<CreatedApiKey> {
-  return (await unwrap(
-    await post(`${base()}/keys`, { name })
-  )) as CreatedApiKey;
+  return (await request('/keys', {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  })) as CreatedApiKey;
 }
 
 export async function revokeApiKey(id: number): Promise<void> {
-  await unwrap(await del(`${base()}/keys/${id}`));
+  await request(`/keys/${id}`, { method: 'DELETE' });
 }
 
 export async function requestDeveloperAccess(): Promise<void> {
-  await unwrap(await post(`${base()}/request-access`, {}));
+  await request('/request-access', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
 }
