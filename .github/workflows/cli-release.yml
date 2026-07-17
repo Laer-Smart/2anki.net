@@ -55,18 +55,24 @@ jobs:
 
   publish-npm:
     # Publishes @2anki/cli so `npx @2anki/cli` works with no Gatekeeper.
-    # Needs an NPM_TOKEN secret (npm Automation token with @2anki publish access).
+    # Uses npm Trusted Publishing (OIDC) — no NPM_TOKEN secret. Configure the
+    # trusted publisher for @2anki/cli on npmjs.com pointing at this repo +
+    # workflow before the first tagged release.
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22.20.0'
           registry-url: 'https://registry.npmjs.org'
+      # Trusted Publishing needs a recent npm CLI (>= 11.5.1).
+      - name: Update npm
+        run: npm install -g npm@latest
       - name: Assemble the npm package
         run: node scripts/build-cli-npm.mjs "${{ github.ref_name }}"
       - name: Publish to npm
         working-directory: npm-dist
         run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
