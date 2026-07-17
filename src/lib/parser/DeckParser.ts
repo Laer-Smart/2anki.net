@@ -1256,7 +1256,7 @@ export class DeckParser {
 
   private extractPageIcon(dom: cheerio.CheerioAPI) {
     const pageIcon = dom('.page-header-icon > .icon');
-    return pageIcon.html();
+    return pageIcon.attr('data-emoji') || pageIcon.html();
   }
 
   private extractToggleLists(dom: cheerio.CheerioAPI): Element[] {
