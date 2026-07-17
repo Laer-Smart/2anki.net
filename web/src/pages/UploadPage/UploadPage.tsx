@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Helmet } from 'react-helmet-async';
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { isPayingUser } from '../../components/NavigationBar/helpers/getPlanLabel';
@@ -49,6 +50,7 @@ function isFreshSignup(
 }
 
 export function UploadPage({ setErrorMessage }: Readonly<Props>) {
+  const { t } = useTranslation();
   const query = useQuery();
   const view = query.get('view');
   const navigate = useNavigate();
@@ -143,12 +145,8 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         <title>Upload — 2anki</title>
       </Helmet>
       <header className={styles.pageHeader}>
-        <h1 className={styles.title}>Convert your notes</h1>
-        <p className={styles.subtitle}>
-          Drop a file and get a deck you don&apos;t have to fix — proper cloze,
-          atomic cards, the right note types. Notion, PDF, Markdown, HTML, Word,
-          and CSV too.
-        </p>
+        <h1 className={styles.title}>{t('upload.page.title')}</h1>
+        <p className={styles.subtitle}>{t('upload.page.subtitle')}</p>
       </header>
       <OnboardingTour
         createdAt={userLocals?.user?.created_at ?? null}
@@ -156,9 +154,9 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       />
       {reattachFilename != null && (
         <div className={pageStyles.reattachBanner} role="status">
-          <span>Re-attach </span>
+          <span>{t('upload.page.reattachPrefix')} </span>
           <strong>{reattachFilename}</strong>
-          <span> to convert</span>
+          <span> {t('upload.page.reattachSuffix')}</span>
         </div>
       )}
       {returnedFromPass && <PassLadderCard />}
@@ -169,15 +167,17 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
               type="button"
               className={styles.aiToggle}
               aria-pressed="true"
-              aria-label="Turn AI off"
+              aria-label={t('upload.page.turnAiOff')}
               onClick={toggleAi}
             >
-              <span className={styles.badgeSuccess}>AI is on</span>
+              <span className={styles.badgeSuccess}>
+                {t('upload.page.aiOn')}
+              </span>
             </button>
             <span className={styles.aiOffBadgeBody}>
-              <span> Cards are written by Claude. </span>
+              <span> {t('upload.page.aiOnBody')} </span>
               <Link to="/card-options?returnTo=/upload#pdf-ai">
-                Manage in Settings
+                {t('upload.page.manageInSettings')}
               </Link>
               <span>.</span>
             </span>
@@ -189,27 +189,25 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
               type="button"
               className={styles.aiToggle}
               aria-pressed="false"
-              aria-label="Turn AI on"
+              aria-label={t('upload.page.turnAiOn')}
               onClick={toggleAi}
             >
-              <span className={styles.badgeWarning}>AI is off</span>
+              <span className={styles.badgeWarning}>
+                {t('upload.page.aiOff')}
+              </span>
             </button>
             <span className={styles.aiOffBadgeBody}>
-              <span>
-                {' '}
-                You&apos;ll get rule-based cards from your file&apos;s
-                structure.{' '}
-              </span>
+              <span> {t('upload.page.aiOffBody')} </span>
               <button
                 type="button"
                 className={styles.aiInlineLink}
                 onClick={toggleAi}
               >
-                Turn on Claude cards
+                {t('upload.page.turnOnClaudeCards')}
               </button>
               <span>. </span>
               <Link to="/card-options?returnTo=/upload">
-                Manage in Settings
+                {t('upload.page.manageInSettings')}
               </Link>
               <span>.</span>
             </span>
@@ -217,22 +215,20 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         )}
         {aiBadgeState === 'free' && (
           <>
-            <span className={styles.badgeWarning}>AI is off</span>
+            <span className={styles.badgeWarning}>
+              {t('upload.page.aiOff')}
+            </span>
             <span className={styles.aiOffBadgeBody}>
-              <span>
-                {' '}
-                You&apos;ll get rule-based cards from your file&apos;s
-                structure.{' '}
-              </span>
+              <span> {t('upload.page.aiOffBody')} </span>
               <Link
                 to="/pricing"
                 onClick={() => track('upload_ai_free_badge_clicked')}
               >
-                Upgrade to write cards with Claude
+                {t('upload.page.upgradeClaude')}
               </Link>
               <span>. </span>
               <Link to="/card-options?returnTo=/upload">
-                Manage in Settings
+                {t('upload.page.manageInSettings')}
               </Link>
               <span>.</span>
             </span>
@@ -240,12 +236,12 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
         )}
         {aiBadgeState === 'anon' && (
           <span className={styles.aiOffBadgeBody}>
-            <span>Claude can write your cards — </span>
+            <span>{t('upload.page.aiAnonIntro')} </span>
             <Link
               to="/login?redirect=/card-options"
               onClick={() => track('upload_ai_anon_badge_clicked')}
             >
-              sign in to turn on AI
+              {t('upload.page.signInToTurnOn')}
             </Link>
             <span>.</span>
           </span>
@@ -259,24 +255,24 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
       {isSignedIn && <RecentSources />}
       <ExploreCard />
       <section className={pageStyles.howItWorks}>
-        <h2 className={pageStyles.howItWorksHeading}>How it works</h2>
-        <p className={pageStyles.footnote}>Files are deleted after 2 hours.</p>
+        <h2 className={pageStyles.howItWorksHeading}>
+          {t('upload.page.howItWorks')}
+        </h2>
+        <p className={pageStyles.footnote}>{t('upload.page.filesDeleted')}</p>
         <div className={pageStyles.steps}>
           <div className={pageStyles.step}>
             <span className={pageStyles.stepNumber}>1</span>
             <div>
-              <p className={pageStyles.stepTitle}>Drop or choose a file</p>
-              <p className={pageStyles.stepBody}>
-                PDF, Word, Notion export, Markdown, HTML, Excel, CSV, or
-                PowerPoint. In Word docs, headings become card fronts; each
-                bullet under a heading becomes its own card, and other text
-                becomes the back. Images land on the back, and strikethrough
-                text on a card becomes an Anki tag.
+              <p className={pageStyles.stepTitle}>
+                {t('upload.page.step1Title')}
               </p>
               <p className={pageStyles.stepBody}>
-                Coming from Notion?{' '}
+                {t('upload.page.step1Body')}
+              </p>
+              <p className={pageStyles.stepBody}>
+                {t('upload.page.comingFromNotion')}{' '}
                 <a href="/documentation/start-here/upload-a-file">
-                  How to export your pages.
+                  {t('upload.page.howToExport')}
                 </a>
               </p>
             </div>
@@ -284,28 +280,35 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
           <div className={pageStyles.step}>
             <span className={pageStyles.stepNumber}>2</span>
             <div>
-              <p className={pageStyles.stepTitle}>Your deck is built</p>
+              <p className={pageStyles.stepTitle}>
+                {t('upload.page.step2Title')}
+              </p>
               <p className={pageStyles.stepBody}>
-                Images, code blocks, cloze, and formatting carry over. Usually a
-                few seconds.
+                {t('upload.page.step2Body')}
               </p>
             </div>
           </div>
           <div className={pageStyles.step}>
             <span className={pageStyles.stepNumber}>3</span>
             <div>
-              <p className={pageStyles.stepTitle}>Open in Anki</p>
+              <p className={pageStyles.stepTitle}>
+                {t('upload.page.step3Title')}
+              </p>
               <p className={pageStyles.stepBody}>
-                Your .apkg downloads automatically. Import it into Anki or
-                AnkiDroid to start studying.
+                {t('upload.page.step3Body')}
               </p>
             </div>
           </div>
         </div>
       </section>
-      <section className={pageStyles.contactNudge} aria-label="Contact us">
+      <section
+        className={pageStyles.contactNudge}
+        aria-label={t('upload.page.contactAria')}
+      >
         <p>
-          Something not working? <Link to="/contact">Tell us</Link> or email{' '}
+          {t('upload.page.contactPrefix')}{' '}
+          <Link to="/contact">{t('upload.page.tellUs')}</Link>{' '}
+          {t('upload.page.orEmail')}{' '}
           <a href="mailto:support@2anki.net">support@2anki.net</a>.
         </p>
       </section>

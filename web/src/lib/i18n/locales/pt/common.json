@@ -147,7 +147,70 @@
       "driveHint": "Docs funcionam melhor como uma lista com marcadores — o marcador de cima pergunta, o marcador indentado responde.",
       "chooseFromDrive": "Escolher do Google Drive",
       "openingDrive": "Abrindo o Google Drive"
-    }
+    },
+    "page": {
+      "title": "Converta suas anotações",
+      "subtitle": "Solte um arquivo e receba um baralho que você não precisa consertar — cloze correto, cartões atômicos, os tipos de nota certos. Notion, PDF, Markdown, HTML, Word e CSV também.",
+      "reattachPrefix": "Anexe novamente",
+      "reattachSuffix": "para converter",
+      "aiOn": "A IA está ativada",
+      "aiOnBody": "Os cartões são escritos pelo Claude.",
+      "aiOff": "A IA está desativada",
+      "aiOffBody": "Você receberá cartões baseados em regras a partir da estrutura do seu arquivo.",
+      "turnOnClaudeCards": "Ativar cartões do Claude",
+      "upgradeClaude": "Faça upgrade para escrever cartões com o Claude",
+      "aiAnonIntro": "O Claude pode escrever seus cartões —",
+      "signInToTurnOn": "entre para ativar a IA",
+      "manageInSettings": "Gerenciar nas Configurações",
+      "turnAiOff": "Desativar a IA",
+      "turnAiOn": "Ativar a IA",
+      "contactAria": "Fale conosco",
+      "howItWorks": "Como funciona",
+      "filesDeleted": "Os arquivos são excluídos após 2 horas.",
+      "step1Title": "Solte ou escolha um arquivo",
+      "step1Body": "PDF, Word, exportação do Notion, Markdown, HTML, Excel, CSV ou PowerPoint. Em documentos do Word, os títulos viram a frente dos cartões; cada item sob um título vira seu próprio cartão, e o restante do texto vai para o verso. As imagens ficam no verso, e o texto riscado em um cartão vira uma tag do Anki.",
+      "comingFromNotion": "Vindo do Notion?",
+      "howToExport": "Como exportar suas páginas.",
+      "step2Title": "Seu baralho é criado",
+      "step2Body": "Imagens, blocos de código, cloze e formatação são mantidos. Geralmente alguns segundos.",
+      "step3Title": "Abra no Anki",
+      "step3Body": "Seu .apkg é baixado automaticamente. Importe-o no Anki ou AnkiDroid para começar a estudar.",
+      "contactPrefix": "Algo não está funcionando?",
+      "tellUs": "Conte para nós",
+      "orEmail": "ou envie um e-mail para"
+    },
+    "explore": {
+      "heading": "Crie baralhos melhores",
+      "sub": "Três configurações que vale a pena conhecer.",
+      "mcqBody": "Ative o MCQ e sua próxima conversão incluirá cartões de múltipla escolha além dos padrão.",
+      "mcqCta": "Ativar MCQ",
+      "photoBody": "Fotografe uma página de livro, um slide de aula ou anotações à mão — o 2anki cria os cartões a partir da imagem.",
+      "freePhotoHint": "Plano gratuito: 5 fotos por mês",
+      "deckDefaults": "Padrões do baralho",
+      "deckDefaultsBody": "Defina o nome do baralho, o estilo do cartão (cloze ou pergunta e resposta), o tamanho do cartão (Curto, Médio, Detalhado) e as opções de IA antes de converter."
+    },
+    "recent": {
+      "title": "Recentes",
+      "convertAgain": "Converter de novo"
+    },
+    "onboarding": {
+      "aria": "Tour rápido",
+      "step1Title": "Solte um arquivo ou escolha uma página do Notion.",
+      "step1Hint": "Compatíveis: .zip (exportação do Notion), .html, .md, .pdf, .docx, .xlsx, .pptx, .csv",
+      "step2Title": "Escolha as configurações do baralho.",
+      "step2Hint": "Renomeie o baralho, escolha um modelo de cartão e defina as opções de conversão em Opções de cartão.",
+      "step3Title": "Converta seu arquivo em um baralho.",
+      "step3Hint": "Pressione Converter — o 2anki cria seu .apkg em segundos.",
+      "step4Title": "Baixe o baralho ou envie-o para o AnkiWeb.",
+      "step4Hint": "Seu baralho é baixado automaticamente. Importe-o no Anki ou sincronize via AnkiWeb.",
+      "back": "Voltar",
+      "next": "Próximo",
+      "skip": "Pular"
+    },
+    "chips": {
+      "groupAria": "Outras fontes de upload"
+    },
+    "overSplit": "Muitas frentes de cartão têm apenas uma ou duas palavras, o que geralmente significa que o arquivo foi dividido no meio de uma frase. Revise o baralho antes de estudar ou envie o arquivo original do Word ou Notion para cartões mais limpos."
   },
   "auth": {
     "common": {

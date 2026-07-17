@@ -145,7 +145,70 @@
       "driveHint": "ドキュメントは箇条書きのアウトラインが最適です — 上位の箇条書きが質問、字下げした箇条書きが回答になります。",
       "chooseFromDrive": "Google ドライブから選ぶ",
       "openingDrive": "Google ドライブを開いています"
-    }
+    },
+    "page": {
+      "title": "ノートを変換",
+      "subtitle": "ファイルをドロップすれば、直す必要のないデッキが手に入ります — 正しいクローズ、要点をしぼったカード、適切なノートタイプ。Notion、PDF、Markdown、HTML、Word、CSV にも対応。",
+      "reattachPrefix": "もう一度添付",
+      "reattachSuffix": "を変換",
+      "aiOn": "AI はオン",
+      "aiOnBody": "カードは Claude が作成します。",
+      "aiOff": "AI はオフ",
+      "aiOffBody": "ファイルの構造からルールベースのカードが作成されます。",
+      "turnOnClaudeCards": "Claude カードをオンにする",
+      "upgradeClaude": "アップグレードして Claude でカードを作成",
+      "aiAnonIntro": "Claude がカードを作成できます —",
+      "signInToTurnOn": "サインインして AI をオンにする",
+      "manageInSettings": "設定で管理",
+      "turnAiOff": "AI をオフにする",
+      "turnAiOn": "AI をオンにする",
+      "contactAria": "お問い合わせ",
+      "howItWorks": "使い方",
+      "filesDeleted": "ファイルは 2 時間後に削除されます。",
+      "step1Title": "ファイルをドロップまたは選択",
+      "step1Body": "PDF、Word、Notion のエクスポート、Markdown、HTML、Excel、CSV、PowerPoint に対応。Word 文書では見出しがカードの表になり、見出しの下の各箇条書きがそれぞれのカードになり、その他のテキストが裏になります。画像は裏に配置され、カード上の取り消し線付きテキストは Anki のタグになります。",
+      "comingFromNotion": "Notion から始めますか？",
+      "howToExport": "ページのエクスポート方法。",
+      "step2Title": "デッキが作成されます",
+      "step2Body": "画像、コードブロック、クローズ、書式はそのまま引き継がれます。通常は数秒です。",
+      "step3Title": "Anki で開く",
+      "step3Body": ".apkg は自動的にダウンロードされます。Anki または AnkiDroid にインポートして学習を始めましょう。",
+      "contactPrefix": "うまくいきませんか？",
+      "tellUs": "お知らせください",
+      "orEmail": "またはメールで"
+    },
+    "explore": {
+      "heading": "もっと良いデッキを作る",
+      "sub": "知っておくと便利な 3 つの設定。",
+      "mcqBody": "MCQ をオンにすると、次の変換で標準カードに加えて多肢選択カードが含まれます。",
+      "mcqCta": "MCQ をオンにする",
+      "photoBody": "教科書のページ、講義スライド、手書きのメモを撮影すると、2anki が画像からカードを作成します。",
+      "freePhotoHint": "無料プラン：月 5 枚の写真",
+      "deckDefaults": "デッキの初期設定",
+      "deckDefaultsBody": "変換する前に、デッキ名、カードスタイル（クローズまたは問答形式）、カードサイズ（短い・普通・詳しい）、AI オプションを設定できます。"
+    },
+    "recent": {
+      "title": "最近",
+      "convertAgain": "もう一度変換"
+    },
+    "onboarding": {
+      "aria": "クイックツアー",
+      "step1Title": "ファイルをドロップするか、Notion ページを選びましょう。",
+      "step1Hint": "対応形式：.zip（Notion のエクスポート）、.html、.md、.pdf、.docx、.xlsx、.pptx、.csv",
+      "step2Title": "デッキの設定を選びましょう。",
+      "step2Hint": "デッキ名を変更し、カードテンプレートを選び、「カードオプション」で変換オプションを設定します。",
+      "step3Title": "ファイルをデッキに変換します。",
+      "step3Hint": "「変換」を押すと、2anki が数秒で .apkg を作成します。",
+      "step4Title": "デッキをダウンロードするか、AnkiWeb に送信します。",
+      "step4Hint": "デッキは自動的にダウンロードされます。Anki にインポートするか、AnkiWeb で同期しましょう。",
+      "back": "戻る",
+      "next": "次へ",
+      "skip": "スキップ"
+    },
+    "chips": {
+      "groupAria": "その他のアップロード元"
+    },
+    "overSplit": "カードの表が 1〜2 語だけのものが多い場合、たいていファイルが文の途中で分割されています。学習の前にデッキを見直すか、元の Word または Notion ファイルをアップロードすると、よりきれいなカードになります。"
   },
   "auth": {
     "common": {

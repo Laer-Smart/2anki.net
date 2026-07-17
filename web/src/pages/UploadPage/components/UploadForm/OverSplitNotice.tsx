@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { track } from '../../../../lib/analytics/track';
 
 interface OverSplitNoticeProps {
@@ -6,6 +7,7 @@ interface OverSplitNoticeProps {
 }
 
 export function OverSplitNotice({ cardCount }: Readonly<OverSplitNoticeProps>) {
+  const { t } = useTranslation();
   useEffect(() => {
     track('conversion_pathology_shown', {
       signal: 'over_split',
@@ -13,11 +15,5 @@ export function OverSplitNotice({ cardCount }: Readonly<OverSplitNoticeProps>) {
     });
   }, [cardCount]);
 
-  return (
-    <p>
-      Many card fronts are just one or two words, which usually means the file
-      split mid-sentence. Look over the deck before you study, or upload the
-      original Word or Notion file for cleaner cards.
-    </p>
-  );
+  return <p>{t('upload.overSplit')}</p>;
 }
