@@ -8,6 +8,7 @@ import Mindmaps from '../../data_layer/public/Mindmaps';
 import { UsersId } from '../../data_layer/public/Users';
 
 export const FREE_MAP_LIMIT = 3;
+export const SUBSCRIBER_MAP_LIMIT = 25;
 
 export class MindmapLimitError extends Error {
   constructor(public readonly limit: number) {
@@ -16,12 +17,21 @@ export class MindmapLimitError extends Error {
   }
 }
 
+export function resolveMapLimit(
+  hasUnlimited: boolean,
+  isPaying: boolean
+): number | null {
+  if (hasUnlimited) return null;
+  return isPaying ? SUBSCRIBER_MAP_LIMIT : FREE_MAP_LIMIT;
+}
+
 interface CreateInput {
   userId: UsersId;
   title: string;
   user: AnkifyAccessUser;
   subscriptions: AnkifyAccessSubscription[];
   autoSyncProductId?: string;
+  isPaying: boolean;
 }
 
 export class CreateMindmapUseCase {
@@ -34,13 +44,19 @@ export class CreateMindmapUseCase {
       user,
       subscriptions,
       autoSyncProductId = '',
+      isPaying,
     } = input;
-    const isUnlimited = hasAnkifyAccess(user, subscriptions, autoSyncProductId);
+    const hasUnlimited = hasAnkifyAccess(
+      user,
+      subscriptions,
+      autoSyncProductId
+    );
+    const limit = resolveMapLimit(hasUnlimited, isPaying);
 
-    if (!isUnlimited) {
+    if (limit != null) {
       const count = await this.repo.countByUserId(userId);
-      if (count >= FREE_MAP_LIMIT) {
-        throw new MindmapLimitError(FREE_MAP_LIMIT);
+      if (count >= limit) {
+        throw new MindmapLimitError(limit);
       }
     }
 

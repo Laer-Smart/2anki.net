@@ -5,17 +5,23 @@ import sharedStyles from '../../styles/shared.module.css';
 
 interface MindmapLimitModalProps {
   onClose: () => void;
+  limit: number;
 }
 
 export function MindmapLimitModal({
   onClose,
+  limit,
 }: Readonly<MindmapLimitModalProps>) {
   const { t } = useTranslation('tools');
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className={styles.heading}>{t('mindmaps.limitHeading')}</h1>
-        <p className={styles.subheading}>{t('mindmaps.limitSubheading')}</p>
+        <h1 className={styles.heading}>
+          {t('mindmaps.limitHeading', { limit })}
+        </h1>
+        <p className={styles.subheading}>
+          {t('mindmaps.limitSubheading', { limit })}
+        </p>
       </div>
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
         <Link

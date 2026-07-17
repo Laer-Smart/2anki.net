@@ -25,6 +25,7 @@ import {
   AnkifyAccessUser,
   AnkifyAccessSubscription,
 } from '../lib/ankify/access';
+import { isPaying } from '../lib/isPaying';
 import SubscriptionService from '../services/SubscriptionService';
 
 export class MindmapController {
@@ -43,6 +44,7 @@ export class MindmapController {
     user: AnkifyAccessUser;
     subscriptions: AnkifyAccessSubscription[];
     autoSyncProductId: string;
+    isPaying: boolean;
   }> {
     const email = res.locals.email as string | undefined;
     const subscriptions = email
@@ -55,6 +57,7 @@ export class MindmapController {
       },
       subscriptions,
       autoSyncProductId: process.env.AUTO_SYNC_PRODUCT_ID ?? '',
+      isPaying: isPaying(res.locals),
     };
   }
 
@@ -65,7 +68,7 @@ export class MindmapController {
   }
 
   async list(_req: Request, res: Response) {
-    const { userId, user, subscriptions, autoSyncProductId } =
+    const { userId, user, subscriptions, autoSyncProductId, isPaying } =
       await this.resolveUserContext(res);
 
     const result = await this.listUseCase.execute({
@@ -73,12 +76,13 @@ export class MindmapController {
       user,
       subscriptions,
       autoSyncProductId,
+      isPaying,
     });
     res.status(200).json(result);
   }
 
   async create(req: Request, res: Response) {
-    const { userId, user, subscriptions, autoSyncProductId } =
+    const { userId, user, subscriptions, autoSyncProductId, isPaying } =
       await this.resolveUserContext(res);
     const rawTitle =
       typeof req.body?.title === 'string' ? req.body.title.trim() : '';
@@ -91,6 +95,7 @@ export class MindmapController {
         user,
         subscriptions,
         autoSyncProductId,
+        isPaying,
       });
       res.status(201).json(map);
     } catch (error) {
@@ -114,7 +119,7 @@ export class MindmapController {
   }
 
   async update(req: Request, res: Response) {
-    const { userId, user, subscriptions, autoSyncProductId } =
+    const { userId, user, subscriptions, autoSyncProductId, isPaying } =
       await this.resolveUserContext(res);
     const id = req.params.id as MindmapsId;
     const title =
@@ -130,6 +135,7 @@ export class MindmapController {
         user,
         subscriptions,
         autoSyncProductId,
+        isPaying,
       });
       if (map == null) {
         res.status(404).json({ message: 'Mind map not found' });

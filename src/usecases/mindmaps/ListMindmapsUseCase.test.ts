@@ -2,8 +2,8 @@ import { ListMindmapsUseCase } from './ListMindmapsUseCase';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import Mindmaps, { MindmapsId } from '../../data_layer/public/Mindmaps';
 import { UsersId } from '../../data_layer/public/Users';
-import { FREE_MAP_LIMIT } from './CreateMindmapUseCase';
-import { FREE_NODE_LIMIT } from './UpdateMindmapUseCase';
+import { FREE_MAP_LIMIT, SUBSCRIBER_MAP_LIMIT } from './CreateMindmapUseCase';
+import { FREE_NODE_LIMIT, SUBSCRIBER_NODE_LIMIT } from './UpdateMindmapUseCase';
 
 function makeMap(id: string): Mindmaps {
   return {
@@ -41,6 +41,7 @@ describe('ListMindmapsUseCase', () => {
       userId: USER_ID,
       user: FREE_USER,
       subscriptions: [],
+      isPaying: false,
     });
 
     expect(result.maps).toEqual(maps);
@@ -48,6 +49,22 @@ describe('ListMindmapsUseCase', () => {
     expect(result.access.currentCount).toBe(2);
     expect(result.access.freeMapLimit).toBe(FREE_MAP_LIMIT);
     expect(result.access.maxNodesPerMap).toBe(FREE_NODE_LIMIT);
+  });
+
+  it('reports the subscriber caps for a paying subscriber without unlimited access', async () => {
+    const repo = makeRepo([makeMap('a')], 1);
+    const useCase = new ListMindmapsUseCase(repo);
+
+    const result = await useCase.execute({
+      userId: USER_ID,
+      user: FREE_USER,
+      subscriptions: [],
+      isPaying: true,
+    });
+
+    expect(result.access.hasUnlimited).toBe(false);
+    expect(result.access.freeMapLimit).toBe(SUBSCRIBER_MAP_LIMIT);
+    expect(result.access.maxNodesPerMap).toBe(SUBSCRIBER_NODE_LIMIT);
   });
 
   it('does not throw when subscriptions is undefined (guard against caller bug)', async () => {
@@ -58,6 +75,7 @@ describe('ListMindmapsUseCase', () => {
       userId: USER_ID,
       user: FREE_USER,
       subscriptions: undefined as unknown as never[],
+      isPaying: false,
     });
 
     expect(result.access.hasUnlimited).toBe(false);
@@ -71,6 +89,7 @@ describe('ListMindmapsUseCase', () => {
       userId: USER_ID,
       user: FREE_USER,
       subscriptions: null as unknown as never[],
+      isPaying: false,
     });
 
     expect(result.access.hasUnlimited).toBe(false);
@@ -84,6 +103,7 @@ describe('ListMindmapsUseCase', () => {
       userId: USER_ID,
       user: PATRON_USER,
       subscriptions: undefined as unknown as never[],
+      isPaying: true,
     });
 
     expect(result.access.hasUnlimited).toBe(true);
@@ -99,6 +119,7 @@ describe('ListMindmapsUseCase', () => {
       user: FREE_USER,
       subscriptions: [{ active: true, stripe_product_id: autoSyncProductId }],
       autoSyncProductId,
+      isPaying: true,
     });
 
     expect(result.access.hasUnlimited).toBe(true);

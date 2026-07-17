@@ -23,6 +23,7 @@ const { mockUploadMindmapImage, mockUseMindmapById, mockUseUpdateMindmap } =
 
 vi.mock('./useMindmap', () => ({
   useMindmapById: mockUseMindmapById,
+  useMindmapList: () => ({ data: undefined }),
   useUpdateMindmap: mockUseUpdateMindmap,
   exportMindmap: vi.fn(),
   uploadMindmapImage: mockUploadMindmapImage,

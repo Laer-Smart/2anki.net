@@ -13,6 +13,15 @@ import { MindmapLimitError } from './CreateMindmapUseCase';
 export { MindmapLimitError };
 
 export const FREE_NODE_LIMIT = 50;
+export const SUBSCRIBER_NODE_LIMIT = 250;
+
+export function resolveNodeLimit(
+  hasUnlimited: boolean,
+  isPaying: boolean
+): number | null {
+  if (hasUnlimited) return null;
+  return isPaying ? SUBSCRIBER_NODE_LIMIT : FREE_NODE_LIMIT;
+}
 
 const LEGACY_PREFIX = '/api/mindmaps/images/';
 const S3_KEY_PREFIX = 'mindmaps/';
@@ -86,6 +95,7 @@ interface UpdateInput {
   user: AnkifyAccessUser;
   subscriptions: AnkifyAccessSubscription[];
   autoSyncProductId?: string;
+  isPaying: boolean;
 }
 
 export class UpdateMindmapUseCase {
@@ -100,11 +110,17 @@ export class UpdateMindmapUseCase {
       user,
       subscriptions,
       autoSyncProductId = '',
+      isPaying,
     } = input;
-    const isUnlimited = hasAnkifyAccess(user, subscriptions, autoSyncProductId);
+    const hasUnlimited = hasAnkifyAccess(
+      user,
+      subscriptions,
+      autoSyncProductId
+    );
+    const nodeLimit = resolveNodeLimit(hasUnlimited, isPaying);
 
-    if (!isUnlimited && data != null && data.nodes.length > FREE_NODE_LIMIT) {
-      throw new MindmapLimitError(FREE_NODE_LIMIT);
+    if (nodeLimit != null && data != null && data.nodes.length > nodeLimit) {
+      throw new MindmapLimitError(nodeLimit);
     }
 
     const patch: Partial<Pick<Mindmaps, 'title' | 'data'>> = {};

@@ -28,6 +28,7 @@ import {
   type MindmapCardType,
   uploadMindmapImage,
   useMindmapById,
+  useMindmapList,
   useUpdateMindmap,
 } from './useMindmap';
 
@@ -251,6 +252,8 @@ export function MindmapEditor() {
   const { t } = useTranslation('tools');
   const { id } = useParams<{ id: string }>();
   const { data: map } = useMindmapById(id ?? null);
+  const { data: mindmapList } = useMindmapList();
+  const nodeLimit = mindmapList?.access.maxNodesPerMap ?? FREE_NODE_LIMIT;
   const updateMindmap = useUpdateMindmap(id ?? '');
 
   const [nodes, setNodes, onNodesChange] = useNodesState<Node>([]);
@@ -702,8 +705,8 @@ export function MindmapEditor() {
   }
 
   function addChildNode(parentId: string) {
-    if (nodes.length >= FREE_NODE_LIMIT) {
-      showToast(t('mindmaps.nodeLimitReached'));
+    if (nodes.length >= nodeLimit) {
+      showToast(t('mindmaps.nodeLimitReached', { limit: nodeLimit }));
       return;
     }
     const newId = crypto.randomUUID();
@@ -733,8 +736,8 @@ export function MindmapEditor() {
   }
 
   function addSiblingNode(siblingId: string) {
-    if (nodes.length >= FREE_NODE_LIMIT) {
-      showToast(t('mindmaps.nodeLimitReached'));
+    if (nodes.length >= nodeLimit) {
+      showToast(t('mindmaps.nodeLimitReached', { limit: nodeLimit }));
       return;
     }
     const parentEdge = edges.find((e) => e.target === siblingId);
@@ -818,8 +821,8 @@ export function MindmapEditor() {
     position: { x: number; y: number },
     parentId?: string | null
   ) {
-    if (nodes.length >= FREE_NODE_LIMIT) {
-      showToast(t('mindmaps.nodeLimitReached'));
+    if (nodes.length >= nodeLimit) {
+      showToast(t('mindmaps.nodeLimitReached', { limit: nodeLimit }));
       return;
     }
     const newId = crypto.randomUUID();

@@ -1,6 +1,8 @@
 import {
   CreateMindmapUseCase,
   MindmapLimitError,
+  FREE_MAP_LIMIT,
+  SUBSCRIBER_MAP_LIMIT,
 } from './CreateMindmapUseCase';
 import { MindmapRepositoryInterface } from '../../data_layer/MindmapRepository';
 import Mindmaps, { MindmapsId } from '../../data_layer/public/Mindmaps';
@@ -41,14 +43,15 @@ describe('CreateMindmapUseCase', () => {
       title: 'Anatomy',
       user: FREE_USER,
       subscriptions: [],
+      isPaying: false,
     });
 
     expect(result.id).toBe('new');
     expect(repo.create).toHaveBeenCalledTimes(1);
   });
 
-  it('throws MindmapLimitError when free user is at cap (3)', async () => {
-    const repo = makeRepo(3);
+  it('throws MindmapLimitError carrying 3 when free user is at the free cap', async () => {
+    const repo = makeRepo(FREE_MAP_LIMIT);
     const useCase = new CreateMindmapUseCase(repo);
 
     await expect(
@@ -57,28 +60,62 @@ describe('CreateMindmapUseCase', () => {
         title: 'New map',
         user: FREE_USER,
         subscriptions: [],
+        isPaying: false,
       })
-    ).rejects.toBeInstanceOf(MindmapLimitError);
+    ).rejects.toEqual(new MindmapLimitError(FREE_MAP_LIMIT));
     expect(repo.create).not.toHaveBeenCalled();
   });
 
-  it('allows a paid user to create even when above free cap', async () => {
-    const repo = makeRepo(10);
+  it('lets a paying subscriber create beyond the free cap', async () => {
+    const repo = makeRepo(FREE_MAP_LIMIT + 5);
     const useCase = new CreateMindmapUseCase(repo);
 
     const result = await useCase.execute({
       userId: 1 as UsersId,
-      title: 'Map 11',
-      user: PAID_USER,
+      title: 'Map 9',
+      user: FREE_USER,
       subscriptions: [],
+      isPaying: true,
     });
 
     expect(result.id).toBe('new');
     expect(repo.create).toHaveBeenCalledTimes(1);
   });
 
-  it('allows an auto-sync subscriber to create beyond free cap', async () => {
-    const repo = makeRepo(5);
+  it('throws MindmapLimitError carrying 25 when subscriber is at the subscriber cap', async () => {
+    const repo = makeRepo(SUBSCRIBER_MAP_LIMIT);
+    const useCase = new CreateMindmapUseCase(repo);
+
+    await expect(
+      useCase.execute({
+        userId: 1 as UsersId,
+        title: 'Map 26',
+        user: FREE_USER,
+        subscriptions: [],
+        isPaying: true,
+      })
+    ).rejects.toEqual(new MindmapLimitError(SUBSCRIBER_MAP_LIMIT));
+    expect(repo.create).not.toHaveBeenCalled();
+  });
+
+  it('allows a lifetime (patreon) user to create even when above the subscriber cap', async () => {
+    const repo = makeRepo(SUBSCRIBER_MAP_LIMIT + 100);
+    const useCase = new CreateMindmapUseCase(repo);
+
+    const result = await useCase.execute({
+      userId: 1 as UsersId,
+      title: 'Map 200',
+      user: PAID_USER,
+      subscriptions: [],
+      isPaying: true,
+    });
+
+    expect(result.id).toBe('new');
+    expect(repo.create).toHaveBeenCalledTimes(1);
+  });
+
+  it('allows an auto-sync subscriber to create beyond the subscriber cap', async () => {
+    const repo = makeRepo(SUBSCRIBER_MAP_LIMIT + 5);
     const useCase = new CreateMindmapUseCase(repo);
     const autoSyncProductId = 'prod_autosync';
 
@@ -88,6 +125,7 @@ describe('CreateMindmapUseCase', () => {
       user: FREE_USER,
       subscriptions: [{ active: true, stripe_product_id: autoSyncProductId }],
       autoSyncProductId,
+      isPaying: true,
     });
 
     expect(result.id).toBe('new');
@@ -102,6 +140,7 @@ describe('CreateMindmapUseCase', () => {
       title: 'Organic Chemistry',
       user: FREE_USER,
       subscriptions: [],
+      isPaying: false,
     });
 
     const callArg = (repo.create as jest.Mock).mock.calls[0][0] as {
