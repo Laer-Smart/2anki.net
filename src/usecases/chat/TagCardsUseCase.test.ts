@@ -91,6 +91,7 @@ describe('TagCardsUseCase', () => {
     const repo = {
       insert: jest.fn(),
       countThisMonth: jest.fn(),
+      listForConversation: jest.fn().mockResolvedValue([]),
       findLatestAssistantInConversation: jest
         .fn()
         .mockResolvedValue({ id: 42, content: stored }),
@@ -125,6 +126,7 @@ describe('TagCardsUseCase', () => {
     const repo = {
       insert: jest.fn(),
       countThisMonth: jest.fn(),
+      listForConversation: jest.fn().mockResolvedValue([]),
       findLatestAssistantInConversation: jest.fn(),
       updateContent: jest.fn(),
       deleteById: jest.fn(),

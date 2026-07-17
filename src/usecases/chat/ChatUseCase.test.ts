@@ -791,6 +791,109 @@ describe('ChatUseCase', () => {
     });
   });
 
+  describe('attachment memory across turns', () => {
+    function historyText(stream: jest.Mock, callIndex: number): string {
+      const callArg = stream.mock.calls[callIndex][0];
+      const priorMessages = callArg.messages.slice(0, -1);
+      return priorMessages
+        .map((m: { content: unknown }) =>
+          typeof m.content === 'string' ? m.content : ''
+        )
+        .join('\n');
+    }
+
+    it('retains the attachment text on a follow-up turn in the same conversation', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+
+      const first = await useCase.execute({
+        user: FREE_USER,
+        content: 'Make cards from this',
+        conversationHistory: [],
+        attachments: [
+          {
+            mimeType: MARKDOWN_MIME,
+            data: Buffer.from(
+              '# Photosynthesis\n\nConverts light to energy.',
+              'utf8'
+            ),
+            fileName: 'bio.md',
+          },
+        ],
+      });
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'What did it say about energy?',
+        conversationHistory: [
+          { role: 'user', content: 'Make cards from this' },
+          { role: 'assistant', content: 'answer' },
+        ],
+        conversationId: first.conversationId,
+      });
+
+      const text = historyText(anthropic.messages.stream, 1);
+      expect(text).toContain('<file name="bio.md">');
+      expect(text).toContain('Converts light to energy.');
+    });
+
+    it('persists the extracted text separately, keeping the stored message content raw', async () => {
+      const { messagesRepo, useCase } = buildUseCase('answer');
+
+      const first = await useCase.execute({
+        user: FREE_USER,
+        content: 'Summarize this',
+        conversationHistory: [],
+        attachments: [
+          {
+            mimeType: MARKDOWN_MIME,
+            data: Buffer.from('Krebs cycle produces ATP.', 'utf8'),
+            fileName: 'notes.md',
+          },
+        ],
+      });
+
+      const persisted = await messagesRepo.listForConversation({
+        userId: FREE_USER.owner,
+        conversationId: first.conversationId,
+      });
+      const userMsg = persisted.find((m) => m.role === 'user');
+      expect(userMsg?.content).toBe('Summarize this');
+      expect(userMsg?.attachmentText).toContain('<file name="notes.md">');
+      expect(userMsg?.attachmentText).toContain('Krebs cycle produces ATP.');
+    });
+
+    it('caps very large extracted text carried into later turns', async () => {
+      const { anthropic, useCase } = buildUseCase('answer');
+      const big = `${'A'.repeat(25_000)}ENDMARKER_XYZ`;
+
+      const first = await useCase.execute({
+        user: FREE_USER,
+        content: 'Make cards',
+        conversationHistory: [],
+        attachments: [
+          {
+            mimeType: MARKDOWN_MIME,
+            data: Buffer.from(big, 'utf8'),
+            fileName: 'big.md',
+          },
+        ],
+      });
+
+      await useCase.execute({
+        user: FREE_USER,
+        content: 'More please',
+        conversationHistory: [],
+        conversationId: first.conversationId,
+      });
+
+      const text = historyText(anthropic.messages.stream, 1);
+      expect(text).toContain('<file name="big.md">');
+      expect(text).toContain('[…truncated]');
+      expect(text).not.toContain('ENDMARKER_XYZ');
+      expect(text.length).toBeLessThan(21_000);
+    });
+  });
+
   describe('system prompt caching', () => {
     it('passes system as an array with a cache_control ephemeral block', async () => {
       const { anthropic, useCase } = buildUseCase('answer');

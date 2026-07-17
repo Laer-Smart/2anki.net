@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-17-chat-attachment-memory",
+  "date": "2026-07-17",
+  "type": "fix",
+  "title": "Chat now remembers an uploaded file across follow-up messages"
+}

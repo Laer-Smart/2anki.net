@@ -20,6 +20,8 @@ export default interface ChatMessages {
   created_at: Date;
 
   conversation_id: ConversationsId | null;
+
+  attachment_text: string | null;
 }
 
 /** Represents the initializer for the table public.chat_messages */
@@ -37,6 +39,8 @@ export interface ChatMessagesInitializer {
   created_at?: Date;
 
   conversation_id?: ConversationsId | null;
+
+  attachment_text?: string | null;
 }
 
 /** Represents the mutator for the table public.chat_messages */
@@ -52,4 +56,6 @@ export interface ChatMessagesMutator {
   created_at?: Date;
 
   conversation_id?: ConversationsId | null;
+
+  attachment_text?: string | null;
 }
