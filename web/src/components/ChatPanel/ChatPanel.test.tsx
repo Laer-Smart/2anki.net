@@ -273,6 +273,153 @@ describe('ChatPanel — CardPreview integration', () => {
   });
 });
 
+describe('ChatPanel — per-turn deck download and naming', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
+    mockPatch.mockResolvedValue({ ok: true, status: 204 });
+    Object.assign(global, {
+      URL: {
+        createObjectURL: vi.fn(() => 'blob:test'),
+        revokeObjectURL: vi.fn(),
+      },
+    });
+  });
+
+  it('downloads an MCQ turn as mcq even when the selector defaults to Basic', async () => {
+    mockPost.mockResolvedValueOnce({
+      ok: true,
+      blob: () => Promise.resolve(new Blob()),
+    });
+    renderChatPanel({
+      initialMessages: [
+        {
+          role: 'assistant',
+          content: '',
+          cards: [
+            {
+              front: 'Which enzyme hydrolyses starch?',
+              back: '',
+              options: ['Lipase', 'Amylase', 'Protease', 'Lactase'],
+              correctIndex: 1,
+            },
+          ],
+        },
+      ],
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/chat/deck',
+        expect.objectContaining({ templateSlug: 'mcq' })
+      );
+    });
+  });
+
+  it('prefills the deck name from a Deck: line in the assistant message', () => {
+    renderChatPanel({
+      initialMessages: [
+        {
+          role: 'assistant',
+          content: '',
+          contentBefore: 'Deck: Japanese — Time Words',
+          cards: [{ front: 'Q1', back: 'A1' }],
+        },
+      ],
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
+    const input = screen.getByRole('textbox', {
+      name: 'Deck name',
+    }) as HTMLInputElement;
+    expect(input.value).toBe('Japanese — Time Words');
+  });
+
+  it('falls back to the conversation title when there is no Deck line', () => {
+    renderChatPanel({
+      initialMessages: [
+        {
+          role: 'assistant',
+          content: '',
+          contentBefore: 'Here are your cards.',
+          cards: [{ front: 'Q1', back: 'A1' }],
+        },
+      ],
+      initialTitle: 'Cell Biology chat',
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Download deck' }));
+    const input = screen.getByRole('textbox', {
+      name: 'Deck name',
+    }) as HTMLInputElement;
+    expect(input.value).toBe('Cell Biology chat');
+  });
+});
+
+describe('ChatPanel — reselecting the current note type', () => {
+  beforeEach(() => {
+    mockPost.mockReset();
+    mockGet.mockResolvedValue({ used: 0, limit: 20 });
+    mockPatch.mockResolvedValue({ ok: true, status: 204 });
+  });
+
+  it('regenerates when the reselected note type does not match the current cards', async () => {
+    mockPost.mockResolvedValueOnce(
+      makeSseResponse([
+        {
+          event: 'done',
+          data: {
+            content: 'Reply',
+            conversationId: 7,
+            cards: [{ front: 'The capital is {{c1::Oslo}}', back: '' }],
+          },
+        },
+      ])
+    );
+    renderChatPanel({
+      initialMessages: [
+        { role: 'user', content: 'furigana deck' },
+        {
+          role: 'assistant',
+          content: 'Reply',
+          cards: [{ front: 'Capital?', back: 'Oslo' }],
+        },
+      ],
+      initialTemplateSlug: 'cloze',
+      initialConversationId: 7,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Basic' }));
+    fireEvent.click(
+      screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!
+    );
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/chat/conversations/7/regenerate',
+        { templateSlug: 'cloze' }
+      );
+    });
+  });
+
+  it('does not regenerate when the reselected note type already matches the cards', () => {
+    renderChatPanel({
+      initialMessages: [
+        { role: 'user', content: 'cloze deck' },
+        {
+          role: 'assistant',
+          content: 'Reply',
+          cards: [{ front: 'The capital is {{c1::Oslo}}', back: '' }],
+        },
+      ],
+      initialTemplateSlug: 'cloze',
+      initialConversationId: 7,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Note type: Cloze' }));
+    fireEvent.click(
+      screen.getByRole('option', { name: /Cloze/ }).querySelector('button')!
+    );
+    expect(mockPost).not.toHaveBeenCalled();
+  });
+});
+
 describe('ChatPanel — add tags feedback', () => {
   beforeEach(() => {
     mockPost.mockReset();

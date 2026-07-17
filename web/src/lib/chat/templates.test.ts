@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   effectiveTemplateForCards,
   isPureClientReshape,
+  parseDeckName,
+  suggestDeckName,
   templateSwitchLabel,
 } from './templates';
 
@@ -67,6 +69,57 @@ describe('isPureClientReshape', () => {
     expect(isPureClientReshape('basic', 'cloze')).toBe(false);
     expect(isPureClientReshape('cloze', 'basic')).toBe(false);
     expect(isPureClientReshape('basic-and-reversed', 'mcq')).toBe(false);
+  });
+});
+
+describe('parseDeckName', () => {
+  it('extracts the name from a Deck: line', () => {
+    expect(parseDeckName('Here are your cards.\nDeck: Foo Bar')).toBe(
+      'Foo Bar'
+    );
+  });
+
+  it('extracts a name with an em dash and unicode', () => {
+    expect(parseDeckName('Deck: Japanese — Time Words')).toBe(
+      'Japanese — Time Words'
+    );
+  });
+
+  it('strips surrounding markdown emphasis', () => {
+    expect(parseDeckName('Deck: **Organic Chemistry**')).toBe(
+      'Organic Chemistry'
+    );
+  });
+
+  it('matches case-insensitively and trims whitespace', () => {
+    expect(parseDeckName('deck:   Cell Biology   ')).toBe('Cell Biology');
+  });
+
+  it('returns null when there is no Deck line', () => {
+    expect(parseDeckName('Here are some flashcards for you.')).toBeNull();
+  });
+
+  it('returns null for an empty Deck line', () => {
+    expect(parseDeckName('Deck:   ')).toBeNull();
+  });
+});
+
+describe('suggestDeckName', () => {
+  it('prefers the Deck line over the conversation title', () => {
+    expect(suggestDeckName('Deck: Foo Bar', 'Some conversation')).toBe(
+      'Foo Bar'
+    );
+  });
+
+  it('falls back to the conversation title when there is no Deck line', () => {
+    expect(suggestDeckName('Just some cards.', 'Cell Biology chat')).toBe(
+      'Cell Biology chat'
+    );
+  });
+
+  it('returns null when neither a Deck line nor a title is present', () => {
+    expect(suggestDeckName('Just some cards.', null)).toBeNull();
+    expect(suggestDeckName('Just some cards.', '   ')).toBeNull();
   });
 });
 

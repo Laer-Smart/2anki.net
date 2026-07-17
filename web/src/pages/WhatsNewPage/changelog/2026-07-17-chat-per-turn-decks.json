@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-17-chat-per-turn-decks",
+  "date": "2026-07-17",
+  "type": "fix",
+  "title": "In Chat, download each answer's cards in its own note type, with a suggested deck name"
+}
