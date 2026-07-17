@@ -71,6 +71,46 @@ describe('RegisterForm', () => {
     ).toHaveLength(1);
   });
 
+  describe('post-signup destination', () => {
+    let hrefValue: string;
+
+    beforeEach(() => {
+      hrefValue = 'http://localhost/register';
+      vi.stubGlobal('location', {
+        origin: 'http://localhost',
+        search: '',
+        get href() {
+          return hrefValue;
+        },
+        set href(value: string) {
+          hrefValue = value;
+        },
+      });
+    });
+
+    afterEach(() => {
+      vi.unstubAllGlobals();
+    });
+
+    it('lands a new signup with no redirect on the upload page', async () => {
+      registerMock.mockResolvedValue({ status: 200 });
+
+      renderForm();
+      fillAndSubmit();
+
+      await waitFor(() => expect(hrefValue).toBe('/upload'));
+    });
+
+    it('honors an explicit redirect over the upload default', async () => {
+      registerMock.mockResolvedValue({ status: 200 });
+
+      renderForm('/pricing');
+      fillAndSubmit();
+
+      await waitFor(() => expect(hrefValue).toBe('/pricing'));
+    });
+  });
+
   it('fires signup_started once with method email on mount', () => {
     registerMock.mockResolvedValue({ status: 200 });
 
