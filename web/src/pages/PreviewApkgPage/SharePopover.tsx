@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   createDeckShare,
   revokeDeckShare,
@@ -30,11 +31,14 @@ function PopoverBody({
   onStopConfirm,
   onKeepSharing,
 }: Readonly<PopoverBodyProps>) {
+  const { t } = useTranslation('previews');
   if (loading) {
-    return <p className={styles.loadingText}>Creating link…</p>;
+    return <p className={styles.loadingText}>{t('share.creatingLink')}</p>;
   }
   if (share == null) {
-    return <p className={styles.loadingText}>Unable to create link.</p>;
+    return (
+      <p className={styles.loadingText}>{t('share.unableToCreateLink')}</p>
+    );
   }
   return (
     <>
@@ -44,36 +48,31 @@ function PopoverBody({
           readOnly
           value={share.url}
           className={styles.urlInput}
-          aria-label="Share link"
+          aria-label={t('share.shareLink')}
           onFocus={(e) => e.target.select()}
         />
         <button type="button" className={styles.copyButton} onClick={onCopy}>
-          Copy link
+          {t('share.copyLink')}
         </button>
       </div>
-      <p className={styles.helperText}>
-        Anyone with the link can preview the cards and download the deck. They
-        can&apos;t edit it.
-      </p>
+      <p className={styles.helperText}>{t('share.helper')}</p>
       {showConfirm ? (
         <div className={styles.confirmDialog}>
-          <p className={styles.confirmText}>
-            Stop sharing this deck? The link will stop working.
-          </p>
+          <p className={styles.confirmText}>{t('share.stopConfirm')}</p>
           <div className={styles.confirmButtons}>
             <button
               type="button"
               className={styles.stopButton}
               onClick={onStopConfirm}
             >
-              Stop sharing
+              {t('share.stopSharing')}
             </button>
             <button
               type="button"
               className={styles.keepButton}
               onClick={onKeepSharing}
             >
-              Keep sharing
+              {t('share.keepSharing')}
             </button>
           </div>
         </div>
@@ -83,7 +82,7 @@ function PopoverBody({
           className={styles.stopLink}
           onClick={onStopRequest}
         >
-          Stop sharing
+          {t('share.stopSharing')}
         </button>
       )}
     </>
@@ -91,6 +90,7 @@ function PopoverBody({
 }
 
 export function SharePopover({ uploadKey }: Readonly<SharePopoverProps>) {
+  const { t } = useTranslation('previews');
   const [open, setOpen] = useState(false);
   const [share, setShare] = useState<ActiveShare | null>(null);
   const [loading, setLoading] = useState(false);
@@ -179,12 +179,16 @@ export function SharePopover({ uploadKey }: Readonly<SharePopoverProps>) {
           aria-expanded={open}
           aria-haspopup="dialog"
         >
-          Share
+          {t('share.share')}
         </button>
 
         {open && (
-          <dialog open className={styles.popover} aria-label="Share this deck">
-            <p className={styles.popoverTitle}>Share this deck</p>
+          <dialog
+            open
+            className={styles.popover}
+            aria-label={t('share.shareThisDeck')}
+          >
+            <p className={styles.popoverTitle}>{t('share.shareThisDeck')}</p>
             <PopoverBody
               loading={loading}
               share={share}
@@ -200,7 +204,7 @@ export function SharePopover({ uploadKey }: Readonly<SharePopoverProps>) {
 
       {showToast && (
         <div className={styles.toast} role="status" aria-live="polite">
-          Link copied
+          {t('share.linkCopied')}
         </div>
       )}
     </>

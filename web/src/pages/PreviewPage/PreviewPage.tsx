@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { EmptyState } from '../../components/EmptyState/EmptyState';
 import { SkeletonList } from '../../components/Skeleton/Skeleton';
 import { ErrorPresenter } from '../../components/errors/ErrorPresenter';
@@ -23,6 +24,7 @@ interface LocationState {
 }
 
 export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
+  const { t } = useTranslation('previews');
   const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -62,7 +64,7 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
   }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const firstPage = data?.pages?.[0];
-  const pageTitle = firstPage?.pageTitle ?? 'Loading…';
+  const pageTitle = firstPage?.pageTitle ?? t('page.loading');
   const pageUrl = firstPage?.pageUrl;
   const returnTo = encodeURIComponent(`/preview/${id}`);
   const rulesHref = `/rules/${id}?returnTo=${returnTo}`;
@@ -93,16 +95,11 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
           return;
         }
         if (response.status === 409) {
-          setError(
-            new UserNotice(
-              'This page is already converting — check Downloads in a moment.'
-            )
-          );
+          setError(new UserNotice(t('page.alreadyConverting')));
           setConverting(false);
           return;
         }
-        const fallbackMessage =
-          'Could not start the conversion. Try again in a moment.';
+        const fallbackMessage = t('page.convertFailed');
         const isServerError = response.status >= 500;
         setError(
           isServerError
@@ -120,7 +117,7 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
   if (!id) {
     return (
       <div className={sharedStyles.page}>
-        <p className={styles.empty}>Missing page id.</p>
+        <p className={styles.empty}>{t('page.missingId')}</p>
       </div>
     );
   }
@@ -131,18 +128,18 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
       return (
         <div className={sharedStyles.page}>
           <header className={sharedStyles.pageHeader}>
-            <h1 className={sharedStyles.title}>Preview</h1>
+            <h1 className={sharedStyles.title}>{t('page.title')}</h1>
           </header>
           <EmptyState
-            title="This page is no longer available"
-            description="It was deleted in Notion, or the integration lost access."
+            title={t('page.unavailableTitle')}
+            description={t('page.unavailableDescription')}
           />
           <div className={styles.actionsRow}>
             <Link to="/notion" className={sharedStyles.btnPrimary}>
-              Notion search
+              {t('page.notionSearch')}
             </Link>
             <Link to="/downloads" className={sharedStyles.btnSecondary}>
-              My Decks
+              {t('page.myDecks')}
             </Link>
           </div>
         </div>
@@ -151,7 +148,7 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
     return (
       <div className={sharedStyles.page}>
         <header className={sharedStyles.pageHeader}>
-          <h1 className={sharedStyles.title}>Preview</h1>
+          <h1 className={sharedStyles.title}>{t('page.title')}</h1>
         </header>
         <ErrorPresenter error={error} onRetry={() => refetch()} />
       </div>
@@ -159,8 +156,8 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
   }
 
   const backLabel = parentTitle
-    ? `← Back to ${parentTitle}`
-    : '← Back to Notion search';
+    ? t('page.backTo', { title: parentTitle })
+    : t('page.backToNotionSearch');
 
   return (
     <div className={sharedStyles.page}>
@@ -169,9 +166,8 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
           <InfoIcon width={18} height={18} />
         </span>
         <span>
-          Showing how your page will be split into cards. Blocks marked in blue
-          become cards — adjust them with{' '}
-          <Link to={rulesHref}>Edit conversion rules</Link>.
+          {t('page.introText')}
+          <Link to={rulesHref}>{t('page.editConversionRules')}</Link>.
         </span>
       </p>
 
@@ -206,7 +202,7 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
                 onClick={handleConvert}
                 disabled={converting}
               >
-                {converting ? 'Converting…' : 'Convert to Anki'}
+                {converting ? t('page.converting') : t('page.convertToAnki')}
               </button>
               {pageUrl && (
                 <a
@@ -216,12 +212,12 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
                   rel="noreferrer"
                 >
                   <ExternalLinkIcon width={16} height={16} />
-                  <span>Open in Notion</span>
+                  <span>{t('page.openInNotion')}</span>
                 </a>
               )}
               <Link to={rulesHref} className={styles.pageLink}>
                 <SettingsIcon />
-                <span>Edit conversion rules</span>
+                <span>{t('page.editConversionRules')}</span>
               </Link>
             </span>
           </div>
@@ -234,34 +230,35 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
                     className={`${styles.tallySwatch} ${styles.tallySwatchCard}`}
                     aria-hidden="true"
                   />
-                  {tally.cards} cards
+                  {t('page.cards', { count: tally.cards })}
                 </span>
                 <span className={styles.tallyItem}>
                   <span
                     className={`${styles.tallySwatch} ${styles.tallySwatchSkip}`}
                     aria-hidden="true"
                   />
-                  {tally.skipped} skipped
+                  {t('page.skipped', { value: tally.skipped })}
                 </span>
                 <span className={styles.tallyItem}>
                   <span
                     className={`${styles.tallySwatch} ${styles.tallySwatchRecurse}`}
                     aria-hidden="true"
                   />
-                  {tally.recurse}{' '}
-                  {tally.recurse === 1 ? 'sub-page' : 'sub-pages'}
+                  {t('page.subPages', { count: tally.recurse })}
                 </span>
                 {hasNextPage && (
-                  <span className={styles.tallyLoading}>+ loading more…</span>
+                  <span className={styles.tallyLoading}>
+                    {t('page.loadingMoreTally')}
+                  </span>
                 )}
               </div>
             )}
             {blocks.length === 0 && (
               <EmptyState
                 icon="📄"
-                title="Nothing to turn into cards yet"
-                description="2anki makes a card from every toggle on this page — the toggle title becomes the question, what's inside becomes the answer. This page has no toggles yet. Add a few in Notion, then preview again."
-                actionLabel="See how toggles become cards"
+                title={t('page.emptyTitle')}
+                description={t('page.emptyDescription')}
+                actionLabel={t('page.emptyAction')}
                 actionHref="/documentation/cards/notion-blocks"
               />
             )}
@@ -275,7 +272,7 @@ export default function PreviewPage({ setError }: Readonly<PreviewPageProps>) {
       <div ref={sentinelRef} className={styles.sentinel} aria-hidden="true" />
 
       {isFetchingNextPage && (
-        <div className={styles.loadingRow}>Loading more…</div>
+        <div className={styles.loadingRow}>{t('page.loadingMore')}</div>
       )}
     </div>
   );

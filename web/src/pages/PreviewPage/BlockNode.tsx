@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { BlockDecision, PreviewBlock } from '../../lib/backend/getPreviewBatch';
 import { useBlockChildren } from './useBlockChildren';
 import styles from './PreviewPage.module.css';
@@ -9,10 +10,10 @@ interface BlockNodeProps {
   parentTitle?: string;
 }
 
-const DECISION_TOOLTIPS: Record<BlockDecision, string> = {
-  card: 'This block becomes a card',
-  skip: 'Skipped — not converted',
-  recurse: 'Opens as a sub-page — click to explore',
+const DECISION_TOOLTIP_KEYS: Record<BlockDecision, string> = {
+  card: 'block.tooltipCard',
+  skip: 'block.tooltipSkip',
+  recurse: 'block.tooltipRecurse',
 };
 
 function decisionClass(decision: BlockDecision | undefined): string {
@@ -27,6 +28,7 @@ function isAutoContainer(type: string): boolean {
 }
 
 export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
+  const { t } = useTranslation('previews');
   const [open, setOpen] = useState(false);
 
   const autoExpand = block.canExpand && isAutoContainer(block.type);
@@ -38,7 +40,7 @@ export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
 
   const rowClass = decisionClass(block.decision);
   const tooltipText = block.decision
-    ? DECISION_TOOLTIPS[block.decision]
+    ? t(DECISION_TOOLTIP_KEYS[block.decision])
     : undefined;
 
   if (block.type === 'child_page' && block.childPageId != null) {
@@ -51,7 +53,8 @@ export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
       >
         <span dangerouslySetInnerHTML={{ __html: block.html }} />
         <span className={styles.subPageLabel}>
-          Sub-page <span className={styles.subPageChevron}>&rsaquo;</span>
+          {t('block.subPage')}{' '}
+          <span className={styles.subPageChevron}>&rsaquo;</span>
         </span>
       </Link>
     );
@@ -79,16 +82,16 @@ export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
             dangerouslySetInnerHTML={{ __html: block.summaryHtml }}
           />
         )}
-        {isLoading && <p className={styles.muted}>Loading…</p>}
+        {isLoading && <p className={styles.muted}>{t('block.loading')}</p>}
         {error && (
           <p className={styles.muted}>
-            Couldn&apos;t load children.{' '}
+            {t('block.loadChildrenFailed')}{' '}
             <button
               type="button"
               className={styles.retryButton}
               onClick={() => refetch()}
             >
-              Try again
+              {t('block.tryAgain')}
             </button>
           </p>
         )}
@@ -115,19 +118,21 @@ export function BlockNode({ block, parentTitle }: Readonly<BlockNodeProps>) {
         <div className={styles.toggleChildren}>
           {!block.hasChildren && (
             <p className={styles.muted}>
-              <em>This toggle has no children.</em>
+              <em>{t('block.noChildren')}</em>
             </p>
           )}
-          {isLoading && <p className={styles.muted}>Loading children…</p>}
+          {isLoading && (
+            <p className={styles.muted}>{t('block.loadingChildren')}</p>
+          )}
           {error && (
             <p className={styles.muted}>
-              Couldn&apos;t load children.{' '}
+              {t('block.loadChildrenFailed')}{' '}
               <button
                 type="button"
                 className={styles.retryButton}
                 onClick={() => refetch()}
               >
-                Try again
+                {t('block.tryAgain')}
               </button>
             </p>
           )}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ApkgPreviewCard } from '../../lib/backend/getApkgPreview';
 import { CardEditState } from './cardEditTypes';
 import { fetchMediaAsDataUrl, inlineApkgMedia } from './inlineMedia';
@@ -115,6 +116,7 @@ export function CardFrame({
   onEdit,
   isEditable,
 }: Readonly<CardFrameProps>) {
+  const { t } = useTranslation('previews');
   const [showBack, setShowBack] = useState(false);
   const [frameHeight, setFrameHeight] = useState(DEFAULT_FRAME_HEIGHT);
   const [editingFront, setEditingFront] = useState(false);
@@ -242,18 +244,18 @@ export function CardFrame({
                 className={`${styles.iconButton}${isSuspended ? ` ${styles.iconButtonActive}` : ''}`}
                 onClick={toggleSuspend}
                 aria-pressed={isSuspended}
-                title="Suspend on import"
+                title={t('card.suspendOnImport')}
               >
-                Suspend
+                {t('card.suspend')}
               </button>
               <button
                 type="button"
                 className={`${styles.iconButton}${isDeleted ? ` ${styles.iconButtonActive}` : ''}`}
                 onClick={toggleDelete}
                 aria-pressed={isDeleted}
-                title={isDeleted ? 'Restore card' : 'Delete card'}
+                title={isDeleted ? t('card.restoreCard') : t('card.deleteCard')}
               >
-                {isDeleted ? 'Restore' : 'Delete'}
+                {isDeleted ? t('card.restore') : t('card.delete')}
               </button>
             </>
           )}
@@ -263,16 +265,18 @@ export function CardFrame({
             onClick={() => setShowBack((prev) => !prev)}
             aria-pressed={showBack}
           >
-            {showBack ? 'Show front' : 'Show back'}
+            {showBack ? t('card.showFront') : t('card.showBack')}
           </button>
         </div>
       </header>
       <iframe
         ref={iframeRef}
         className={styles.cardFrame}
-        title={`${card.deckName} / ${card.templateName} (${
-          showBack ? 'back' : 'front'
-        })`}
+        title={t('card.frameTitle', {
+          deck: card.deckName,
+          template: card.templateName,
+          side: showBack ? t('card.back') : t('card.front'),
+        })}
         sandbox="allow-scripts"
         srcDoc={srcDoc}
         style={{ height: frameHeight }}
@@ -281,7 +285,7 @@ export function CardFrame({
         <div className={styles.editPanel}>
           <div className={styles.editFieldGroup}>
             <label className={styles.editLabel} htmlFor={`front-${card.id}`}>
-              Front
+              {t('card.frontLabel')}
             </label>
             {editingFront ? (
               <textarea
@@ -302,13 +306,13 @@ export function CardFrame({
                   setEditingFront(true);
                 }}
               >
-                Edit front
+                {t('card.editFront')}
               </button>
             )}
           </div>
           <div className={styles.editFieldGroup}>
             <label className={styles.editLabel} htmlFor={`back-${card.id}`}>
-              Back
+              {t('card.backLabel')}
             </label>
             {editingBack ? (
               <textarea
@@ -329,7 +333,7 @@ export function CardFrame({
                   setEditingBack(true);
                 }}
               >
-                Edit back
+                {t('card.editBack')}
               </button>
             )}
           </div>
