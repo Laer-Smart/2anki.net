@@ -68,9 +68,10 @@ jobs:
         with:
           node-version: '22.20.0'
           registry-url: 'https://registry.npmjs.org'
-      # Trusted Publishing needs a recent npm CLI (>= 11.5.1).
+      # Trusted Publishing needs npm >= 11.5.1. Pin to 11.x — npm@latest (12+)
+      # requires a newer node than this workflow pins and fails with EBADENGINE.
       - name: Update npm
-        run: npm install -g npm@latest
+        run: npm install -g npm@11
       - name: Assemble the npm package
         run: node scripts/build-cli-npm.mjs "${{ github.ref_name }}"
       - name: Publish to npm

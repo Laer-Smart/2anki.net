@@ -18,15 +18,17 @@ const binary = join(outDir, isWindows ? '2anki.exe' : '2anki');
 
 function run(cmd, args) {
   // execFileSync can't resolve a bare `npx` from PATH (ENOENT), and on Windows
-  // it's a .cmd shim. npx sits next to the running node binary, so resolve it
-  // there. Other commands (node, codesign) are real executables and spawn fine.
-  let resolved = cmd;
+  // it's a .cmd shim that also needs a shell to run (EINVAL otherwise). npx sits
+  // next to the running node binary, so resolve it there and use a shell on
+  // Windows. Other commands (node, codesign) are real executables, spawn fine.
   if (cmd === 'npx') {
     const name = isWindows ? 'npx.cmd' : 'npx';
     const colocated = join(dirname(process.execPath), name);
-    resolved = existsSync(colocated) ? colocated : name;
+    const resolved = existsSync(colocated) ? colocated : name;
+    execFileSync(resolved, args, { stdio: 'inherit', shell: isWindows });
+    return;
   }
-  execFileSync(resolved, args, { stdio: 'inherit' });
+  execFileSync(cmd, args, { stdio: 'inherit' });
 }
 
 mkdirSync(outDir, { recursive: true });
