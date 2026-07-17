@@ -183,8 +183,13 @@ function buildUploadFunnelPrompt(payload: UploadFunnelResponse): string {
     `Download → signup (%):   ${numberOrDash(payload.download_to_signup_rate_pct)}`,
     `Download → paid (%):     ${numberOrDash(payload.download_to_paid_rate_pct)}`,
     '',
+    jsonBlock(
+      'Per-origin breakdown (signup_origin)',
+      sanitizeStringsDeep(payload.by_origin)
+    ),
+    '',
     'Code path: src/usecases/ops/GetUploadFunnelUseCase.ts (/api/ops/upload-funnel)',
-    'Task: find the biggest drop-off between stages and propose one fix.',
+    'Task: find the biggest drop-off between stages and the origin it hits hardest, then propose one fix.',
     REPO_LINE,
   ];
 

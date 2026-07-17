@@ -62,6 +62,23 @@ describe('UploadFunnelTab', () => {
         signup: 3100,
         paid: 620,
       },
+      by_origin: [
+        {
+          origin: '/nclex',
+          stages: {
+            upload_started: 8000,
+            conversion_succeeded: 7200,
+            conversion_failed: 200,
+            deck_downloaded: 6600,
+            paywall_shown: 2800,
+            signup: 2100,
+            paid: 480,
+          },
+          upload_to_download_rate_pct: 82.5,
+          download_to_signup_rate_pct: 31.8,
+          download_to_paid_rate_pct: 7.3,
+        },
+      ],
       upload_to_download_rate_pct: 57.83,
       download_to_signup_rate_pct: 30.1,
       download_to_paid_rate_pct: 6.02,
@@ -76,6 +93,9 @@ describe('UploadFunnelTab', () => {
         screen.getByText('12 450', { normalizer: spaceNormalizer })
       ).toBeInTheDocument()
     );
+
+    expect(screen.getByText('/nclex')).toBeInTheDocument();
+    expect(screen.getByText('82.5%')).toBeInTheDocument();
     expect(
       screen.getByText('11 200', { normalizer: spaceNormalizer })
     ).toBeInTheDocument();
@@ -115,6 +135,7 @@ describe('UploadFunnelTab', () => {
         signup: 0,
         paid: 0,
       },
+      by_origin: [],
       upload_to_download_rate_pct: 0,
       download_to_signup_rate_pct: 0,
       download_to_paid_rate_pct: 0,
@@ -134,6 +155,7 @@ describe('UploadFunnelTab', () => {
   test('renders the server error message in the danger banner', async () => {
     mockFetch({
       stages: null,
+      by_origin: [],
       upload_to_download_rate_pct: 0,
       download_to_signup_rate_pct: 0,
       download_to_paid_rate_pct: 0,

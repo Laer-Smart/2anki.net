@@ -3,9 +3,68 @@ import styles from './OpsPage.module.css';
 import { buildClaudePrompt } from './buildClaudePrompt';
 import CopyForClaudeButton from './CopyForClaudeButton';
 import { UPLOAD_FUNNEL_WINDOWS, useUploadFunnel } from './useUploadFunnel';
-import { UploadFunnelStages } from './uploadFunnelTypes';
+import {
+  UploadFunnelOriginBreakdown,
+  UploadFunnelStages,
+} from './uploadFunnelTypes';
 
 const THIN_SPACE = '\u2009';
+
+const DIRECT_ORIGIN_LABEL = 'Direct / unknown';
+
+function originLabel(origin: string | null): string {
+  return origin == null || origin.trim() === '' ? DIRECT_ORIGIN_LABEL : origin;
+}
+
+function renderOriginRows(byOrigin: UploadFunnelOriginBreakdown[]) {
+  if (byOrigin.length === 0) {
+    return (
+      <p className={styles.emptyHint}>
+        No origin-attributed events in this window yet.
+      </p>
+    );
+  }
+  return (
+    <div className={styles.tableScroll}>
+      <table className={styles.table}>
+        <thead>
+          <tr>
+            <th>Origin</th>
+            <th>Uploaded</th>
+            <th>Downloaded</th>
+            <th>Signed up</th>
+            <th>Purchased</th>
+            <th>Upload \u2192 download</th>
+            <th>Download \u2192 paid</th>
+          </tr>
+        </thead>
+        <tbody>
+          {byOrigin.map((row) => (
+            <tr key={row.origin ?? DIRECT_ORIGIN_LABEL}>
+              <td>{originLabel(row.origin)}</td>
+              <td className={styles.numeric}>
+                {formatCount(row.stages.upload_started)}
+              </td>
+              <td className={styles.numeric}>
+                {formatCount(row.stages.deck_downloaded)}
+              </td>
+              <td className={styles.numeric}>
+                {formatCount(row.stages.signup)}
+              </td>
+              <td className={styles.numeric}>{formatCount(row.stages.paid)}</td>
+              <td className={styles.numeric}>
+                {formatRate(row.upload_to_download_rate_pct)}
+              </td>
+              <td className={styles.numeric}>
+                {formatRate(row.download_to_paid_rate_pct)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
 export function formatCount(n: number): string {
   if (n < 10000) {
@@ -183,6 +242,12 @@ export default function UploadFunnelTab() {
               </div>
             ))}
           </div>
+
+          <p className={styles.panelSubtitle}>
+            By origin — where each identity first arrived (attributed from the
+            first-touch cookie), ordered by upload volume.
+          </p>
+          {renderOriginRows(data?.by_origin ?? [])}
         </>
       )}
 
