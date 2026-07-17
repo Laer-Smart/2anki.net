@@ -1,6 +1,7 @@
 import type {
   IEventsRepository,
   UploadFunnelStageRow,
+  UploadFunnelStageByOriginRow,
 } from '../../data_layer/EventsRepository';
 
 export interface UploadFunnelStages {
@@ -13,11 +14,20 @@ export interface UploadFunnelStages {
   paid: number;
 }
 
-export interface UploadFunnelResponse {
-  stages: UploadFunnelStages | null;
+export interface UploadFunnelRates {
   upload_to_download_rate_pct: number;
   download_to_signup_rate_pct: number;
   download_to_paid_rate_pct: number;
+}
+
+export interface UploadFunnelOriginBreakdown extends UploadFunnelRates {
+  origin: string | null;
+  stages: UploadFunnelStages;
+}
+
+export interface UploadFunnelResponse extends UploadFunnelRates {
+  stages: UploadFunnelStages | null;
+  by_origin: UploadFunnelOriginBreakdown[];
   since: string;
   as_of: string;
   error?: string;
@@ -39,11 +49,16 @@ export class UploadFunnelService {
     const sinceStr = since.toISOString();
 
     let rows: UploadFunnelStageRow[];
+    let originRows: UploadFunnelStageByOriginRow[];
     try {
-      rows = await this.eventsRepo.groupUploadFunnel(since);
+      [rows, originRows] = await Promise.all([
+        this.eventsRepo.groupUploadFunnel(since),
+        this.eventsRepo.groupUploadFunnelByOrigin(since),
+      ]);
     } catch (err) {
       return {
         stages: null,
+        by_origin: [],
         upload_to_download_rate_pct: 0,
         download_to_signup_rate_pct: 0,
         download_to_paid_rate_pct: 0,
@@ -54,24 +69,11 @@ export class UploadFunnelService {
     }
 
     const stages = this.toStages(rows);
-    const upload_to_download_rate_pct =
-      stages.upload_started > 0
-        ? (stages.deck_downloaded / stages.upload_started) * 100
-        : 0;
-    const download_to_signup_rate_pct =
-      stages.deck_downloaded > 0
-        ? (stages.signup / stages.deck_downloaded) * 100
-        : 0;
-    const download_to_paid_rate_pct =
-      stages.deck_downloaded > 0
-        ? (stages.paid / stages.deck_downloaded) * 100
-        : 0;
 
     return {
       stages,
-      upload_to_download_rate_pct,
-      download_to_signup_rate_pct,
-      download_to_paid_rate_pct,
+      by_origin: this.toOriginBreakdowns(originRows),
+      ...computeRates(stages),
       since: sinceStr,
       as_of,
     };
@@ -92,4 +94,42 @@ export class UploadFunnelService {
       paid: byStage.get('checkout_completed') ?? 0,
     };
   }
+
+  private toOriginBreakdowns(
+    rows: UploadFunnelStageByOriginRow[]
+  ): UploadFunnelOriginBreakdown[] {
+    const byOrigin = new Map<string | null, UploadFunnelStageRow[]>();
+    for (const row of rows) {
+      const bucket = byOrigin.get(row.origin) ?? [];
+      bucket.push({
+        stage: row.stage,
+        distinct_identities: row.distinct_identities,
+      });
+      byOrigin.set(row.origin, bucket);
+    }
+
+    return [...byOrigin.entries()]
+      .map(([origin, stageRows]) => {
+        const stages = this.toStages(stageRows);
+        return { origin, stages, ...computeRates(stages) };
+      })
+      .sort((a, b) => b.stages.upload_started - a.stages.upload_started);
+  }
+}
+
+function computeRates(stages: UploadFunnelStages): UploadFunnelRates {
+  return {
+    upload_to_download_rate_pct:
+      stages.upload_started > 0
+        ? (stages.deck_downloaded / stages.upload_started) * 100
+        : 0,
+    download_to_signup_rate_pct:
+      stages.deck_downloaded > 0
+        ? (stages.signup / stages.deck_downloaded) * 100
+        : 0,
+    download_to_paid_rate_pct:
+      stages.deck_downloaded > 0
+        ? (stages.paid / stages.deck_downloaded) * 100
+        : 0,
+  };
 }

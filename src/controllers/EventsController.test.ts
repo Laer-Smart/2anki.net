@@ -16,19 +16,28 @@ function makeFakeRepository(): IEventsRepository {
     groupPaywallShownByVariantAndSurface: jest.fn(async () => []),
     groupPaywallClicksByVariant: jest.fn(async () => []),
     groupUploadFunnel: jest.fn(async () => []),
+    groupUploadFunnelByOrigin: jest.fn(async () => []),
   };
 }
 
-function buildMocks(opts: { userId?: number | null; anonId?: string | null }) {
+function buildMocks(opts: {
+  userId?: number | null;
+  anonId?: string | null;
+  firstTouch?: string;
+}) {
   const repo = makeFakeRepository();
   const sink = new EventsSink(repo);
   const useCase = new TrackEventUseCase(sink);
   const executeSpy = jest.spyOn(useCase, 'execute');
   const controller = new EventsController(useCase);
 
+  const cookies: Record<string, string> = {};
+  if (opts.anonId != null) cookies.anon_id = opts.anonId;
+  if (opts.firstTouch != null) cookies.first_touch = opts.firstTouch;
+
   const req = {
     body: {},
-    cookies: opts.anonId != null ? { anon_id: opts.anonId } : {},
+    cookies,
   } as unknown as Request;
 
   const res = {
@@ -127,6 +136,38 @@ describe('EventsController', () => {
     controller.track(req, res);
     expect(executeSpy).toHaveBeenCalledWith(
       expect.objectContaining({ unknown: false })
+    );
+  });
+
+  it('attaches signup_origin from the first_touch cookie so anon events segment by origin', () => {
+    const { controller, req, res, executeSpy } = buildMocks({
+      anonId: 'anon-x',
+      firstTouch: JSON.stringify({ landingPath: '/nclex' }),
+    });
+    req.body = { name: 'upload_started' };
+    controller.track(req, res);
+    expect(executeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ props: { signup_origin: '/nclex' } })
+    );
+  });
+
+  it('does not override a client-supplied signup_origin', () => {
+    const { controller, req, res, executeSpy } = buildMocks({
+      firstTouch: JSON.stringify({ landingPath: '/nclex' }),
+    });
+    req.body = { name: 'upload_started', props: { signup_origin: '/mcat' } };
+    controller.track(req, res);
+    expect(executeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ props: { signup_origin: '/mcat' } })
+    );
+  });
+
+  it('leaves props untouched when there is no first_touch cookie', () => {
+    const { controller, req, res, executeSpy } = buildMocks({ anonId: 'a' });
+    req.body = { name: 'upload_started' };
+    controller.track(req, res);
+    expect(executeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ props: {} })
     );
   });
 

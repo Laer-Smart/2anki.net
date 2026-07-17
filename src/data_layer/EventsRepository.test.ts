@@ -220,6 +220,22 @@ describe('EventsRepository SQL generation', () => {
     expect(sql).toContain("'account_created'");
   });
 
+  it('groupUploadFunnelByOrigin groups by the signup_origin jsonb prop and stage', async () => {
+    const { db, getSql } = captureGeneratedSql();
+    const repo = new EventsRepository(db);
+
+    await repo.groupUploadFunnelByOrigin(new Date('2026-05-01'));
+
+    const sql = getSql();
+    expect(sql).toContain("props->>'signup_origin' as origin");
+    expect(sql).toContain('name as stage');
+    expect(sql).toContain(
+      'count(distinct COALESCE(user_id::text, anonymous_id)) as distinct_identities'
+    );
+    expect(sql).toContain("group by props->>'signup_origin', name");
+    expect(sql).not.toContain('anonymous_id) as distinct_identities)');
+  });
+
   it('lastEventAt selects the max created_at filtered by name', async () => {
     const { db, getSql } = captureGeneratedSql();
     const repo = new EventsRepository(db);

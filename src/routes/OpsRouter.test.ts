@@ -212,6 +212,20 @@ jest.mock('../data_layer/EventsRepository', () => {
           { stage: 'deck_downloaded', distinct_identities: 60 },
         ]);
       }
+      groupUploadFunnelByOrigin() {
+        return Promise.resolve([
+          {
+            origin: '/nclex',
+            stage: 'upload_started',
+            distinct_identities: 60,
+          },
+          {
+            origin: '/nclex',
+            stage: 'deck_downloaded',
+            distinct_identities: 40,
+          },
+        ]);
+      }
       groupPaywallShownByVariantAndSurface() {
         return Promise.resolve([]);
       }
@@ -392,6 +406,12 @@ describe('OpsRouter /api/ops/upload-funnel', () => {
             deck_downloaded: 60,
           }),
           upload_to_download_rate_pct: 60,
+          by_origin: [
+            expect.objectContaining({
+              origin: '/nclex',
+              upload_to_download_rate_pct: expect.any(Number),
+            }),
+          ],
           since: expect.any(String),
           as_of: expect.any(String),
         })

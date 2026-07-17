@@ -529,7 +529,10 @@ const OpsRouter = () => {
    *       Returns distinct-identity counts for each upload-funnel stage
    *       (upload_started, conversion_succeeded, conversion_failed, deck_downloaded)
    *       keyed by user_id or anonymous_id, plus the true upload-to-download success
-   *       rate. Defaults to the last 30 days; pass ?window=7d|14d|30d|60d|90d.
+   *       rate. `by_origin` repeats the same stages and rates per signup_origin
+   *       (attributed from the first_touch cookie), ordered by upload volume, so
+   *       leaks can be read per acquisition source. Defaults to the last 30 days;
+   *       pass ?window=7d|14d|30d|60d|90d.
    *       Internal endpoint locked to the ops owner — returns 404 for everyone else.
    *     tags: [Ops]
    *     parameters:
