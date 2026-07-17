@@ -129,6 +129,23 @@ function makeUploadFunnel(
       signup: 3100,
       paid: 620,
     },
+    by_origin: [
+      {
+        origin: '/nclex',
+        stages: {
+          upload_started: 8000,
+          conversion_succeeded: 7200,
+          conversion_failed: 200,
+          deck_downloaded: 6600,
+          paywall_shown: 2800,
+          signup: 2100,
+          paid: 480,
+        },
+        upload_to_download_rate_pct: 82.5,
+        download_to_signup_rate_pct: 31.8,
+        download_to_paid_rate_pct: 7.3,
+      },
+    ],
     upload_to_download_rate_pct: 57.8,
     download_to_signup_rate_pct: 30.1,
     download_to_paid_rate_pct: 6.0,
@@ -267,8 +284,10 @@ describe('buildClaudePrompt — upload-funnel', () => {
     expect(prompt).toContain('Upload started:        12450');
     expect(prompt).toContain('Paid:                  620');
     expect(prompt).toContain('Upload → download (%):   57.8');
+    expect(prompt).toContain('Per-origin breakdown (signup_origin)');
+    expect(prompt).toContain('"origin": "/nclex"');
     expect(prompt).toContain(
-      'find the biggest drop-off between stages and propose one fix'
+      'find the biggest drop-off between stages and the origin it hits hardest'
     );
     expect(prompt).toContain('Repo: 2anki/server');
   });

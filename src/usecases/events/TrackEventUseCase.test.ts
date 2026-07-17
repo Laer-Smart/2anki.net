@@ -15,6 +15,7 @@ function makeFakeRepository() {
     groupPaywallShownByVariantAndSurface: jest.fn(async () => []),
     groupPaywallClicksByVariant: jest.fn(async () => []),
     groupUploadFunnel: jest.fn(async () => []),
+    groupUploadFunnelByOrigin: jest.fn(async () => []),
   };
   return { repo, inserted };
 }

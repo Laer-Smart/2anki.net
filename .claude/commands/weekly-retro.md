@@ -30,6 +30,15 @@ For the **total registered users** number (not in `/api/ops/business/metrics`), 
 
 **If any of the above fails**, do not silently skip — record the missing field under "Gaps to close before next retro" in the output.
 
+### 1a. Pull the v2 funnel read (per signup_origin)
+
+This is the "stop flying blind" read — the leak between landing → upload → download → checkout → paid, per acquisition source. Pull it every retro; it answers whether the v2 targets (page→checkout ≥10%, checkout→paid ≥50%) are being hit and which origin leaks.
+
+- **Upload funnel** — `GET /api/ops/upload-funnel?window=7d` (gated by `RequireOpsAccess`). Returns the aggregate `stages` + `upload_to_download_rate_pct` / `download_to_signup_rate_pct` / `download_to_paid_rate_pct`, and `by_origin[]` repeating the same stages and rates per `signup_origin` (attributed from the first_touch cookie, ordered by upload volume). Read `by_origin` to name the worst-converting source.
+- **Landing-page yield** — `GET /api/ops/landing-page-yield?window=30d`. Signups → subscription / pass / paid per `signup_origin` (the post-signup tail).
+
+Same fetch order as section 1 (authenticated curl with `$OPS_COOKIE`, else ask the user to paste, else read off `/ops`). Report one table: per origin, `upload_started → deck_downloaded → account_created → checkout_completed` and the two rate columns. Name the single biggest leak stage and the origin it hits hardest. If the read fails, record it under "Gaps to close before next retro" — do not skip silently.
+
 ## 2. Pull GA4 traffic + engagement (last 7 days vs prior 7 days)
 
 Use the `analytics-mcp` tools against GA4 property `properties/286902985`. Run these reports:
@@ -57,7 +66,7 @@ The data can be distorted by a crawler surge faster than the GA4 admin UI can fi
 
 Two standing checks on the week's merged PRs — both run every retro, both report a number:
 
-- **Work-mix report.** Classify every PR merged in the last 7 days into one of: acquisition (landing, SEO, onboarding, signup/first-conversion friction), monetization (pricing, paywall, retention, billing), core-quality (conversion correctness, performance, reliability of the existing pipeline), new-surface (a distinct new user-facing capability), or process (chore/ci/test/docs/deps). Report the count and share per bucket. **Flag if acquisition < 25%** — that's the bucket the `CLAUDE.md` allocation rule protects, and the only lane that creates users. State the flag in one line in the output.
+- **Work-mix report.** Run the sensor: `npx tsx scripts/work-mix-report.ts` (needs `gh`). It classifies every PR merged in the last 7 days into acquisition (landing, SEO, onboarding, signup/first-conversion friction), monetization (pricing, paywall, retention, billing), core-quality (conversion correctness, performance, reliability of the existing pipeline), new-surface (a distinct new user-facing capability), or process (chore/ci/test/docs/deps); prints the count and share per bucket; and exits non-zero with a `FLAG:` line when **acquisition < 25%** — the bucket the `CLAUDE.md` allocation rule protects, and the only lane that creates users. The classifier is a heuristic decision-aid (`scripts/workMix.ts`) — sanity-check any PR it bucketed wrong before trusting the share, and state the flag in one line in the output.
 - **Treadmill alarm.** Compare the chore+fix share of commits week-over-week against signups and new-paid. **Flag when chore+fix share rises while weekly signups and weekly new-paid are both flat or down** — that pattern is the 2023-25 stagnation signature (busy commit graph, zero acquisition work, no user growth for 36 months). Name it as such when it fires.
 
 ## 6. Write back the business-baseline block in `CLAUDE.md`
@@ -87,7 +96,7 @@ Any DB field, support theme, or GA4 check that was skipped this run goes here so
 
 - Two screens max.
 - Numbers in tables.
-- "Numbers" section (DB) and "Traffic Sources" section (GA4) both required.
+- "Numbers" section (DB), "Funnel by origin" table (section 1a), and "Traffic Sources" section (GA4) all required.
 - Work-mix bucket shares and the treadmill flag are required output, even when nothing is flagged ("acquisition 40% — no flag").
 - Recommendation in one paragraph.
 - Do not list five things. The point of the retro is to force a single decision.

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { KNOWN_EVENTS } from '../types/AnalyticsEvents';
 import { TrackEventUseCase } from '../usecases/events/TrackEventUseCase';
+import { parseFirstTouch } from './helpers/parseFirstTouch';
 
 const PROPS_MAX_BYTES = 1024;
 const EVENT_NAME_MAX_LENGTH = 64;
@@ -45,10 +46,24 @@ export class EventsController {
       ),
       userId,
       anonymousId,
-      props: safeProps,
+      props: this.withSignupOrigin(safeProps, req),
     });
 
     res.status(202).end();
+  }
+
+  private withSignupOrigin(
+    props: Record<string, unknown>,
+    req: Request
+  ): Record<string, unknown> {
+    if (typeof props.signup_origin === 'string') {
+      return props;
+    }
+    const { signupOrigin } = parseFirstTouch(req.cookies?.first_touch);
+    if (signupOrigin == null) {
+      return props;
+    }
+    return { ...props, signup_origin: signupOrigin };
   }
 
   private resolveProps(raw: unknown): Record<string, unknown> | null {

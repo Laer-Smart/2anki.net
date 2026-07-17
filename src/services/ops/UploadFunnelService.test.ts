@@ -2,9 +2,13 @@ import { UploadFunnelService } from './UploadFunnelService';
 import type {
   IEventsRepository,
   UploadFunnelStageRow,
+  UploadFunnelStageByOriginRow,
 } from '../../data_layer/EventsRepository';
 
-function makeRepo(rows: UploadFunnelStageRow[]): IEventsRepository {
+function makeRepo(
+  rows: UploadFunnelStageRow[],
+  originRows: UploadFunnelStageByOriginRow[] = []
+): IEventsRepository {
   return {
     insertEvents: jest.fn(),
     countByName: jest.fn(),
@@ -14,6 +18,7 @@ function makeRepo(rows: UploadFunnelStageRow[]): IEventsRepository {
     groupPaywallShownByVariantAndSurface: jest.fn(),
     groupPaywallClicksByVariant: jest.fn(),
     groupUploadFunnel: jest.fn().mockResolvedValue(rows),
+    groupUploadFunnelByOrigin: jest.fn().mockResolvedValue(originRows),
   };
 }
 
@@ -140,6 +145,47 @@ describe('UploadFunnelService', () => {
 
     expect(result.stages?.upload_started).toBe(0);
     expect(result.upload_to_download_rate_pct).toBe(0);
+  });
+
+  it('breaks the funnel down per signup origin, ordered by upload volume', async () => {
+    const repo = makeRepo(
+      [{ stage: 'upload_started', distinct_identities: 150 }],
+      [
+        { origin: '/nclex', stage: 'upload_started', distinct_identities: 100 },
+        { origin: '/nclex', stage: 'deck_downloaded', distinct_identities: 40 },
+        {
+          origin: '/nclex',
+          stage: 'checkout_completed',
+          distinct_identities: 8,
+        },
+        { origin: '/mcat', stage: 'upload_started', distinct_identities: 50 },
+        { origin: null, stage: 'upload_started', distinct_identities: 25 },
+      ]
+    );
+    const service = new UploadFunnelService({ eventsRepo: repo });
+
+    const result = await service.getMetrics(since);
+
+    expect(result.by_origin.map((b) => b.origin)).toEqual([
+      '/nclex',
+      '/mcat',
+      null,
+    ]);
+    const nclex = result.by_origin[0];
+    expect(nclex.stages.upload_started).toBe(100);
+    expect(nclex.stages.deck_downloaded).toBe(40);
+    expect(nclex.stages.paid).toBe(8);
+    expect(nclex.upload_to_download_rate_pct).toBe(40);
+    expect(nclex.download_to_paid_rate_pct).toBe(20);
+  });
+
+  it('returns an empty per-origin breakdown when there are no events', async () => {
+    const repo = makeRepo([]);
+    const service = new UploadFunnelService({ eventsRepo: repo });
+
+    const result = await service.getMetrics(since);
+
+    expect(result.by_origin).toEqual([]);
   });
 
   it('surfaces a repository error without throwing', async () => {

@@ -28,6 +28,12 @@ export interface UploadFunnelStageRow {
   distinct_identities: number;
 }
 
+export interface UploadFunnelStageByOriginRow {
+  origin: string | null;
+  stage: string;
+  distinct_identities: number;
+}
+
 const UPLOAD_FUNNEL_STAGES = [
   'upload_started',
   'conversion_succeeded',
@@ -56,6 +62,9 @@ export interface IEventsRepository {
     since: Date
   ): Promise<PaywallClicksByVariantRow[]>;
   groupUploadFunnel(since: Date): Promise<UploadFunnelStageRow[]>;
+  groupUploadFunnelByOrigin(
+    since: Date
+  ): Promise<UploadFunnelStageByOriginRow[]>;
 }
 
 export class EventsRepository implements IEventsRepository {
@@ -189,6 +198,43 @@ export class EventsRepository implements IEventsRepository {
       distinct_identities: Number(r.distinct_identities),
     }));
   }
+
+  async groupUploadFunnelByOrigin(
+    since: Date
+  ): Promise<UploadFunnelStageByOriginRow[]> {
+    const rows = (await buildUploadFunnelByOriginQuery(
+      this.database,
+      since
+    )) as Array<{
+      origin: string | null;
+      stage: string;
+      distinct_identities: string | number;
+    }>;
+
+    return rows.map((r) => ({
+      origin: r.origin ?? null,
+      stage: r.stage,
+      distinct_identities: Number(r.distinct_identities),
+    }));
+  }
+}
+
+export function buildUploadFunnelByOriginQuery(
+  database: Knex,
+  since: Date
+): Knex.QueryBuilder {
+  return database('events')
+    .whereIn('name', UPLOAD_FUNNEL_STAGES)
+    .where('created_at', '>=', since)
+    .select(
+      database.raw("props->>'signup_origin' as origin"),
+      database.raw('name as stage'),
+      database.raw(
+        'count(distinct COALESCE(user_id::text, anonymous_id)) as distinct_identities'
+      )
+    )
+    .groupByRaw("props->>'signup_origin', name")
+    .orderByRaw("props->>'signup_origin' nulls last, name");
 }
 
 export default EventsRepository;

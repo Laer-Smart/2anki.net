@@ -14,6 +14,7 @@ function makeFakeRepository() {
     groupPaywallShownByVariantAndSurface: jest.fn(async () => []),
     groupPaywallClicksByVariant: jest.fn(async () => []),
     groupUploadFunnel: jest.fn(async () => []),
+    groupUploadFunnelByOrigin: jest.fn(async () => []),
   };
   return { repo, inserted };
 }
@@ -89,6 +90,7 @@ describe('EventsSink', () => {
       groupPaywallShownByVariantAndSurface: jest.fn(async () => []),
       groupPaywallClicksByVariant: jest.fn(async () => []),
       groupUploadFunnel: jest.fn(async () => []),
+      groupUploadFunnelByOrigin: jest.fn(async () => []),
     };
     const sink = new EventsSink(repo, { flushThreshold: 1 });
     sink.record(baseRow);
