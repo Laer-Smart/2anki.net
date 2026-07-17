@@ -33,12 +33,52 @@ export interface DeckReadyStrings {
   textAttached: string;
 }
 
+export interface ReEngagementStrings {
+  subject: string;
+  title: string;
+  heading: string;
+  body: string;
+  videoCaption: string;
+  bodyPaste: string;
+  bodyReply: string;
+  cta: string;
+  text: string;
+}
+
+export interface InactivityWarningStrings {
+  subject: string;
+  title: string;
+  bodyWithConversion: string;
+  bodyNoConversion: string;
+  passLine: string;
+  cta: string;
+  housekeeping: string;
+  signoff: string;
+}
+
+export interface AbandonedCheckoutStrings {
+  subject: string;
+  title: string;
+  bodyStarted: string;
+  bodySnag: string;
+  cta: string;
+  signoff: string;
+}
+
+export interface CommercialSharedStrings {
+  unsubscribe: string;
+}
+
 export interface EmailStrings {
   resetPassword: ResetPasswordStrings;
   magicLinkLogin: MagicLinkVariantStrings;
   magicLinkReset: MagicLinkVariantStrings;
   magicLinkShared: MagicLinkSharedStrings;
   deckReady: DeckReadyStrings;
+  reEngagement: ReEngagementStrings;
+  inactivityWarning: InactivityWarningStrings;
+  abandonedCheckout: AbandonedCheckoutStrings;
+  commercialShared: CommercialSharedStrings;
 }
 
 export type SupportedEmailLanguage = 'en' | 'de';

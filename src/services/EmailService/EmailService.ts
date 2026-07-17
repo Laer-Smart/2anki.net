@@ -406,15 +406,27 @@ export class EmailService implements IEmailService {
     const domain = process.env.DOMAIN ?? 'https://2anki.net';
     const surveyUrl = `${domain}/feedback/onboarding?uid=${token}`;
     const unsubscribeUrl = `${domain}/unsubscribe?uid=${token}`;
-    const markup = RE_ENGAGEMENT_TEMPLATE.replaceAll('{{name}}', name)
+    const strings = getEmailStrings(await this.resolveLanguage(to));
+    const copy = strings.reEngagement;
+    const markup = RE_ENGAGEMENT_TEMPLATE.replace('{{title}}', copy.title)
+      .replace('{{heading}}', copy.heading)
+      .replace('{{body}}', copy.body)
+      .replace('{{videoCaption}}', copy.videoCaption)
+      .replace('{{bodyPaste}}', copy.bodyPaste)
+      .replace('{{bodyReply}}', copy.bodyReply)
+      .replace('{{cta}}', copy.cta)
+      .replace('{{unsubscribe}}', strings.commercialShared.unsubscribe)
+      .replaceAll('{{name}}', name)
       .replaceAll('{{surveyUrl}}', surveyUrl)
       .replaceAll('{{unsubscribeUrl}}', unsubscribeUrl);
 
     const msg = {
       to,
       from: this.defaultSender,
-      subject: 'Still making cards by hand?',
-      text: `Hi ${name},\n\nYou signed up for 2anki a few days ago but haven't made a deck yet. Typing out flashcards is the slow part — 2anki turns a Notion page or an uploaded file into an Anki deck in under a minute.\n\nPaste a Notion page URL or upload a file at https://2anki.net to try it.\n\nStuck on something? Reply to this email — Alexander reads every one.\n\nTell us what happened: ${surveyUrl}\n\nThe 2anki Team`,
+      subject: copy.subject,
+      text: copy.text
+        .replaceAll('{{name}}', name)
+        .replaceAll('{{surveyUrl}}', surveyUrl),
       html: markup,
       replyTo: 'support@2anki.net',
     };
@@ -433,16 +445,27 @@ export class EmailService implements IEmailService {
     lastConversion?: { deckName: string } | null
   ): Promise<void> {
     const domain = process.env.DOMAIN ?? 'https://2anki.net';
+    const strings = getEmailStrings(await this.resolveLanguage(to));
+    const copy = strings.inactivityWarning;
 
     const hasConversion = lastConversion != null;
     const bodyText = hasConversion
-      ? `Your last deck on 2anki was ${lastConversion.deckName}. If another exam or chapter is coming up, your account is ready — paste a Notion link or drop in a file and you'll have a deck in under a minute.`
-      : `You signed up for 2anki but haven't made a deck yet. When you're ready, paste a Notion link or drop in a file at 2anki.net and you'll have an Anki deck in under a minute.`;
+      ? copy.bodyWithConversion.replace(
+          '{{deckName}}',
+          () => lastConversion.deckName
+        )
+      : copy.bodyNoConversion;
 
     const ctaUrl = `${domain}/r/email?t=${encodeURIComponent(token)}&c=inactivity&to=/upload`;
     const unsubscribeUrl = `${domain}/unsubscribe?uid=${token}`;
 
-    const markup = INACTIVITY_WARNING_TEMPLATE.replace('{{bodyText}}', bodyText)
+    const markup = INACTIVITY_WARNING_TEMPLATE.replace('{{title}}', copy.title)
+      .replace('{{bodyText}}', () => bodyText)
+      .replace('{{passLine}}', copy.passLine)
+      .replace('{{cta}}', copy.cta)
+      .replace('{{housekeeping}}', copy.housekeeping)
+      .replace('{{signoff}}', copy.signoff)
+      .replace('{{unsubscribe}}', strings.commercialShared.unsubscribe)
       .replace('{{ctaUrl}}', ctaUrl)
       .replace('{{unsubscribeUrl}}', unsubscribeUrl);
 
@@ -452,7 +475,7 @@ export class EmailService implements IEmailService {
     const msg = {
       to,
       from: this.defaultSender,
-      subject: 'Your decks on 2anki — still here when you need them',
+      subject: copy.subject,
       text,
       html: markup,
       replyTo: 'support@2anki.net',
@@ -473,16 +496,25 @@ export class EmailService implements IEmailService {
     const domain = process.env.DOMAIN ?? 'https://2anki.net';
     const link = `${domain}/checkout/resume?token=${encodeURIComponent(token)}`;
     const unsubscribeUrl = `${domain}/unsubscribe?uid=${token}`;
+    const strings = getEmailStrings(await this.resolveLanguage(to));
+    const copy = strings.abandonedCheckout;
     const markup = ABANDONED_CHECKOUT_RECOVERY_TEMPLATE.replace(
-      '{{link}}',
-      link
-    ).replace('{{unsubscribeUrl}}', unsubscribeUrl);
+      '{{title}}',
+      copy.title
+    )
+      .replace('{{bodyStarted}}', copy.bodyStarted)
+      .replace('{{bodySnag}}', copy.bodySnag)
+      .replace('{{cta}}', copy.cta)
+      .replace('{{signoff}}', copy.signoff)
+      .replace('{{unsubscribe}}', strings.commercialShared.unsubscribe)
+      .replace('{{link}}', () => link)
+      .replace('{{unsubscribeUrl}}', unsubscribeUrl);
     const $ = cheerio.load(markup);
     const text = $('body').text().replace(/\s+/g, ' ').trim();
     const msg = {
       to,
       from: this.defaultSender,
-      subject: 'Finish your 2anki Unlimited subscription',
+      subject: copy.subject,
       text,
       html: markup,
       replyTo: 'support@2anki.net',
