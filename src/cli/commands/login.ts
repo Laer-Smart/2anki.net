@@ -43,6 +43,13 @@ export async function login(options: LoginOptions = {}): Promise<number> {
     await client.listKeys();
   } catch (e) {
     if (e instanceof ApiError) {
+      if (e.status === 403) {
+        error(
+          'The CLI is invite-only while under development. Request access at ' +
+            `${base.replace(/\/$/, '')}/developers`
+        );
+        return 1;
+      }
       error(`Could not verify the key: ${e.message}`);
       return 1;
     }

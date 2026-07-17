@@ -2,6 +2,10 @@
 
 Turn your notes into Anki decks, using a 2anki API key.
 
+> **Under development · invite-only.** Access is limited to lifetime accounts and
+> people who have been granted developer access. Request access from the
+> [Developers page](https://2anki.net/developers).
+
 ## Install (dev)
 
 From the repo root:
