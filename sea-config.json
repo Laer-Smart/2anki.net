@@ -1,0 +1,5 @@
+{
+  "main": "dist/cli/2anki.cjs",
+  "output": "dist/cli/sea-prep.blob",
+  "disableExperimentalSEAWarning": true
+}

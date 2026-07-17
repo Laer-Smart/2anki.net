@@ -105,6 +105,7 @@ test/artifacts/*.zip
 test/artifacts/*.apkg
 
 dist/*.js
+dist/cli/
 
 # Electron builder
 
