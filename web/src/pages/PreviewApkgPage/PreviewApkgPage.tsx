@@ -192,7 +192,10 @@ export default function PreviewApkgPage({
                 : ''}
               {totalAll === 0
                 ? t('apkg.loadingDeck')
-                : t('apkg.cardsLoaded', { loaded: loadedCount, total: totalAll })}
+                : t('apkg.cardsLoaded', {
+                    loaded: loadedCount,
+                    total: totalAll,
+                  })}
             </>
           )}
         </p>

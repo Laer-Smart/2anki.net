@@ -260,7 +260,9 @@ export default function PrintForm() {
       {state === 'done' && (
         <p className={sharedStyles.notificationSuccess}>
           {t('print.doneMessage')}
-          {cardCount == null ? '' : ` — ${t('print.doneCards', { count: cardCount })}`}
+          {cardCount == null
+            ? ''
+            : ` — ${t('print.doneCards', { count: cardCount })}`}
         </p>
       )}
 

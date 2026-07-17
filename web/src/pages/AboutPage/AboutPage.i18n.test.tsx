@@ -30,9 +30,7 @@ describe('AboutPage in German', () => {
 
   it('keeps the SuperMemo link inside the translated philosophy', () => {
     render(<AboutPage />);
-    expect(
-      screen.getByRole('link', { name: 'SuperMemo' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'SuperMemo' })).toBeInTheDocument();
     expect(
       screen.getByText(/Wir bauen keinen Anki-Ersatz/i)
     ).toBeInTheDocument();

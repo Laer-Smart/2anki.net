@@ -968,7 +968,7 @@ export function MindmapEditor() {
       onBlur={(e) => {
         const text = e.currentTarget.innerText;
         if (text.trim().length === 0) {
-          e.currentTarget.innerText = (map?.title ?? t('mindmaps.untitled'));
+          e.currentTarget.innerText = map?.title ?? t('mindmaps.untitled');
           return;
         }
         commitTitle(text);
@@ -979,7 +979,7 @@ export function MindmapEditor() {
           e.currentTarget.blur();
         } else if (e.key === 'Escape') {
           e.preventDefault();
-          e.currentTarget.innerText = (map?.title ?? t('mindmaps.untitled'));
+          e.currentTarget.innerText = map?.title ?? t('mindmaps.untitled');
           e.currentTarget.blur();
         }
         e.stopPropagation();
@@ -990,7 +990,7 @@ export function MindmapEditor() {
           : styles.sidebarTitle
       }
     >
-      {(map?.title ?? t('mindmaps.untitled'))}
+      {map?.title ?? t('mindmaps.untitled')}
     </h2>
   );
 

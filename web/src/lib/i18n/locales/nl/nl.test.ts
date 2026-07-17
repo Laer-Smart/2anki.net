@@ -34,7 +34,11 @@ const PAIRS: Array<[string, Namespace, Namespace]> = [
   ['tools', enTools, nlTools],
 ];
 
-function flatten(value: JsonValue, prefix = '', out: Record<string, string> = {}): Record<string, string> {
+function flatten(
+  value: JsonValue,
+  prefix = '',
+  out: Record<string, string> = {}
+): Record<string, string> {
   if (typeof value === 'string') {
     out[prefix] = value;
     return out;
@@ -52,16 +56,21 @@ function placeholders(text: string): string[] {
 
 describe('Dutch (nl) locale parity', () => {
   it.each(PAIRS)('%s has exactly the same keys as English', (_name, en, nl) => {
-    expect(Object.keys(flatten(nl)).sort()).toEqual(Object.keys(flatten(en)).sort());
+    expect(Object.keys(flatten(nl)).sort()).toEqual(
+      Object.keys(flatten(en)).sort()
+    );
   });
 
-  it.each(PAIRS)('%s keeps every interpolation placeholder intact', (_name, en, nl) => {
-    const flatEn = flatten(en);
-    const flatNl = flatten(nl);
-    for (const key of Object.keys(flatEn)) {
-      expect(placeholders(flatNl[key])).toEqual(placeholders(flatEn[key]));
+  it.each(PAIRS)(
+    '%s keeps every interpolation placeholder intact',
+    (_name, en, nl) => {
+      const flatEn = flatten(en);
+      const flatNl = flatten(nl);
+      for (const key of Object.keys(flatEn)) {
+        expect(placeholders(flatNl[key])).toEqual(placeholders(flatEn[key]));
+      }
     }
-  });
+  );
 
   it('translates the overwhelming majority of values away from English', () => {
     let total = 0;

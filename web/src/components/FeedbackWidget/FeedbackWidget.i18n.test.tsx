@@ -21,8 +21,6 @@ describe('FeedbackWidget in German', () => {
   it('translates the prompt and rating labels', () => {
     render(<FeedbackWidget page="about" />);
     expect(screen.getByText('Wie ist deine Erfahrung?')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Wütend' })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Wütend' })).toBeInTheDocument();
   });
 });

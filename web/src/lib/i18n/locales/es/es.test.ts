@@ -62,18 +62,21 @@ describe('Spanish locale', () => {
     expect(flatKeys(es).sort()).toEqual(flatKeys(en).sort());
   });
 
-  it.each(namespaces)('%s preserves interpolation placeholders', (_name, en, es) => {
-    const enLeaves = new Map(leafPairs(en));
-    for (const [key, esValue] of leafPairs(es)) {
-      const enValue = enLeaves.get(key);
-      if (enValue == null) {
-        continue;
+  it.each(namespaces)(
+    '%s preserves interpolation placeholders',
+    (_name, en, es) => {
+      const enLeaves = new Map(leafPairs(en));
+      for (const [key, esValue] of leafPairs(es)) {
+        const enValue = enLeaves.get(key);
+        if (enValue == null) {
+          continue;
+        }
+        const enTokens = (enValue.match(/{{\s*[\w]+\s*}}/g) ?? []).sort();
+        const esTokens = (esValue.match(/{{\s*[\w]+\s*}}/g) ?? []).sort();
+        expect(esTokens, `placeholders differ at ${key}`).toEqual(enTokens);
       }
-      const enTokens = (enValue.match(/{{\s*[\w]+\s*}}/g) ?? []).sort();
-      const esTokens = (esValue.match(/{{\s*[\w]+\s*}}/g) ?? []).sort();
-      expect(esTokens, `placeholders differ at ${key}`).toEqual(enTokens);
     }
-  });
+  );
 
   it.each(namespaces)('%s actually translates most values', (_name, en, es) => {
     const enLeaves = new Map(leafPairs(en));

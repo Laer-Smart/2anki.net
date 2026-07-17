@@ -55,7 +55,11 @@ function baseKeys(value: Json): Set<string> {
   return bases;
 }
 
-function collectLeafEntries(value: unknown, prefix: string, out: Map<string, string>) {
+function collectLeafEntries(
+  value: unknown,
+  prefix: string,
+  out: Map<string, string>
+) {
   if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
     for (const [key, child] of Object.entries(value as Json)) {
       collectLeafEntries(child, prefix ? `${prefix}.${key}` : key, out);
@@ -73,7 +77,9 @@ describe('Polish locale', () => {
     (name) => {
       const { en, pl } = namespaces[name];
       const plBases = baseKeys(pl);
-      const missing = Array.from(baseKeys(en)).filter((key) => !plBases.has(key));
+      const missing = Array.from(baseKeys(en)).filter(
+        (key) => !plBases.has(key)
+      );
       expect(missing).toEqual([]);
     }
   );

@@ -90,9 +90,7 @@ export default function StatusPage() {
               />
               <span className={pageStyles.label}>{t('status.api')}</span>
               <span>
-                {status.api.ok
-                  ? t('status.operational')
-                  : t('status.degraded')}
+                {status.api.ok ? t('status.operational') : t('status.degraded')}
               </span>
             </div>
             <div className={pageStyles.signalRow}>
