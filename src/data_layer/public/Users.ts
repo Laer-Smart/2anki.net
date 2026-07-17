@@ -61,6 +61,8 @@ export default interface Users {
   ankify_access: boolean;
 
   language: string | null;
+
+  developer_access: boolean;
 }
 
 /** Represents the initializer for the table public.users */
@@ -133,6 +135,9 @@ export interface UsersInitializer {
   ankify_access?: boolean;
 
   language?: string | null;
+
+  /** Default value: false */
+  developer_access?: boolean;
 }
 
 /** Represents the mutator for the table public.users */
@@ -192,4 +197,6 @@ export interface UsersMutator {
   ankify_access?: boolean;
 
   language?: string | null;
+
+  developer_access?: boolean;
 }

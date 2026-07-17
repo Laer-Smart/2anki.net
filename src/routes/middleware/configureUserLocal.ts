@@ -1,5 +1,7 @@
 import { Request, Response } from 'express';
-import AuthenticationService from '../../services/AuthenticationService';
+import AuthenticationService, {
+  UserWithOwner,
+} from '../../services/AuthenticationService';
 import { Knex } from 'knex';
 import UserPassRepository, {
   IUserPassRepository,
@@ -42,6 +44,47 @@ function resolveStripe() {
   return getStripe();
 }
 
+/**
+ * Populate `res.locals` from a resolved user. Shared by the session-cookie path
+ * (`configureUserLocal`) and the API-key path (`RequireApiKey`) so both produce
+ * an identical locals shape — a new field added here reaches both callers, and
+ * neither can silently drift and break a downstream quota/paying check.
+ */
+export async function applyUserLocals(
+  res: Response,
+  user: UserWithOwner,
+  authService: AuthenticationService,
+  database: Knex,
+  now?: Date,
+  userPassRepo?: IUserPassRepository
+) {
+  res.locals.owner = user.owner;
+  res.locals.email = user.email;
+  res.locals.patreon = user.patreon;
+  res.locals.developer_access = user.developer_access === true;
+  res.locals.chat_consent_at = user.chat_consent_at ?? null;
+  const isSubscriber = await authService.getIsSubscriber(database, user.email);
+  let activePass: UserPass | null = null;
+  if (isSubscriber) {
+    res.locals.subscriber = true;
+  } else {
+    const passRepo = userPassRepo ?? new UserPassRepository(database);
+    activePass = await passRepo.findActive(user.owner, now ?? new Date());
+    res.locals.subscriber = activePass != null;
+    res.locals.passExpiresAt = activePass?.expires_at.toISOString() ?? null;
+    res.locals.passKind = activePass?.kind ?? null;
+  }
+  res.locals.planSource = resolvePlanSource(
+    isSubscriber,
+    activePass,
+    user.patreon === true
+  );
+  res.locals.subscriptionInfo = await authService.getSubscriptionInfo(
+    database,
+    user.email
+  );
+}
+
 export async function configureUserLocal(
   req: Request,
   res: Response,
@@ -54,33 +97,7 @@ export async function configureUserLocal(
 ) {
   const user = await authService.getUserFrom(req.cookies.token);
   if (user) {
-    res.locals.owner = user.owner;
-    res.locals.email = user.email;
-    res.locals.patreon = user.patreon;
-    res.locals.chat_consent_at = user.chat_consent_at ?? null;
-    const isSubscriber = await authService.getIsSubscriber(
-      database,
-      user.email
-    );
-    let activePass: UserPass | null = null;
-    if (isSubscriber) {
-      res.locals.subscriber = true;
-    } else {
-      const passRepo = userPassRepo ?? new UserPassRepository(database);
-      activePass = await passRepo.findActive(user.owner, now ?? new Date());
-      res.locals.subscriber = activePass != null;
-      res.locals.passExpiresAt = activePass?.expires_at.toISOString() ?? null;
-      res.locals.passKind = activePass?.kind ?? null;
-    }
-    res.locals.planSource = resolvePlanSource(
-      isSubscriber,
-      activePass,
-      user.patreon === true
-    );
-    res.locals.subscriptionInfo = await authService.getSubscriptionInfo(
-      database,
-      user.email
-    );
+    await applyUserLocals(res, user, authService, database, now, userPassRepo);
     return;
   }
 

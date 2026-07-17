@@ -22,6 +22,9 @@ function buildEmailService(
     sendHostedAnkiAccessRequestEmail: jest
       .fn()
       .mockResolvedValue({ didSend: true }),
+    sendDeveloperAccessRequestEmail: jest
+      .fn()
+      .mockResolvedValue({ didSend: true }),
     sendMagicLinkEmail: jest.fn().mockResolvedValue({ suppressed: false }),
     sendReEngagementEmail: jest.fn().mockResolvedValue(undefined),
     sendInactivityWarningEmail: jest.fn().mockResolvedValue(undefined),

@@ -32,6 +32,7 @@ import notionRouter from './routes/NotionRouter';
 import rulesRouter from './routes/ParserRulesRouter';
 import downloadRouter from './routes/DownloadRouter';
 import apkgRouter from './routes/ApkgRouter';
+import developerRouter from './routes/DeveloperRouter';
 import favoriteRouter from './routes/FavoriteRouter';
 import ankifyRouter from './routes/AnkifyRouter';
 import {
@@ -170,6 +171,7 @@ const serve = async () => {
   app.use(versionRouter());
   app.use(appStoreLinksRouter());
   app.use(uploadRouter());
+  app.use(developerRouter());
   app.use(usersRouter());
   app.use(notionRouter());
   app.use(rulesRouter());

@@ -4,6 +4,7 @@ import path from 'path';
 
 import RequireAllowedOrigin from './middleware/RequireAllowedOrigin';
 import RequireAuthentication from './middleware/RequireAuthentication';
+import { acceptKeyOr } from './middleware/RequireApiKey';
 import RequirePayingJson from './middleware/RequirePayingJson';
 import { normalizeUploadFilenames } from './middleware/normalizeUploadFilenames';
 import UploadController from '../controllers/Upload/UploadController';
@@ -125,8 +126,10 @@ const UploadRouter = () => {
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  router.post('/api/upload/file', RequireAllowedOrigin, (req, res) =>
-    uploadController.file(req, res)
+  router.post(
+    '/api/upload/file',
+    acceptKeyOr(RequireAllowedOrigin),
+    (req, res) => uploadController.file(req, res)
   );
 
   /**
@@ -417,8 +420,10 @@ const UploadRouter = () => {
    *             schema:
    *               $ref: '#/components/schemas/Error'
    */
-  router.get('/api/upload/jobs', RequireAuthentication, (req, res) =>
-    jobController.getJobsByOwner(req, res)
+  router.get(
+    '/api/upload/jobs',
+    acceptKeyOr(RequireAuthentication),
+    (req, res) => jobController.getJobsByOwner(req, res)
   );
 
   /**
