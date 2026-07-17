@@ -1,6 +1,7 @@
 import knex, { Knex } from 'knex';
 
 import { JobsMetricsRepository } from './JobsMetricsRepository';
+import { EMPTY_DECK_FAILURE_REASON } from '../usecases/jobs/jobFailureReason';
 
 async function makeDb(): Promise<Knex> {
   const db = knex({
@@ -183,6 +184,40 @@ describe('JobsMetricsRepository — counts cover the real Notion job types', () 
     expect(rate).toBeCloseTo((2 / 3) * 100, 5);
   });
 
+  it('excludes empty-deck outcomes from the free success-rate denominator', async () => {
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'ed-1',
+      type: 'page',
+      status: 'done',
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'ed-2',
+      type: 'database',
+      status: 'done',
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'ed-3',
+      type: 'page',
+      status: 'failed',
+      job_reason_failure: 'Notion timeout',
+    });
+    await insertJob(db, {
+      owner: 'free-user',
+      object_id: 'ed-4',
+      type: 'page',
+      status: 'failed',
+      job_reason_failure: EMPTY_DECK_FAILURE_REASON,
+    });
+
+    const rate = await repo.computeFreeSuccessRate7d(sevenDaysAgo);
+
+    // 2 done, 1 technical failure, 1 empty-deck excluded -> 2/3, not 2/4.
+    expect(rate).toBeCloseTo((2 / 3) * 100, 5);
+  });
+
   it('counts monthly-limit plan blocks per tier', async () => {
     await insertJob(db, {
       owner: 'free-user',
@@ -345,6 +380,17 @@ describe('JobsMetricsRepository — tier join emits portable SQL on Postgres', (
     const sql = getSql();
     expect(sql).toContain('NOT LIKE');
     expect(sql).toContain('"code":"monthly_limit"');
+  });
+
+  it('keeps empty-deck outcomes out of the success-rate denominator', async () => {
+    const getSql = captureCompiledSql(pg);
+    const repo = new JobsMetricsRepository(pg);
+    const sevenDaysAgo = new Date('2026-05-01T00:00:00.000Z');
+
+    await repo.computeFreeSuccessRate7d(sevenDaysAgo).catch(() => undefined);
+
+    const sql = getSql();
+    expect(sql).toContain('No cards in this deck yet.');
   });
 
   it('matches plan-limit failures on the durable reason code for the blocked count', async () => {
