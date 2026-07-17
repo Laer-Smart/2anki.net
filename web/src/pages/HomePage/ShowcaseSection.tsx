@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useShowcase } from './useShowcase';
 import { ShowcaseBlock } from '../../lib/backend/getShowcase';
 import { CardFrame } from '../PreviewApkgPage/CardFrame';
@@ -41,6 +42,7 @@ function NotionBlock({
 }
 
 export function ShowcaseSection() {
+  const { t } = useTranslation();
   const { data } = useShowcase();
   const [cardIndex, setCardIndex] = useState(0);
 
@@ -55,7 +57,7 @@ export function ShowcaseSection() {
   return (
     <section className={styles.showcaseSection}>
       <div className={styles.showcaseInner}>
-        <p className={styles.showcaseHeading}>See it in action</p>
+        <p className={styles.showcaseHeading}>{t('home.showcase.heading')}</p>
         <div className={styles.showcaseGrid}>
           <div className={styles.showcaseColumn}>
             <p className={styles.columnLabel}>Notion</p>
@@ -79,7 +81,7 @@ export function ShowcaseSection() {
                   className={styles.carouselBtn}
                   onClick={() => setCardIndex((i) => i - 1)}
                   disabled={cardIndex === 0}
-                  aria-label="Previous card"
+                  aria-label={t('home.showcase.previousCard')}
                 >
                   ←
                 </button>
@@ -91,7 +93,7 @@ export function ShowcaseSection() {
                   className={styles.carouselBtn}
                   onClick={() => setCardIndex((i) => i + 1)}
                   disabled={cardIndex === totalCards - 1}
-                  aria-label="Next card"
+                  aria-label={t('home.showcase.nextCard')}
                 >
                   →
                 </button>

@@ -49,6 +49,58 @@
       "createAccount": "Maak een account",
       "cardOptions": "Kaartopties",
       "nativeApps": "Ook op iPhone, iPad en Mac →"
+    },
+    "features": {
+      "heading": "Andere manieren om 2anki te gebruiken",
+      "notionToAnki": {
+        "label": "Notion naar Anki",
+        "body": "Zet een Notion-pagina om in een deck — toggles worden kaarten."
+      },
+      "ankiToNotion": {
+        "label": "Anki naar Notion",
+        "body": "Zet een .apkg terug om in een Notion-pagina die je kunt blijven bewerken."
+      },
+      "imageOcclusion": {
+        "label": "Beeldocclusie",
+        "body": "Verberg labels op diagrammen om kaarten te maken."
+      },
+      "photoToDeck": {
+        "label": "Foto naar deck",
+        "body": "Fotografeer een pagina, krijg een deck."
+      },
+      "mindMaps": {
+        "label": "Mindmaps",
+        "body": "Zet een mindmap om in gestructureerde kaarten."
+      },
+      "noteTypes": {
+        "label": "Notitietypen",
+        "body": "Kies hoe de voor- en achterkant van je kaarten eruitzien."
+      },
+      "chat": {
+        "label": "Chat",
+        "body": "Zet je eigen notities om in kaarten met AI."
+      },
+      "print": {
+        "label": "Afdrukken",
+        "body": "Druk je deck af op papier om offline te studeren."
+      },
+      "autoSync": {
+        "label": "Auto Sync",
+        "body": "Houd je Anki-deck synchroon met je Notion-pagina."
+      }
+    },
+    "showcase": {
+      "heading": "Zie het in actie",
+      "previousCard": "Vorige kaart",
+      "nextCard": "Volgende kaart"
+    },
+    "walkthroughs": {
+      "heading": "Uitleg",
+      "ctaBody": "Een video over 2anki gemaakt? Neem contact op en we tonen hem hier gratis.",
+      "cardTitle": "Dien je video in",
+      "showFewer": "▴ Minder tonen",
+      "showAll_one": "▾ {{count}} video tonen",
+      "showAll_other": "▾ Alle {{count}} video's tonen"
     }
   },
   "upload": {

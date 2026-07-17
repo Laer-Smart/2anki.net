@@ -49,6 +49,58 @@
       "createAccount": "Crear una cuenta",
       "cardOptions": "Opciones de tarjeta",
       "nativeApps": "También en iPhone, iPad y Mac →"
+    },
+    "features": {
+      "heading": "Otras formas de usar 2anki",
+      "notionToAnki": {
+        "label": "Notion a Anki",
+        "body": "Convierte una página de Notion en un mazo — los toggles se vuelven tarjetas."
+      },
+      "ankiToNotion": {
+        "label": "Anki a Notion",
+        "body": "Convierte un .apkg de nuevo en una página de Notion que puedes seguir editando."
+      },
+      "imageOcclusion": {
+        "label": "Oclusión de imagen",
+        "body": "Oculta etiquetas en diagramas para crear tarjetas."
+      },
+      "photoToDeck": {
+        "label": "Foto a mazo",
+        "body": "Haz una foto de una página y obtén un mazo."
+      },
+      "mindMaps": {
+        "label": "Mapas mentales",
+        "body": "Convierte un mapa mental en tarjetas estructuradas."
+      },
+      "noteTypes": {
+        "label": "Tipos de nota",
+        "body": "Elige cómo se ven el anverso y el reverso de tus tarjetas."
+      },
+      "chat": {
+        "label": "Chat",
+        "body": "Convierte tus propias notas en tarjetas con IA."
+      },
+      "print": {
+        "label": "Imprimir",
+        "body": "Imprime tu mazo en papel para estudiar sin conexión."
+      },
+      "autoSync": {
+        "label": "Auto Sync",
+        "body": "Mantén tu mazo de Anki sincronizado con tu página de Notion."
+      }
+    },
+    "showcase": {
+      "heading": "Míralo en acción",
+      "previousCard": "Tarjeta anterior",
+      "nextCard": "Tarjeta siguiente"
+    },
+    "walkthroughs": {
+      "heading": "Tutoriales",
+      "ctaBody": "¿Hiciste un vídeo sobre 2anki? Contáctanos y lo mostraremos aquí gratis.",
+      "cardTitle": "Envía tu vídeo",
+      "showFewer": "▴ Mostrar menos",
+      "showAll_one": "▾ Mostrar {{count}} vídeo",
+      "showAll_other": "▾ Mostrar los {{count}} vídeos"
     }
   },
   "upload": {

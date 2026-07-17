@@ -49,6 +49,58 @@
       "createAccount": "Criar uma conta",
       "cardOptions": "Opções de cartão",
       "nativeApps": "Também no iPhone, iPad e Mac →"
+    },
+    "features": {
+      "heading": "Outras formas de usar o 2anki",
+      "notionToAnki": {
+        "label": "Notion para Anki",
+        "body": "Converta uma página do Notion em um baralho — os toggles viram cartões."
+      },
+      "ankiToNotion": {
+        "label": "Anki para Notion",
+        "body": "Converta um .apkg de volta em uma página do Notion que você pode continuar editando."
+      },
+      "imageOcclusion": {
+        "label": "Oclusão de imagem",
+        "body": "Oculte rótulos em diagramas para criar cartões."
+      },
+      "photoToDeck": {
+        "label": "Foto para baralho",
+        "body": "Fotografe uma página e receba um baralho."
+      },
+      "mindMaps": {
+        "label": "Mapas mentais",
+        "body": "Transforme um mapa mental em cartões estruturados."
+      },
+      "noteTypes": {
+        "label": "Tipos de nota",
+        "body": "Escolha como ficam a frente e o verso dos seus cartões."
+      },
+      "chat": {
+        "label": "Chat",
+        "body": "Transforme suas próprias notas em cartões com IA."
+      },
+      "print": {
+        "label": "Imprimir",
+        "body": "Imprima seu baralho em papel para estudar offline."
+      },
+      "autoSync": {
+        "label": "Auto Sync",
+        "body": "Mantenha seu baralho do Anki sincronizado com sua página do Notion."
+      }
+    },
+    "showcase": {
+      "heading": "Veja em ação",
+      "previousCard": "Cartão anterior",
+      "nextCard": "Próximo cartão"
+    },
+    "walkthroughs": {
+      "heading": "Tutoriais",
+      "ctaBody": "Fez um vídeo sobre o 2anki? Fale conosco e o exibiremos aqui de graça.",
+      "cardTitle": "Envie seu vídeo",
+      "showFewer": "▴ Mostrar menos",
+      "showAll_one": "▾ Mostrar {{count}} vídeo",
+      "showAll_other": "▾ Mostrar todos os {{count}} vídeos"
     }
   },
   "upload": {

@@ -59,4 +59,34 @@ describe('HomePage in German', () => {
       screen.getByRole('link', { name: 'Kartenoptionen' })
     ).toBeInTheDocument();
   });
+
+  it('translates the lower-half features heading', () => {
+    renderHome();
+    expect(
+      screen.getByRole('heading', {
+        level: 2,
+        name: 'Weitere Möglichkeiten, 2anki zu nutzen',
+      })
+    ).toBeInTheDocument();
+  });
+
+  it('translates the walkthroughs heading and show-all toggle', () => {
+    renderHome();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Anleitungen' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: '▾ Alle 10 Videos anzeigen' })
+    ).toBeInTheDocument();
+  });
+
+  it('translates a feature card label and body', () => {
+    renderHome();
+    expect(screen.getByText('Notion zu Anki')).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'Wandle eine Notion-Seite in einen Stapel um — Toggles werden zu Karten.'
+      )
+    ).toBeInTheDocument();
+  });
 });

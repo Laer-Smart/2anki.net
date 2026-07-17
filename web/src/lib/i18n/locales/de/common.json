@@ -49,6 +49,58 @@
       "createAccount": "Konto erstellen",
       "cardOptions": "Kartenoptionen",
       "nativeApps": "Auch auf iPhone, iPad & Mac →"
+    },
+    "features": {
+      "heading": "Weitere Möglichkeiten, 2anki zu nutzen",
+      "notionToAnki": {
+        "label": "Notion zu Anki",
+        "body": "Wandle eine Notion-Seite in einen Stapel um — Toggles werden zu Karten."
+      },
+      "ankiToNotion": {
+        "label": "Anki zu Notion",
+        "body": "Verwandle eine .apkg zurück in eine Notion-Seite, die du weiter bearbeiten kannst."
+      },
+      "imageOcclusion": {
+        "label": "Bildausblendung",
+        "body": "Blende Beschriftungen auf Diagrammen aus, um Karten zu erstellen."
+      },
+      "photoToDeck": {
+        "label": "Foto zu Stapel",
+        "body": "Fotografiere eine Seite, erhalte einen Stapel."
+      },
+      "mindMaps": {
+        "label": "Mindmaps",
+        "body": "Verwandle eine Mindmap in strukturierte Karten."
+      },
+      "noteTypes": {
+        "label": "Notiztypen",
+        "body": "Wähle, wie Vorder- und Rückseite deiner Karten aussehen."
+      },
+      "chat": {
+        "label": "Chat",
+        "body": "Verwandle deine eigenen Notizen mit KI in Karten."
+      },
+      "print": {
+        "label": "Drucken",
+        "body": "Drucke deinen Stapel auf Papier zum Lernen offline."
+      },
+      "autoSync": {
+        "label": "Auto-Sync",
+        "body": "Halte deinen Anki-Stapel mit deiner Notion-Seite synchron."
+      }
+    },
+    "showcase": {
+      "heading": "So sieht es aus",
+      "previousCard": "Vorherige Karte",
+      "nextCard": "Nächste Karte"
+    },
+    "walkthroughs": {
+      "heading": "Anleitungen",
+      "ctaBody": "Ein Video über 2anki gemacht? Kontaktiere uns und wir zeigen es hier kostenlos.",
+      "cardTitle": "Video einreichen",
+      "showFewer": "▴ Weniger anzeigen",
+      "showAll_one": "▾ {{count}} Video anzeigen",
+      "showAll_other": "▾ Alle {{count}} Videos anzeigen"
     }
   },
   "upload": {

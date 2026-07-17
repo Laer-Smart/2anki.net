@@ -49,6 +49,58 @@
       "createAccount": "Create an account",
       "cardOptions": "Card options",
       "nativeApps": "Also on iPhone, iPad & Mac →"
+    },
+    "features": {
+      "heading": "Other ways to use 2anki",
+      "notionToAnki": {
+        "label": "Notion to Anki",
+        "body": "Convert a Notion page into a deck — toggles become cards."
+      },
+      "ankiToNotion": {
+        "label": "Anki to Notion",
+        "body": "Turn an .apkg back into a Notion page you can keep editing."
+      },
+      "imageOcclusion": {
+        "label": "Image occlusion",
+        "body": "Mask labels on diagrams to make cards."
+      },
+      "photoToDeck": {
+        "label": "Photo to deck",
+        "body": "Snap a page, get a deck."
+      },
+      "mindMaps": {
+        "label": "Mind maps",
+        "body": "Turn a mind map into structured cards."
+      },
+      "noteTypes": {
+        "label": "Note types",
+        "body": "Pick how the front and back of your cards look."
+      },
+      "chat": {
+        "label": "Chat",
+        "body": "Turn your own notes into cards with AI."
+      },
+      "print": {
+        "label": "Print",
+        "body": "Print your deck on paper for offline study."
+      },
+      "autoSync": {
+        "label": "Auto Sync",
+        "body": "Keep your Anki deck in sync with your Notion page."
+      }
+    },
+    "showcase": {
+      "heading": "See it in action",
+      "previousCard": "Previous card",
+      "nextCard": "Next card"
+    },
+    "walkthroughs": {
+      "heading": "Walkthroughs",
+      "ctaBody": "Made a video about 2anki? Contact us and we will feature it here for free.",
+      "cardTitle": "Submit your video",
+      "showFewer": "▴ Show fewer",
+      "showAll_one": "▾ Show {{count}} video",
+      "showAll_other": "▾ Show all {{count}} videos"
     }
   },
   "upload": {

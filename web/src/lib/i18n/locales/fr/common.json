@@ -49,6 +49,58 @@
       "createAccount": "Créer un compte",
       "cardOptions": "Options de carte",
       "nativeApps": "Aussi sur iPhone, iPad et Mac →"
+    },
+    "features": {
+      "heading": "Autres façons d'utiliser 2anki",
+      "notionToAnki": {
+        "label": "Notion vers Anki",
+        "body": "Convertis une page Notion en paquet — les toggles deviennent des cartes."
+      },
+      "ankiToNotion": {
+        "label": "Anki vers Notion",
+        "body": "Reconvertis un .apkg en une page Notion que tu peux continuer à modifier."
+      },
+      "imageOcclusion": {
+        "label": "Occlusion d'image",
+        "body": "Masque les étiquettes des schémas pour créer des cartes."
+      },
+      "photoToDeck": {
+        "label": "Photo vers paquet",
+        "body": "Photographie une page, obtiens un paquet."
+      },
+      "mindMaps": {
+        "label": "Cartes mentales",
+        "body": "Transforme une carte mentale en cartes structurées."
+      },
+      "noteTypes": {
+        "label": "Types de note",
+        "body": "Choisis l'apparence du recto et du verso de tes cartes."
+      },
+      "chat": {
+        "label": "Chat",
+        "body": "Transforme tes propres notes en cartes avec l'IA."
+      },
+      "print": {
+        "label": "Imprimer",
+        "body": "Imprime ton paquet sur papier pour réviser hors ligne."
+      },
+      "autoSync": {
+        "label": "Auto Sync",
+        "body": "Garde ton paquet Anki synchronisé avec ta page Notion."
+      }
+    },
+    "showcase": {
+      "heading": "Regarde-le en action",
+      "previousCard": "Carte précédente",
+      "nextCard": "Carte suivante"
+    },
+    "walkthroughs": {
+      "heading": "Tutoriels",
+      "ctaBody": "Tu as fait une vidéo sur 2anki ? Contacte-nous et nous la présenterons ici gratuitement.",
+      "cardTitle": "Propose ta vidéo",
+      "showFewer": "▴ Afficher moins",
+      "showAll_one": "▾ Afficher {{count}} vidéo",
+      "showAll_other": "▾ Afficher les {{count}} vidéos"
     }
   },
   "upload": {

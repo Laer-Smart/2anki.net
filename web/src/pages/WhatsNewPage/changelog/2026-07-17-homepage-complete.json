@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-17-homepage-complete",
+  "date": "2026-07-17",
+  "type": "fix",
+  "title": "The whole homepage now translates when you switch language, not just the top"
+}
