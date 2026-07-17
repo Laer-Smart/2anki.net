@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "mainNavigation": "navigazione principale",
+    "menu": "menu",
+    "logoAlt": "Logo 2anki",
+    "openNavigation": "Apri navigazione",
+    "home": "Home 2anki"
+  },
+  "theme": {
+    "appearance": "Aspetto",
+    "group": "Tema",
+    "light": "Tema chiaro",
+    "dark": "Tema scuro",
+    "gold": "Tema oro",
+    "purple": "Tema viola",
+    "hotpink": "Tema rosa acceso",
+    "cycle": "Cambia tema"
+  },
+  "noteType": {
+    "yourNoteTypes": "I tuoi tipi di nota",
+    "officialTemplates": "Modelli ufficiali 2anki",
+    "starterNoteTypes": "Tipi di nota per iniziare",
+    "custom": "{{value}} (personalizzato)"
+  },
+  "fieldMapping": {
+    "summary": "Corrispondenza dei campi",
+    "hint": "Indica all'IA cosa mettere in ogni campo del tuo modello di carta. Lascia un campo vuoto per far decidere l'IA.",
+    "placeholder": "Cosa va in {{field}}?"
+  },
+  "cloze": {
+    "previewAlt": "Anteprima: ogni carta nasconde una riga dell'elenco",
+    "caption": "5 righe diventano 5 carte — ognuna ne nasconde una"
+  },
+  "textColor": {
+    "label": "Colore del testo",
+    "description": "Imposta il colore del testo sulle carte generate. Il valore predefinito segue il tema di Anki, così resta leggibile in modalità chiara e scura."
+  },
+  "textAlign": {
+    "label": "Allineamento del testo",
+    "description": "Imposta l'allineamento del testo sulle carte generate. Il valore predefinito mantiene l'allineamento del modello — scegli Sinistra per adattarlo al testo di Notion."
+  },
+  "fontSize": {
+    "label": "Dimensione del carattere",
+    "description": "Controlla la dimensione base del carattere sulle carte generate. Intervallo: 10–100 px."
+  },
+  "fieldHint": {
+    "hide": "Nascondi descrizione"
+  },
+  "whatsNew": {
+    "title": "Novità",
+    "subtitle": "Tutto ciò che abbiamo rilasciato, dal più recente.",
+    "ratingPrompt": "Come ti trovi con 2anki?",
+    "reportIssue": "Segnala un problema →",
+    "empty": "Ancora niente rilasciato.",
+    "badgeNew": "Nuovo",
+    "badgeFix": "Correzione",
+    "badgeDesign": "Design"
+  }
+}

@@ -1,11 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { FieldHint } from './FieldHint';
 import sharedStyles from '../styles/shared.module.css';
 import fontStyles from './FontSizePicker.module.css';
 import fieldStyles from './CardOptionsForm/CardOptionsForm.module.css';
 import { TEXT_ALIGN_OPTIONS } from '../lib/textAlignOptions';
-
-const DESCRIPTION =
-  'Sets the text alignment on your generated cards. Default keeps the template alignment — pick Left to match your Notion prose.';
 
 interface TextAlignPickerDelegate {
   textAlign: string;
@@ -14,20 +12,22 @@ interface TextAlignPickerDelegate {
 
 function TextAlignPicker(delegate: Readonly<TextAlignPickerDelegate>) {
   const { textAlign, pickedTextAlign } = delegate;
+  const { t } = useTranslation('chrome');
+  const label = t('textAlign.label');
 
   return (
     <div className={sharedStyles.flexColumn}>
       <div className={fontStyles.labelRow}>
         <label htmlFor="text-align">
-          <strong>Text alignment</strong>
+          <strong>{label}</strong>
         </label>
-        <FieldHint text={DESCRIPTION} />
+        <FieldHint text={t('textAlign.description')} />
       </div>
       <div
         id="text-align"
         className={fieldStyles.segmented}
         role="group"
-        aria-label="Text alignment"
+        aria-label={label}
       >
         {TEXT_ALIGN_OPTIONS.map(({ key, label, value }) => {
           const isSelected = textAlign === value;

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './OverlappingClozePreview.module.css';
 
 type OverlappingClozeStyle = 'show-all' | 'windowed';
@@ -63,6 +64,7 @@ function Frame({
 export function OverlappingClozePreview({
   style,
 }: Readonly<OverlappingClozePreviewProps>) {
+  const { t } = useTranslation('chrome');
   const [reducedMotion, setReducedMotion] = useState(false);
 
   useEffect(() => {
@@ -75,7 +77,7 @@ export function OverlappingClozePreview({
     <span
       className={styles.preview}
       role="img"
-      aria-label="Preview: each card hides one line of the list"
+      aria-label={t('cloze.previewAlt')}
     >
       <span className={styles.deck} aria-hidden>
         {hiddenIndices.map((hiddenIndex, position) => (
@@ -87,9 +89,7 @@ export function OverlappingClozePreview({
           />
         ))}
       </span>
-      <span className={styles.caption}>
-        5 lines become 5 cards — each hides one
-      </span>
+      <span className={styles.caption}>{t('cloze.caption')}</span>
     </span>
   );
 }

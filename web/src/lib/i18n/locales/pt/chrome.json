@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "mainNavigation": "navegação principal",
+    "menu": "menu",
+    "logoAlt": "Logo da 2anki",
+    "openNavigation": "Abrir navegação",
+    "home": "Início da 2anki"
+  },
+  "theme": {
+    "appearance": "Aparência",
+    "group": "Tema",
+    "light": "Tema claro",
+    "dark": "Tema escuro",
+    "gold": "Tema dourado",
+    "purple": "Tema roxo",
+    "hotpink": "Tema rosa vivo",
+    "cycle": "Alternar tema"
+  },
+  "noteType": {
+    "yourNoteTypes": "Seus tipos de nota",
+    "officialTemplates": "Modelos oficiais da 2anki",
+    "starterNoteTypes": "Tipos de nota para começar",
+    "custom": "{{value}} (personalizado)"
+  },
+  "fieldMapping": {
+    "summary": "Mapeamento de campos",
+    "hint": "Diga à IA o que colocar em cada campo do seu modelo de cartão. Deixe um campo vazio para a IA decidir.",
+    "placeholder": "O que vai em {{field}}?"
+  },
+  "cloze": {
+    "previewAlt": "Prévia: cada cartão oculta uma linha da lista",
+    "caption": "5 linhas viram 5 cartões — cada um oculta uma"
+  },
+  "textColor": {
+    "label": "Cor do texto",
+    "description": "Define a cor do texto nos cartões gerados. O padrão segue o tema do Anki, então permanece legível no modo claro e escuro."
+  },
+  "textAlign": {
+    "label": "Alinhamento do texto",
+    "description": "Define o alinhamento do texto nos cartões gerados. O padrão mantém o alinhamento do modelo — escolha Esquerda para combinar com o texto do Notion."
+  },
+  "fontSize": {
+    "label": "Tamanho da fonte",
+    "description": "Controla o tamanho base da fonte nos cartões gerados. Intervalo: 10–100 px."
+  },
+  "fieldHint": {
+    "hide": "Ocultar descrição"
+  },
+  "whatsNew": {
+    "title": "Novidades",
+    "subtitle": "Tudo o que lançamos, do mais recente primeiro.",
+    "ratingPrompt": "Como a 2anki está funcionando para você?",
+    "reportIssue": "Relatar um problema →",
+    "empty": "Nada lançado ainda.",
+    "badgeNew": "Novo",
+    "badgeFix": "Correção",
+    "badgeDesign": "Design"
+  }
+}

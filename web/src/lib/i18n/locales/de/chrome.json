@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "mainNavigation": "Hauptnavigation",
+    "menu": "Menü",
+    "logoAlt": "2anki Logo",
+    "openNavigation": "Navigation öffnen",
+    "home": "2anki Startseite"
+  },
+  "theme": {
+    "appearance": "Darstellung",
+    "group": "Farbschema",
+    "light": "Helles Design",
+    "dark": "Dunkles Design",
+    "gold": "Goldenes Design",
+    "purple": "Lila Design",
+    "hotpink": "Pinkes Design",
+    "cycle": "Design wechseln"
+  },
+  "noteType": {
+    "yourNoteTypes": "Deine Notiztypen",
+    "officialTemplates": "Offizielle 2anki-Vorlagen",
+    "starterNoteTypes": "Einsteiger-Notiztypen",
+    "custom": "{{value}} (eigen)"
+  },
+  "fieldMapping": {
+    "summary": "Feldzuordnung",
+    "hint": "Sag der KI, was in jedes Feld deiner Kartenvorlage soll. Lass ein Feld leer, damit die KI entscheidet.",
+    "placeholder": "Was kommt in {{field}}?"
+  },
+  "cloze": {
+    "previewAlt": "Vorschau: Jede Karte verdeckt eine Zeile der Liste",
+    "caption": "5 Zeilen werden zu 5 Karten – jede verdeckt eine"
+  },
+  "textColor": {
+    "label": "Textfarbe",
+    "description": "Legt die Textfarbe auf deinen erstellten Karten fest. Standard folgt dem Anki-Design und bleibt so im hellen und dunklen Modus lesbar."
+  },
+  "textAlign": {
+    "label": "Textausrichtung",
+    "description": "Legt die Textausrichtung auf deinen erstellten Karten fest. Standard behält die Ausrichtung der Vorlage – wähle Links, um deiner Notion-Prosa zu entsprechen."
+  },
+  "fontSize": {
+    "label": "Schriftgröße",
+    "description": "Steuert die Basis-Schriftgröße deiner erstellten Karten. Bereich: 10–100 px."
+  },
+  "fieldHint": {
+    "hide": "Beschreibung ausblenden"
+  },
+  "whatsNew": {
+    "title": "Was ist neu",
+    "subtitle": "Alles, was wir veröffentlicht haben, das Neueste zuerst.",
+    "ratingPrompt": "Wie läuft 2anki für dich?",
+    "reportIssue": "Problem melden →",
+    "empty": "Noch nichts veröffentlicht.",
+    "badgeNew": "Neu",
+    "badgeFix": "Fix",
+    "badgeDesign": "Design"
+  }
+}

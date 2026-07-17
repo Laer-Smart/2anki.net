@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import type {
   FieldMapping,
   FieldMappingEntry,
@@ -11,6 +12,8 @@ interface Props {
 }
 
 export function FieldMappingPanel({ mapping, onChange }: Readonly<Props>) {
+  const { t } = useTranslation('chrome');
+
   function handleInstructionChange(index: number, value: string) {
     const updatedFields: FieldMappingEntry[] = mapping.fields.map((f, i) =>
       i === index ? { ...f, instruction: value } : f
@@ -21,11 +24,10 @@ export function FieldMappingPanel({ mapping, onChange }: Readonly<Props>) {
   return (
     <div className={fieldStyles.section}>
       <details>
-        <summary className={fieldStyles.detailsSummary}>Field mapping</summary>
-        <p className={fieldStyles.sectionHint}>
-          Tell the AI what to put in each field of your card template. Leave a
-          field blank to let the AI decide.
-        </p>
+        <summary className={fieldStyles.detailsSummary}>
+          {t('fieldMapping.summary')}
+        </summary>
+        <p className={fieldStyles.sectionHint}>{t('fieldMapping.hint')}</p>
         {mapping.fields.map((field, i) => (
           <div key={field.name} className={fieldStyles.section}>
             <div className={fieldStyles.labelRow}>
@@ -40,7 +42,7 @@ export function FieldMappingPanel({ mapping, onChange }: Readonly<Props>) {
               id={`field-mapping-${field.name}`}
               className={fieldStyles.deckInput}
               value={field.instruction}
-              placeholder={`What goes in ${field.name}?`}
+              placeholder={t('fieldMapping.placeholder', { field: field.name })}
               onChange={(e) => handleInstructionChange(i, e.target.value)}
             />
           </div>

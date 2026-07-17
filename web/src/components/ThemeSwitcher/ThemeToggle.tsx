@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { type Theme, applyTheme, getStoredTheme } from '../../lib/theme';
 import styles from './ThemeSwitcher.module.css';
 
@@ -11,6 +12,7 @@ const THEMES: readonly { value: Theme; icon: string }[] = [
 ];
 
 export function ThemeToggle() {
+  const { t } = useTranslation('chrome');
   const [current, setCurrent] = useState<Theme>(getStoredTheme);
 
   function cycle() {
@@ -27,8 +29,8 @@ export function ThemeToggle() {
       type="button"
       className={`${styles.option} ${styles.optionActive}`}
       onClick={cycle}
-      aria-label="Cycle theme"
-      title="Cycle theme"
+      aria-label={t('theme.cycle')}
+      title={t('theme.cycle')}
     >
       {active.icon}
     </button>

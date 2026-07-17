@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "mainNavigation": "main navigation",
+    "menu": "menu",
+    "logoAlt": "2anki Logo",
+    "openNavigation": "Open navigation",
+    "home": "2anki home"
+  },
+  "theme": {
+    "appearance": "Appearance",
+    "group": "Theme",
+    "light": "Light theme",
+    "dark": "Dark theme",
+    "gold": "Gold theme",
+    "purple": "Purple theme",
+    "hotpink": "Hot pink theme",
+    "cycle": "Cycle theme"
+  },
+  "noteType": {
+    "yourNoteTypes": "Your note types",
+    "officialTemplates": "Official 2anki templates",
+    "starterNoteTypes": "Starter note types",
+    "custom": "{{value}} (custom)"
+  },
+  "fieldMapping": {
+    "summary": "Field mapping",
+    "hint": "Tell the AI what to put in each field of your card template. Leave a field blank to let the AI decide.",
+    "placeholder": "What goes in {{field}}?"
+  },
+  "cloze": {
+    "previewAlt": "Preview: each card hides one line of the list",
+    "caption": "5 lines become 5 cards — each hides one"
+  },
+  "textColor": {
+    "label": "Text color",
+    "description": "Sets the text color on your generated cards. Default follows Anki's theme, so it stays readable in light and night mode."
+  },
+  "textAlign": {
+    "label": "Text alignment",
+    "description": "Sets the text alignment on your generated cards. Default keeps the template alignment — pick Left to match your Notion prose."
+  },
+  "fontSize": {
+    "label": "Font size",
+    "description": "Controls the base font size in your generated cards. Range: 10–100 px."
+  },
+  "fieldHint": {
+    "hide": "Hide description"
+  },
+  "whatsNew": {
+    "title": "What's new",
+    "subtitle": "Everything we've shipped, newest first.",
+    "ratingPrompt": "How's 2anki working for you?",
+    "reportIssue": "Report an issue →",
+    "empty": "Nothing shipped yet.",
+    "badgeNew": "New",
+    "badgeFix": "Fix",
+    "badgeDesign": "Design"
+  }
+}

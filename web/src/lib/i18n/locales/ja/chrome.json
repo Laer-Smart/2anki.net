@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "mainNavigation": "メインナビゲーション",
+    "menu": "メニュー",
+    "logoAlt": "2anki ロゴ",
+    "openNavigation": "ナビゲーションを開く",
+    "home": "2anki ホーム"
+  },
+  "theme": {
+    "appearance": "外観",
+    "group": "テーマ",
+    "light": "ライトテーマ",
+    "dark": "ダークテーマ",
+    "gold": "ゴールドテーマ",
+    "purple": "パープルテーマ",
+    "hotpink": "ホットピンクテーマ",
+    "cycle": "テーマを切り替える"
+  },
+  "noteType": {
+    "yourNoteTypes": "あなたのノートタイプ",
+    "officialTemplates": "2anki 公式テンプレート",
+    "starterNoteTypes": "スターターノートタイプ",
+    "custom": "{{value}}（カスタム）"
+  },
+  "fieldMapping": {
+    "summary": "フィールドの割り当て",
+    "hint": "カードテンプレートの各フィールドに何を入れるかを AI に伝えます。フィールドを空欄にすると AI が判断します。",
+    "placeholder": "{{field}} には何を入れますか？"
+  },
+  "cloze": {
+    "previewAlt": "プレビュー：各カードがリストの1行を隠します",
+    "caption": "5行が5枚のカードになり、それぞれが1行を隠します"
+  },
+  "textColor": {
+    "label": "文字色",
+    "description": "生成されるカードの文字色を設定します。デフォルトは Anki のテーマに従うため、ライトモードでもナイトモードでも読みやすく保たれます。"
+  },
+  "textAlign": {
+    "label": "文字の配置",
+    "description": "生成されるカードの文字の配置を設定します。デフォルトはテンプレートの配置を維持します。Notion の文章に合わせるには「左」を選びます。"
+  },
+  "fontSize": {
+    "label": "フォントサイズ",
+    "description": "生成されるカードの基本フォントサイズを制御します。範囲：10〜100 px。"
+  },
+  "fieldHint": {
+    "hide": "説明を隠す"
+  },
+  "whatsNew": {
+    "title": "新着情報",
+    "subtitle": "リリースしたすべて、新しい順に。",
+    "ratingPrompt": "2anki の使い心地はいかがですか？",
+    "reportIssue": "問題を報告する →",
+    "empty": "まだ何もリリースされていません。",
+    "badgeNew": "新機能",
+    "badgeFix": "修正",
+    "badgeDesign": "デザイン"
+  }
+}

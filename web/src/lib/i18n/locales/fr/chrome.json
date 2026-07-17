@@ -1,0 +1,59 @@
+{
+  "nav": {
+    "mainNavigation": "navigation principale",
+    "menu": "menu",
+    "logoAlt": "Logo 2anki",
+    "openNavigation": "Ouvrir la navigation",
+    "home": "Accueil 2anki"
+  },
+  "theme": {
+    "appearance": "Apparence",
+    "group": "Thème",
+    "light": "Thème clair",
+    "dark": "Thème sombre",
+    "gold": "Thème doré",
+    "purple": "Thème violet",
+    "hotpink": "Thème rose vif",
+    "cycle": "Changer de thème"
+  },
+  "noteType": {
+    "yourNoteTypes": "Vos types de notes",
+    "officialTemplates": "Modèles officiels 2anki",
+    "starterNoteTypes": "Types de notes pour débuter",
+    "custom": "{{value}} (personnalisé)"
+  },
+  "fieldMapping": {
+    "summary": "Correspondance des champs",
+    "hint": "Indiquez à l'IA quoi mettre dans chaque champ de votre modèle de carte. Laissez un champ vide pour laisser l'IA décider.",
+    "placeholder": "Que mettre dans {{field}} ?"
+  },
+  "cloze": {
+    "previewAlt": "Aperçu : chaque carte masque une ligne de la liste",
+    "caption": "5 lignes deviennent 5 cartes — chacune en masque une"
+  },
+  "textColor": {
+    "label": "Couleur du texte",
+    "description": "Définit la couleur du texte sur vos cartes générées. La valeur par défaut suit le thème d'Anki, elle reste donc lisible en mode clair et sombre."
+  },
+  "textAlign": {
+    "label": "Alignement du texte",
+    "description": "Définit l'alignement du texte sur vos cartes générées. La valeur par défaut conserve l'alignement du modèle — choisissez Gauche pour correspondre à votre prose Notion."
+  },
+  "fontSize": {
+    "label": "Taille de police",
+    "description": "Contrôle la taille de police de base de vos cartes générées. Plage : 10–100 px."
+  },
+  "fieldHint": {
+    "hide": "Masquer la description"
+  },
+  "whatsNew": {
+    "title": "Nouveautés",
+    "subtitle": "Tout ce que nous avons publié, le plus récent en premier.",
+    "ratingPrompt": "Comment 2anki fonctionne-t-il pour vous ?",
+    "reportIssue": "Signaler un problème →",
+    "empty": "Rien de publié pour l'instant.",
+    "badgeNew": "Nouveau",
+    "badgeFix": "Correctif",
+    "badgeDesign": "Design"
+  }
+}
