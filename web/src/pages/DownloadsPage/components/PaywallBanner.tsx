@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 
 import JobResponse from '../../../schemas/public/JobResponse';
@@ -15,6 +16,7 @@ interface PaywallBannerProps {
 const SEE_ALL_PLANS_HREF = '/pricing?source=paywall-cancel';
 
 export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
+  const { t } = useTranslation('downloadsx');
   const [pending, setPending] = useState(false);
   const upgradeClickedRef = useRef(false);
 
@@ -55,14 +57,9 @@ export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
     inProgressJob?.title != null && inProgressJob.title.trim().length > 0;
 
   return (
-    <section className={styles.banner} aria-label="Upgrade to Unlimited">
-      <h2 className={styles.headline}>
-        One conversion at a time on the free plan
-      </h2>
-      <p className={styles.body}>
-        This conversion was paused so the one you already started can finish.
-        Upgrade to Unlimited to run several at once.
-      </p>
+    <section className={styles.banner} aria-label={t('paywall.ariaLabel')}>
+      <h2 className={styles.headline}>{t('paywall.headline')}</h2>
+      <p className={styles.body}>{t('paywall.body')}</p>
       <div className={styles.actions}>
         <button
           type="button"
@@ -70,31 +67,33 @@ export function PaywallBanner({ inProgressJob }: PaywallBannerProps) {
           onClick={handleUpgrade}
           disabled={pending}
         >
-          {pending ? 'Opening checkout' : 'Upgrade to Unlimited'}
+          {pending ? t('paywall.opening') : t('paywall.upgrade')}
         </button>
         {inProgressJob != null && startedDistance != null && hasTitle && (
           <span className={styles.secondary}>
-            {'Or wait for "'}
-            <span
-              className={styles.jobTitle}
-              title={inProgressJob.title ?? undefined}
-              data-hj-suppress
-            >
-              {inProgressJob.title}
-            </span>
-            {'" to finish — started '}
-            {startedDistance}
-            {'.'}
+            <Trans
+              t={t}
+              i18nKey="paywall.orWaitTitled"
+              values={{ title: inProgressJob.title, time: startedDistance }}
+              components={{
+                jobTitle: (
+                  <span
+                    className={styles.jobTitle}
+                    title={inProgressJob.title ?? undefined}
+                    data-hj-suppress
+                  />
+                ),
+              }}
+            />
           </span>
         )}
         {inProgressJob != null && startedDistance != null && !hasTitle && (
           <span className={styles.secondary}>
-            Or wait for your current conversion to finish — started{' '}
-            {startedDistance}.
+            {t('paywall.orWaitUntitled', { time: startedDistance })}
           </span>
         )}
         <Link className={styles.seeAllPlans} to={SEE_ALL_PLANS_HREF}>
-          See all plans
+          {t('paywall.seeAllPlans')}
         </Link>
       </div>
     </section>

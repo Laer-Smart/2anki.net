@@ -1,0 +1,72 @@
+{
+  "feedback": {
+    "ariaLabel": "Feedback sul mazzo",
+    "dismiss": "Chiudi",
+    "prompt": "Il mazzo è venuto bene?",
+    "yes": "Sì, ha funzionato",
+    "somethingOff": "Qualcosa non andava",
+    "followUpPositive": "Bene che sia venuto giusto. C'è qualcosa che lo migliorerebbe?",
+    "followUpNegative": "Cosa è andato storto?",
+    "placeholderPositive": "Ad esempio: mantenere le mie intestazioni o aggiungere un'etichetta a ogni carta.",
+    "placeholderNegative": "Ad esempio: le immagini non sono arrivate o le carte erano vuote.",
+    "send": "Invia",
+    "skip": "Salta",
+    "sending": "Invio in corso",
+    "received": "Feedback ricevuto.",
+    "error": "Impossibile inviare.",
+    "tryAgain": "Riprova"
+  },
+  "ankify": {
+    "sending": "Invio al tuo Anki…",
+    "createdCount_one": "{{count}} nuova",
+    "createdCount_other": "{{count}} nuove",
+    "updatedCount_one": "{{count}} aggiornata",
+    "updatedCount_other": "{{count}} aggiornate",
+    "sent": "Inviato",
+    "syncedToAnkiWeb": "sincronizzato con AnkiWeb",
+    "syncSkipped": "sincronizzazione con AnkiWeb saltata",
+    "tryAgain": "Riprova",
+    "sendToAnki": "Invia ad Anki",
+    "setupHint": "Configura prima il tuo Anki nella pagina Ankify",
+    "syncFailedTitle": "AnkiWeb non ha accettato la sincronizzazione — apri Anki nel browser e accedi ad AnkiWeb. {{error}}",
+    "sendingTitle": "Stai inviando {{deck}} al tuo Anki ospitato e ad AnkiWeb. Richiede un momento.",
+    "thisDeck": "questo mazzo"
+  },
+  "producer": {
+    "title": "Crei mazzi per altre persone?",
+    "body": "Hai creato molti mazzi. Se li fai per studenti, una classe o clienti, vogliamo sapere cosa ti sarebbe utile. Non c'è ancora un prodotto per questo — stiamo decidendo cosa costruire.",
+    "cta": "Dicci di cosa hai bisogno",
+    "dismiss": "Non ora"
+  },
+  "imageDrop": {
+    "notion_one": "Non è stato possibile scaricare {{count}} immagine e non è in questo mazzo. Il link a essa in Notion è probabilmente scaduto. Converti di nuovo la pagina per provare a recuperarla.",
+    "notion_other": "Non è stato possibile scaricare {{count}} immagini e non sono in questo mazzo. I link a esse in Notion sono probabilmente scaduti. Converti di nuovo la pagina per provare a recuperarle.",
+    "uploadSingleDeck_one": "Non è stato possibile scaricare {{count}} immagine e non è in questo mazzo. Il tuo file rimanda a essa su un altro sito che non siamo riusciti a raggiungere. Salva l'immagine nel file, poi caricalo di nuovo.",
+    "uploadSingleDeck_other": "Non è stato possibile scaricare {{count}} immagini e non sono in questo mazzo. Il tuo file rimanda a esse su altri siti che non siamo riusciti a raggiungere. Salva le immagini nel file, poi caricalo di nuovo.",
+    "uploadMultiDeck_one": "Non è stato possibile scaricare {{count}} immagine e non è nei tuoi mazzi. Il tuo file rimanda a essa su un altro sito che non siamo riusciti a raggiungere. Salva l'immagine nel file, poi caricalo di nuovo.",
+    "uploadMultiDeck_other": "Non è stato possibile scaricare {{count}} immagini e non sono nei tuoi mazzi. Il tuo file rimanda a esse su altri siti che non siamo riusciti a raggiungere. Salva le immagini nel file, poi caricalo di nuovo."
+  },
+  "truncation": {
+    "converted": "Convertiti i primi {{count}} blocchi. Il piano gratuito si ferma qui — <pricingLink>passa a un piano superiore per convertire l'intera pagina</pricingLink>.",
+    "subDeckSkipped": "Le regole dei sottomazzi da interruttori, intestazioni e database si applicano ai piani a pagamento — questo mazzo è stato convertito senza di esse."
+  },
+  "columnsGuessed": {
+    "text": "Non siamo riusciti a capire quali colonne siano la domanda e la risposta, quindi questo mazzo usa <front>{{frontField}}</front> come fronte e <back>{{backField}}</back> come retro. Converti di nuovo il database per scegliere colonne diverse."
+  },
+  "paywall": {
+    "ariaLabel": "Passa a Unlimited",
+    "headline": "Una conversione alla volta con il piano gratuito",
+    "body": "Questa conversione è stata messa in pausa affinché quella già avviata possa terminare. Passa a Unlimited per eseguirne più di una alla volta.",
+    "opening": "Apertura del pagamento",
+    "upgrade": "Passa a Unlimited",
+    "orWaitTitled": "Oppure attendi che \"<jobTitle>{{title}}</jobTitle>\" finisca — iniziata {{time}}.",
+    "orWaitUntitled": "Oppure attendi che la tua conversione in corso finisca — iniziata {{time}}.",
+    "seeAllPlans": "Vedi tutti i piani"
+  },
+  "delete": {
+    "ariaLabel": "elimina"
+  },
+  "jobs": {
+    "deleteInProgress": "Questo lavoro è ancora in corso. Attendi che finisca."
+  }
+}

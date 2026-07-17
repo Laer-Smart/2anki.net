@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import { useUserLocals } from '../../../lib/hooks/useUserLocals';
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function SendToAnkifyButton({ uploadId, filename }: Props) {
+  const { t } = useTranslation('downloadsx');
   const { data } = useUserLocals();
   const hasAccess =
     data?.locals?.patreon === true || data?.autoSyncActive === true;
@@ -32,32 +34,38 @@ export default function SendToAnkifyButton({ uploadId, filename }: Props) {
   const disabled = dispatch.isPending || !hasActive;
 
   const label = (() => {
-    if (dispatch.isPending) return 'Sending to your Anki…';
+    if (dispatch.isPending) return t('ankify.sending');
     if (dispatch.isSuccess) {
       const result = dispatch.data;
       const parts = [];
-      if (result.created > 0) parts.push(`${result.created} new`);
-      if (result.updated > 0) parts.push(`${result.updated} updated`);
-      const counts = parts.length > 0 ? parts.join(', ') : 'Sent';
+      if (result.created > 0)
+        parts.push(t('ankify.createdCount', { count: result.created }));
+      if (result.updated > 0)
+        parts.push(t('ankify.updatedCount', { count: result.updated }));
+      const counts = parts.length > 0 ? parts.join(', ') : t('ankify.sent');
       let sync = '';
       if (result.anki_web_sync === 'synced') {
-        sync = ' · synced to AnkiWeb';
+        sync = ` · ${t('ankify.syncedToAnkiWeb')}`;
       } else if (result.anki_web_sync === 'failed') {
-        sync = ' · AnkiWeb sync skipped';
+        sync = ` · ${t('ankify.syncSkipped')}`;
       }
       return `${counts}${sync}`;
     }
-    if (dispatch.isError) return 'Try again';
-    return 'Send to Anki';
+    if (dispatch.isError) return t('ankify.tryAgain');
+    return t('ankify.sendToAnki');
   })();
 
   const title = (() => {
-    if (!hasActive) return 'Set up your Anki on the Ankify page first';
+    if (!hasActive) return t('ankify.setupHint');
     if (dispatch.isError) return (dispatch.error as Error).message;
     if (dispatch.isSuccess && dispatch.data.anki_web_sync === 'failed') {
-      return `AnkiWeb didn't accept the sync — open Anki in your browser and sign in to AnkiWeb. ${dispatch.data.anki_web_sync_error ?? ''}`;
+      return t('ankify.syncFailedTitle', {
+        error: dispatch.data.anki_web_sync_error ?? '',
+      });
     }
-    return `You're sending ${filename ?? 'this deck'} to your hosted Anki and AnkiWeb. Takes a moment.`;
+    return t('ankify.sendingTitle', {
+      deck: filename ?? t('ankify.thisDeck'),
+    });
   })();
 
   return (

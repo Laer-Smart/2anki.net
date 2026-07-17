@@ -1,0 +1,72 @@
+{
+  "feedback": {
+    "ariaLabel": "Comentarios del mazo",
+    "dismiss": "Cerrar",
+    "prompt": "¿El mazo salió bien?",
+    "yes": "Sí, funcionó",
+    "somethingOff": "Algo no estaba bien",
+    "followUpPositive": "Nos alegra que saliera bien. ¿Hay algo que lo mejoraría?",
+    "followUpNegative": "¿Qué salió mal?",
+    "placeholderPositive": "Por ejemplo: conservar mis encabezados o añadir una etiqueta a cada tarjeta.",
+    "placeholderNegative": "Por ejemplo: las imágenes no aparecieron o las tarjetas estaban vacías.",
+    "send": "Enviar",
+    "skip": "Omitir",
+    "sending": "Enviando",
+    "received": "Comentarios recibidos.",
+    "error": "No se pudo enviar.",
+    "tryAgain": "Intentar de nuevo"
+  },
+  "ankify": {
+    "sending": "Enviando a tu Anki…",
+    "createdCount_one": "{{count}} nueva",
+    "createdCount_other": "{{count}} nuevas",
+    "updatedCount_one": "{{count}} actualizada",
+    "updatedCount_other": "{{count}} actualizadas",
+    "sent": "Enviado",
+    "syncedToAnkiWeb": "sincronizado con AnkiWeb",
+    "syncSkipped": "sincronización con AnkiWeb omitida",
+    "tryAgain": "Intentar de nuevo",
+    "sendToAnki": "Enviar a Anki",
+    "setupHint": "Configura tu Anki primero en la página de Ankify",
+    "syncFailedTitle": "AnkiWeb no aceptó la sincronización — abre Anki en tu navegador e inicia sesión en AnkiWeb. {{error}}",
+    "sendingTitle": "Estás enviando {{deck}} a tu Anki alojado y a AnkiWeb. Tarda un momento.",
+    "thisDeck": "este mazo"
+  },
+  "producer": {
+    "title": "¿Creas mazos para otras personas?",
+    "body": "Has creado muchos mazos. Si los haces para estudiantes, una clase o clientes, queremos saber qué te ayudaría. Todavía no hay un producto para esto — estamos decidiendo qué construir.",
+    "cta": "Dinos qué necesitas",
+    "dismiss": "Ahora no"
+  },
+  "imageDrop": {
+    "notion_one": "No se pudo descargar {{count}} imagen y no está en este mazo. El enlace a ella en Notion probablemente caducó. Convierte la página de nuevo para intentar obtenerla.",
+    "notion_other": "No se pudieron descargar {{count}} imágenes y no están en este mazo. Los enlaces a ellas en Notion probablemente caducaron. Convierte la página de nuevo para intentar obtenerlas.",
+    "uploadSingleDeck_one": "No se pudo descargar {{count}} imagen y no está en este mazo. Tu archivo enlaza a ella en otro sitio que no pudimos alcanzar. Guarda la imagen en el archivo y súbelo de nuevo.",
+    "uploadSingleDeck_other": "No se pudieron descargar {{count}} imágenes y no están en este mazo. Tu archivo enlaza a ellas en otros sitios que no pudimos alcanzar. Guarda las imágenes en el archivo y súbelo de nuevo.",
+    "uploadMultiDeck_one": "No se pudo descargar {{count}} imagen y no está en tus mazos. Tu archivo enlaza a ella en otro sitio que no pudimos alcanzar. Guarda la imagen en el archivo y súbelo de nuevo.",
+    "uploadMultiDeck_other": "No se pudieron descargar {{count}} imágenes y no están en tus mazos. Tu archivo enlaza a ellas en otros sitios que no pudimos alcanzar. Guarda las imágenes en el archivo y súbelo de nuevo."
+  },
+  "truncation": {
+    "converted": "Se convirtieron los primeros {{count}} bloques. El plan gratuito se detiene ahí — <pricingLink>mejora tu plan para convertir toda la página</pricingLink>.",
+    "subDeckSkipped": "Las reglas de submazos de alternadores, encabezados y bases de datos se aplican en los planes de pago — este mazo se convirtió sin ellas."
+  },
+  "columnsGuessed": {
+    "text": "No pudimos saber qué columnas son la pregunta y la respuesta, así que este mazo usa <front>{{frontField}}</front> como anverso y <back>{{backField}}</back> como reverso. Convierte la base de datos de nuevo para elegir otras columnas."
+  },
+  "paywall": {
+    "ariaLabel": "Mejorar a Unlimited",
+    "headline": "Una conversión a la vez en el plan gratuito",
+    "body": "Esta conversión se pausó para que la que ya empezaste pueda terminar. Mejora a Unlimited para ejecutar varias a la vez.",
+    "opening": "Abriendo el pago",
+    "upgrade": "Mejorar a Unlimited",
+    "orWaitTitled": "O espera a que \"<jobTitle>{{title}}</jobTitle>\" termine — empezó {{time}}.",
+    "orWaitUntitled": "O espera a que termine tu conversión actual — empezó {{time}}.",
+    "seeAllPlans": "Ver todos los planes"
+  },
+  "delete": {
+    "ariaLabel": "eliminar"
+  },
+  "jobs": {
+    "deleteInProgress": "Este trabajo aún está en curso. Espera a que termine."
+  }
+}

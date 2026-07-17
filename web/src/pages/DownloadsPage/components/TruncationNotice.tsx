@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Trans, useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { track } from '../../../lib/analytics/track';
 
@@ -11,6 +12,8 @@ export function TruncationNotice({
   blocksConverted,
   subDeckRulesSkipped,
 }: Readonly<TruncationNoticeProps>) {
+  const { t } = useTranslation('downloadsx');
+
   useEffect(() => {
     track('paywall_shown', { surface: 'truncated_notice' });
   }, []);
@@ -18,19 +21,17 @@ export function TruncationNotice({
   return (
     <div>
       <p>
-        Converted the first {blocksConverted} blocks. The free plan stops there
-        —{' '}
-        <Link to="/pricing?source=truncated-conversion">
-          upgrade to convert the whole page
-        </Link>
-        .
+        <Trans
+          t={t}
+          i18nKey="truncation.converted"
+          count={blocksConverted}
+          values={{ count: blocksConverted }}
+          components={{
+            pricingLink: <Link to="/pricing?source=truncated-conversion" />,
+          }}
+        />
       </p>
-      {subDeckRulesSkipped && (
-        <p>
-          Sub-deck rules from toggles, headings, and databases apply on paid
-          plans — this deck converted without them.
-        </p>
-      )}
+      {subDeckRulesSkipped && <p>{t('truncation.subDeckSkipped')}</p>}
     </div>
   );
 }

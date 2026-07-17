@@ -1,0 +1,72 @@
+{
+  "feedback": {
+    "ariaLabel": "Stapel-Feedback",
+    "dismiss": "Schließen",
+    "prompt": "Ist dieser Stapel richtig geworden?",
+    "yes": "Ja, hat funktioniert",
+    "somethingOff": "Etwas stimmte nicht",
+    "followUpPositive": "Schön, dass er richtig geworden ist. Gibt es etwas, das ihn besser machen würde?",
+    "followUpNegative": "Was ist schiefgelaufen?",
+    "placeholderPositive": "Zum Beispiel: meine Überschriften behalten oder jeder Karte ein Tag hinzufügen.",
+    "placeholderNegative": "Zum Beispiel: Bilder kamen nicht durch oder Karten waren leer.",
+    "send": "Senden",
+    "skip": "Überspringen",
+    "sending": "Wird gesendet",
+    "received": "Feedback erhalten.",
+    "error": "Das ließ sich nicht senden.",
+    "tryAgain": "Erneut versuchen"
+  },
+  "ankify": {
+    "sending": "Wird an dein Anki gesendet…",
+    "createdCount_one": "{{count}} neu",
+    "createdCount_other": "{{count}} neu",
+    "updatedCount_one": "{{count}} aktualisiert",
+    "updatedCount_other": "{{count}} aktualisiert",
+    "sent": "Gesendet",
+    "syncedToAnkiWeb": "mit AnkiWeb synchronisiert",
+    "syncSkipped": "AnkiWeb-Synchronisierung übersprungen",
+    "tryAgain": "Erneut versuchen",
+    "sendToAnki": "An Anki senden",
+    "setupHint": "Richte dein Anki zuerst auf der Ankify-Seite ein",
+    "syncFailedTitle": "AnkiWeb hat die Synchronisierung nicht angenommen — öffne Anki in deinem Browser und melde dich bei AnkiWeb an. {{error}}",
+    "sendingTitle": "Du sendest {{deck}} an dein gehostetes Anki und AnkiWeb. Dauert einen Moment.",
+    "thisDeck": "diesen Stapel"
+  },
+  "producer": {
+    "title": "Erstellst du Stapel für andere?",
+    "body": "Du hast viele Stapel erstellt. Wenn du sie für Studierende, einen Kurs oder Kunden erstellst, möchten wir hören, was helfen würde. Dafür gibt es noch kein Produkt — wir entscheiden gerade, was wir bauen.",
+    "cta": "Sag uns, was du brauchst",
+    "dismiss": "Nicht jetzt"
+  },
+  "imageDrop": {
+    "notion_one": "{{count}} Bild konnte nicht heruntergeladen werden und ist nicht in diesem Stapel. Der Link dazu in Notion ist höchstwahrscheinlich abgelaufen. Konvertiere die Seite erneut, um es abzurufen.",
+    "notion_other": "{{count}} Bilder konnten nicht heruntergeladen werden und sind nicht in diesem Stapel. Die Links dazu in Notion sind höchstwahrscheinlich abgelaufen. Konvertiere die Seite erneut, um sie abzurufen.",
+    "uploadSingleDeck_one": "{{count}} Bild konnte nicht heruntergeladen werden und ist nicht in diesem Stapel. Deine Datei verweist darauf auf einer anderen Seite, die wir nicht erreichen konnten. Speichere das Bild in der Datei selbst und lade sie erneut hoch.",
+    "uploadSingleDeck_other": "{{count}} Bilder konnten nicht heruntergeladen werden und sind nicht in diesem Stapel. Deine Datei verweist darauf auf anderen Seiten, die wir nicht erreichen konnten. Speichere die Bilder in der Datei selbst und lade sie erneut hoch.",
+    "uploadMultiDeck_one": "{{count}} Bild konnte nicht heruntergeladen werden und ist nicht in deinen Stapeln. Deine Datei verweist darauf auf einer anderen Seite, die wir nicht erreichen konnten. Speichere das Bild in der Datei selbst und lade sie erneut hoch.",
+    "uploadMultiDeck_other": "{{count}} Bilder konnten nicht heruntergeladen werden und sind nicht in deinen Stapeln. Deine Datei verweist darauf auf anderen Seiten, die wir nicht erreichen konnten. Speichere die Bilder in der Datei selbst und lade sie erneut hoch."
+  },
+  "truncation": {
+    "converted": "Die ersten {{count}} Blöcke konvertiert. Der kostenlose Tarif endet dort — <pricingLink>upgrade, um die ganze Seite zu konvertieren</pricingLink>.",
+    "subDeckSkipped": "Unterstapel-Regeln aus Umschaltern, Überschriften und Datenbanken gelten in kostenpflichtigen Tarifen — dieser Stapel wurde ohne sie konvertiert."
+  },
+  "columnsGuessed": {
+    "text": "Wir konnten nicht erkennen, welche Spalten Frage und Antwort sind, daher verwendet dieser Stapel <front>{{frontField}}</front> als Vorderseite und <back>{{backField}}</back> als Rückseite. Konvertiere die Datenbank erneut, um andere Spalten zu wählen."
+  },
+  "paywall": {
+    "ariaLabel": "Auf Unlimited upgraden",
+    "headline": "Eine Konvertierung nach der anderen im kostenlosen Tarif",
+    "body": "Diese Konvertierung wurde pausiert, damit die bereits gestartete abgeschlossen werden kann. Upgrade auf Unlimited, um mehrere gleichzeitig auszuführen.",
+    "opening": "Checkout wird geöffnet",
+    "upgrade": "Auf Unlimited upgraden",
+    "orWaitTitled": "Oder warte, bis \"<jobTitle>{{title}}</jobTitle>\" fertig ist — gestartet {{time}}.",
+    "orWaitUntitled": "Oder warte, bis deine aktuelle Konvertierung fertig ist — gestartet {{time}}.",
+    "seeAllPlans": "Alle Tarife ansehen"
+  },
+  "delete": {
+    "ariaLabel": "löschen"
+  },
+  "jobs": {
+    "deleteInProgress": "Dieser Auftrag läuft noch. Warte, bis er fertig ist."
+  }
+}
