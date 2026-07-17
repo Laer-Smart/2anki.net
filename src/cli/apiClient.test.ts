@@ -10,41 +10,39 @@ function jsonResponse(status: number, body: unknown): Response {
 }
 
 describe('ApiClient', () => {
-  it('sends the API key as a bearer token', async () => {
-    const fetchImpl = jest.fn(async () => jsonResponse(200, { keys: [] }));
+  it('verifies the key against the key-authed jobs endpoint with a bearer token', async () => {
+    const fetchImpl = jest.fn(async () => jsonResponse(200, []));
     const client = new ApiClient(
       { apiKey: 'sk_live_abc', apiBase: 'http://localhost:2020' },
       fetchImpl as unknown as typeof fetch
     );
 
-    await client.listKeys();
+    await client.listJobs();
 
     expect(fetchImpl).toHaveBeenCalledWith(
-      'http://localhost:2020/api/developer/keys',
+      'http://localhost:2020/api/upload/jobs',
       { headers: { Authorization: 'Bearer sk_live_abc' } }
     );
   });
 
   it('throws a typed ApiError with the server message on a non-2xx', async () => {
     const fetchImpl = jest.fn(async () =>
-      jsonResponse(403, {
-        message: 'Developer access is not enabled for this account.',
-      })
+      jsonResponse(401, { message: 'Authentication required' })
     );
     const client = new ApiClient(
       { apiKey: 'sk_live_abc' },
       fetchImpl as unknown as typeof fetch
     );
 
-    await expect(client.listKeys()).rejects.toMatchObject({
-      status: 403,
-      message: 'Developer access is not enabled for this account.',
+    await expect(client.listJobs()).rejects.toMatchObject({
+      status: 401,
+      message: 'Authentication required',
     });
   });
 
   it('refuses to call the API when no key is stored', async () => {
     const client = new ApiClient({});
-    await expect(client.listKeys()).rejects.toBeInstanceOf(ApiError);
+    await expect(client.listJobs()).rejects.toBeInstanceOf(ApiError);
   });
 
   it('uploads a file as multipart with the bearer token', async () => {
