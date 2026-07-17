@@ -61,6 +61,8 @@ const allowedIdentical = new Set<string>([
   'ankify:page.reviewTrackerFallback',
   'common:nav.chat',
   'common:nav.autoSync',
+  'common:home.features.chat.label',
+  'common:home.features.autoSync.label',
   'common:nav.account',
   'common:nav.privacy',
   'common:account.title',

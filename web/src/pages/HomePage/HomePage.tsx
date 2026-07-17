@@ -59,60 +59,19 @@ const STEPS = [
 ];
 
 const FEATURES = [
-  {
-    href: '/notion',
-    label: 'Notion to Anki',
-    body: 'Convert a Notion page into a deck — toggles become cards.',
-    Icon: ArrowRightIcon,
-  },
-  {
-    href: '/import',
-    label: 'Anki to Notion',
-    body: 'Turn an .apkg back into a Notion page you can keep editing.',
-    Icon: ArrowLeftIcon,
-  },
+  { href: '/notion', tKey: 'notionToAnki', Icon: ArrowRightIcon },
+  { href: '/import', tKey: 'ankiToNotion', Icon: ArrowLeftIcon },
   {
     href: '/image-occlusion',
-    label: 'Image occlusion',
-    body: 'Mask labels on diagrams to make cards.',
+    tKey: 'imageOcclusion',
     Icon: RectangleGroupIcon,
   },
-  {
-    href: '/photo-to-deck',
-    label: 'Photo to deck',
-    body: 'Snap a page, get a deck.',
-    Icon: CameraIcon,
-  },
-  {
-    href: '/mindmaps',
-    label: 'Mind maps',
-    body: 'Turn a mind map into structured cards.',
-    Icon: ShareIcon,
-  },
-  {
-    href: '/templates',
-    label: 'Note types',
-    body: 'Pick how the front and back of your cards look.',
-    Icon: SwatchIcon,
-  },
-  {
-    href: '/chat',
-    label: 'Chat',
-    body: 'Turn your own notes into cards with AI.',
-    Icon: ChatBubbleIcon,
-  },
-  {
-    href: '/print',
-    label: 'Print',
-    body: 'Print your deck on paper for offline study.',
-    Icon: PrinterIcon,
-  },
-  {
-    href: '/ankify',
-    label: 'Auto Sync',
-    body: 'Keep your Anki deck in sync with your Notion page.',
-    Icon: SparklesIcon,
-  },
+  { href: '/photo-to-deck', tKey: 'photoToDeck', Icon: CameraIcon },
+  { href: '/mindmaps', tKey: 'mindMaps', Icon: ShareIcon },
+  { href: '/templates', tKey: 'noteTypes', Icon: SwatchIcon },
+  { href: '/chat', tKey: 'chat', Icon: ChatBubbleIcon },
+  { href: '/print', tKey: 'print', Icon: PrinterIcon },
+  { href: '/ankify', tKey: 'autoSync', Icon: SparklesIcon },
 ];
 
 const WALKTHROUGHS: ReadonlyArray<[string, string]> = [
@@ -262,7 +221,7 @@ export function HomePage({
       <ShowcaseSection />
 
       <section className={styles.featuresSection}>
-        <h2 className={styles.featuresHeading}>Other ways to use 2anki</h2>
+        <h2 className={styles.featuresHeading}>{t('home.features.heading')}</h2>
         <div className={styles.featuresGrid}>
           {FEATURES.map((feature) => (
             <Link
@@ -274,8 +233,12 @@ export function HomePage({
                 <feature.Icon width={22} height={22} />
               </span>
               <span className={styles.featureText}>
-                <span className={styles.featureTitle}>{feature.label}</span>
-                <span className={styles.featureBody}>{feature.body}</span>
+                <span className={styles.featureTitle}>
+                  {t(`home.features.${feature.tKey}.label`)}
+                </span>
+                <span className={styles.featureBody}>
+                  {t(`home.features.${feature.tKey}.body`)}
+                </span>
               </span>
             </Link>
           ))}
@@ -283,7 +246,7 @@ export function HomePage({
       </section>
 
       <section id="walkthroughs" className={styles.bottomSection}>
-        <h2 className={styles.walkHeading}>Walkthroughs</h2>
+        <h2 className={styles.walkHeading}>{t('home.walkthroughs.heading')}</h2>
         <div className={styles.walkGrid}>
           {(showAll
             ? WALKTHROUGHS
@@ -296,11 +259,12 @@ export function HomePage({
               <div className={styles.walkCtaThumb}>
                 <span className={styles.walkCtaIcon}>+</span>
                 <p className={styles.walkCtaBody}>
-                  Made a video about 2anki? Contact us and we will feature it
-                  here for free.
+                  {t('home.walkthroughs.ctaBody')}
                 </p>
               </div>
-              <p className={styles.walkCardTitle}>Submit your video</p>
+              <p className={styles.walkCardTitle}>
+                {t('home.walkthroughs.cardTitle')}
+              </p>
             </a>
           )}
         </div>
@@ -311,7 +275,9 @@ export function HomePage({
             onClick={() => setShowAll(!showAll)}
             aria-expanded={showAll}
           >
-            {showAll ? '▴ Show fewer' : '▾ Show all 10 videos'}
+            {showAll
+              ? t('home.walkthroughs.showFewer')
+              : t('home.walkthroughs.showAll', { count: WALKTHROUGHS.length })}
           </button>
         </div>
       </section>

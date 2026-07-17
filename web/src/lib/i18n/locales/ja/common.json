@@ -49,6 +49,57 @@
       "createAccount": "アカウントを作成",
       "cardOptions": "カードのオプション",
       "nativeApps": "iPhone、iPad、Mac でも →"
+    },
+    "features": {
+      "heading": "2anki の他の使い方",
+      "notionToAnki": {
+        "label": "Notion から Anki へ",
+        "body": "Notion ページをデッキに変換 — トグルがカードになります。"
+      },
+      "ankiToNotion": {
+        "label": "Anki から Notion へ",
+        "body": ".apkg を編集し続けられる Notion ページに戻します。"
+      },
+      "imageOcclusion": {
+        "label": "画像オクルージョン",
+        "body": "図のラベルを隠してカードを作成します。"
+      },
+      "photoToDeck": {
+        "label": "写真からデッキ",
+        "body": "ページを撮影してデッキを作成。"
+      },
+      "mindMaps": {
+        "label": "マインドマップ",
+        "body": "マインドマップを構造化されたカードに変換します。"
+      },
+      "noteTypes": {
+        "label": "ノートタイプ",
+        "body": "カードの表と裏の見た目を選べます。"
+      },
+      "chat": {
+        "label": "チャット",
+        "body": "自分のノートを AI でカードに変換します。"
+      },
+      "print": {
+        "label": "印刷",
+        "body": "デッキを紙に印刷してオフラインで学習。"
+      },
+      "autoSync": {
+        "label": "自動同期",
+        "body": "Anki デッキを Notion ページと同期し続けます。"
+      }
+    },
+    "showcase": {
+      "heading": "動作を見る",
+      "previousCard": "前のカード",
+      "nextCard": "次のカード"
+    },
+    "walkthroughs": {
+      "heading": "チュートリアル",
+      "ctaBody": "2anki の動画を作りましたか？ ご連絡いただければ、ここで無料で紹介します。",
+      "cardTitle": "動画を投稿する",
+      "showFewer": "▴ 表示を減らす",
+      "showAll_other": "▾ {{count}} 本の動画をすべて表示"
     }
   },
   "upload": {

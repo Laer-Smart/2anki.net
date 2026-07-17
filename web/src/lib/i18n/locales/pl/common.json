@@ -49,6 +49,60 @@
       "createAccount": "Utwórz konto",
       "cardOptions": "Opcje kart",
       "nativeApps": "Także na iPhone, iPad i Mac →"
+    },
+    "features": {
+      "heading": "Inne sposoby korzystania z 2anki",
+      "notionToAnki": {
+        "label": "Notion do Anki",
+        "body": "Zamień stronę Notion w talię — toggle stają się kartami."
+      },
+      "ankiToNotion": {
+        "label": "Anki do Notion",
+        "body": "Zamień .apkg z powrotem w stronę Notion, którą możesz dalej edytować."
+      },
+      "imageOcclusion": {
+        "label": "Zasłanianie obrazu",
+        "body": "Zasłoń etykiety na diagramach, aby tworzyć karty."
+      },
+      "photoToDeck": {
+        "label": "Zdjęcie w talię",
+        "body": "Zrób zdjęcie strony i odbierz talię."
+      },
+      "mindMaps": {
+        "label": "Mapy myśli",
+        "body": "Zamień mapę myśli w uporządkowane karty."
+      },
+      "noteTypes": {
+        "label": "Typy notatek",
+        "body": "Wybierz, jak wygląda przód i tył twoich kart."
+      },
+      "chat": {
+        "label": "Czat",
+        "body": "Zamień własne notatki w karty z pomocą AI."
+      },
+      "print": {
+        "label": "Drukuj",
+        "body": "Wydrukuj swoją talię na papierze do nauki offline."
+      },
+      "autoSync": {
+        "label": "Auto Sync",
+        "body": "Utrzymuj talię Anki w synchronizacji ze stroną Notion."
+      }
+    },
+    "showcase": {
+      "heading": "Zobacz to w działaniu",
+      "previousCard": "Poprzednia karta",
+      "nextCard": "Następna karta"
+    },
+    "walkthroughs": {
+      "heading": "Poradniki",
+      "ctaBody": "Zrobiłeś film o 2anki? Skontaktuj się z nami, a pokażemy go tutaj za darmo.",
+      "cardTitle": "Prześlij swój film",
+      "showFewer": "▴ Pokaż mniej",
+      "showAll_one": "▾ Pokaż {{count}} film",
+      "showAll_few": "▾ Pokaż wszystkie {{count}} filmy",
+      "showAll_many": "▾ Pokaż wszystkie {{count}} filmów",
+      "showAll_other": "▾ Pokaż wszystkie {{count}} filmu"
     }
   },
   "upload": {
