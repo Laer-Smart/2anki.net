@@ -91,6 +91,7 @@ export const KNOWN_EVENTS = new Set([
   'subscription_paused',
   'subscription_pause_resumed',
   'subscription_cancelled_during_pause',
+  'language_changed',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;
