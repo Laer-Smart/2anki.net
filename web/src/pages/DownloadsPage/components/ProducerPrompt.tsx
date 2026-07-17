@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { ProducerCaptureModal } from '../../../components/ProducerCaptureModal/ProducerCaptureModal';
 import { track } from '../../../lib/analytics/track';
@@ -9,15 +10,10 @@ import sharedStyles from '../../../styles/shared.module.css';
 
 const PRODUCER_PLACEMENT = 'producer_prompt';
 
-const CARD_TITLE = 'Making decks for other people?';
-const CARD_BODY =
-  "You've built a lot of decks. If you're making them for students, a class, or customers, we want to hear what would help. There's no product for this yet — we're deciding what to build.";
-const CARD_CTA = 'Tell us what you need';
-const CARD_DISMISS = 'Not now';
-
 export function ProducerPrompt({
   uploads,
 }: Readonly<{ uploads: UserUpload[] }>) {
+  const { t } = useTranslation('downloadsx');
   const heavy = isHeavyUploader(uploads);
   const [eligible, setEligible] = useState<boolean | null>(null);
   const [open, setOpen] = useState(false);
@@ -65,8 +61,10 @@ export function ProducerPrompt({
         <div className={sharedStyles.surface}>
           <div className={sharedStyles.surfaceHeader}>
             <div className={sharedStyles.surfaceHeaderText}>
-              <h3 className={sharedStyles.surfaceTitle}>{CARD_TITLE}</h3>
-              <p className={sharedStyles.surfaceLead}>{CARD_BODY}</p>
+              <h3 className={sharedStyles.surfaceTitle}>
+                {t('producer.title')}
+              </h3>
+              <p className={sharedStyles.surfaceLead}>{t('producer.body')}</p>
             </div>
           </div>
           <div className={sharedStyles.surfaceActions}>
@@ -75,14 +73,14 @@ export function ProducerPrompt({
               className={sharedStyles.btnSecondary}
               onClick={() => setOpen(true)}
             >
-              {CARD_CTA}
+              {t('producer.cta')}
             </button>
             <button
               type="button"
               className={sharedStyles.btnGhost}
               onClick={dismiss}
             >
-              {CARD_DISMISS}
+              {t('producer.dismiss')}
             </button>
           </div>
         </div>

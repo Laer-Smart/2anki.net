@@ -1,0 +1,72 @@
+{
+  "feedback": {
+    "ariaLabel": "Deck feedback",
+    "dismiss": "Dismiss",
+    "prompt": "Did this deck come out right?",
+    "yes": "Yes, it worked",
+    "somethingOff": "Something was off",
+    "followUpPositive": "Glad it came out right. Anything that would make it better?",
+    "followUpNegative": "What went wrong?",
+    "placeholderPositive": "For example: keep my headings, or add a tag to each card.",
+    "placeholderNegative": "For example: images didn't come through, or cards were empty.",
+    "send": "Send",
+    "skip": "Skip",
+    "sending": "Sending",
+    "received": "Feedback received.",
+    "error": "Couldn't send that.",
+    "tryAgain": "Try again"
+  },
+  "ankify": {
+    "sending": "Sending to your Anki…",
+    "createdCount_one": "{{count}} new",
+    "createdCount_other": "{{count}} new",
+    "updatedCount_one": "{{count}} updated",
+    "updatedCount_other": "{{count}} updated",
+    "sent": "Sent",
+    "syncedToAnkiWeb": "synced to AnkiWeb",
+    "syncSkipped": "AnkiWeb sync skipped",
+    "tryAgain": "Try again",
+    "sendToAnki": "Send to Anki",
+    "setupHint": "Set up your Anki on the Ankify page first",
+    "syncFailedTitle": "AnkiWeb didn't accept the sync — open Anki in your browser and sign in to AnkiWeb. {{error}}",
+    "sendingTitle": "You're sending {{deck}} to your hosted Anki and AnkiWeb. Takes a moment.",
+    "thisDeck": "this deck"
+  },
+  "producer": {
+    "title": "Making decks for other people?",
+    "body": "You've built a lot of decks. If you're making them for students, a class, or customers, we want to hear what would help. There's no product for this yet — we're deciding what to build.",
+    "cta": "Tell us what you need",
+    "dismiss": "Not now"
+  },
+  "imageDrop": {
+    "notion_one": "{{count}} image couldn't be downloaded and isn't in this deck. The link to it in Notion most likely expired. Convert the page again to try fetching it.",
+    "notion_other": "{{count}} images couldn't be downloaded and aren't in this deck. The links to them in Notion most likely expired. Convert the page again to try fetching them.",
+    "uploadSingleDeck_one": "{{count}} image couldn't be downloaded and isn't in this deck. Your file links to it on another site we couldn't reach. Save the image into the file itself, then upload again.",
+    "uploadSingleDeck_other": "{{count}} images couldn't be downloaded and aren't in this deck. Your file links to them on other sites we couldn't reach. Save the images into the file itself, then upload again.",
+    "uploadMultiDeck_one": "{{count}} image couldn't be downloaded and isn't in your decks. Your file links to it on another site we couldn't reach. Save the image into the file itself, then upload again.",
+    "uploadMultiDeck_other": "{{count}} images couldn't be downloaded and aren't in your decks. Your file links to them on other sites we couldn't reach. Save the images into the file itself, then upload again."
+  },
+  "truncation": {
+    "converted": "Converted the first {{count}} blocks. The free plan stops there — <pricingLink>upgrade to convert the whole page</pricingLink>.",
+    "subDeckSkipped": "Sub-deck rules from toggles, headings, and databases apply on paid plans — this deck converted without them."
+  },
+  "columnsGuessed": {
+    "text": "We couldn't tell which columns are the question and answer, so this deck uses <front>{{frontField}}</front> as the front and <back>{{backField}}</back> as the back. Convert the database again to pick different columns."
+  },
+  "paywall": {
+    "ariaLabel": "Upgrade to Unlimited",
+    "headline": "One conversion at a time on the free plan",
+    "body": "This conversion was paused so the one you already started can finish. Upgrade to Unlimited to run several at once.",
+    "opening": "Opening checkout",
+    "upgrade": "Upgrade to Unlimited",
+    "orWaitTitled": "Or wait for \"<jobTitle>{{title}}</jobTitle>\" to finish — started {{time}}.",
+    "orWaitUntitled": "Or wait for your current conversion to finish — started {{time}}.",
+    "seeAllPlans": "See all plans"
+  },
+  "delete": {
+    "ariaLabel": "delete"
+  },
+  "jobs": {
+    "deleteInProgress": "This job is still running. Wait for it to finish."
+  }
+}

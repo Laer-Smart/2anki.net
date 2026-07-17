@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ErrorHandlerType } from '../../../components/errors/helpers/getErrorMessage';
 
 import Backend from '../../../lib/backend';
@@ -32,6 +33,7 @@ export default function useJobs(
   backend: Backend,
   setError: ErrorHandlerType
 ): UseJobsResult {
+  const { t } = useTranslation('downloadsx');
   const [jobs, setJobs] = useState<JobResponse[]>([]);
   const [lastFetchedAt, setLastFetchedAt] = useState<Date | null>(null);
   const [isWarmup, setIsWarmup] = useState(true);
@@ -61,9 +63,7 @@ export default function useJobs(
         error instanceof Error &&
         error.message.includes('Cannot delete job while it is in progress')
       ) {
-        setError(
-          new UserNotice('This job is still running. Wait for it to finish.')
-        );
+        setError(new UserNotice(t('jobs.deleteInProgress')));
       } else {
         setError(error);
       }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 import { get2ankiApi } from '../../../lib/backend/get2ankiApi';
 import styles from './DeckFeedbackPrompt.module.css';
@@ -39,6 +40,7 @@ export function isDeckFeedbackSuppressed(): boolean {
 }
 
 export function DeckFeedbackPrompt() {
+  const { t } = useTranslation('downloadsx');
   const [stage, setStage] = useState<Stage>({ kind: 'prompt' });
   const [comment, setComment] = useState('');
   const [dismissed, setDismissed] = useState(false);
@@ -85,33 +87,33 @@ export function DeckFeedbackPrompt() {
   };
 
   return (
-    <aside className={styles.card} aria-label="Deck feedback">
+    <aside className={styles.card} aria-label={t('feedback.ariaLabel')}>
       <button
         type="button"
         className={styles.close}
         onClick={handleDismiss}
-        aria-label="Dismiss"
+        aria-label={t('feedback.dismiss')}
       >
         ×
       </button>
 
       {stage.kind === 'prompt' && (
         <>
-          <p className={styles.prompt}>Did this deck come out right?</p>
+          <p className={styles.prompt}>{t('feedback.prompt')}</p>
           <div className={styles.actions}>
             <button
               type="button"
               className={styles.primary}
               onClick={handlePositive}
             >
-              Yes, it worked
+              {t('feedback.yes')}
             </button>
             <button
               type="button"
               className={styles.secondary}
               onClick={handleNegative}
             >
-              Something was off
+              {t('feedback.somethingOff')}
             </button>
           </div>
         </>
@@ -121,16 +123,16 @@ export function DeckFeedbackPrompt() {
         <>
           <label className={styles.prompt} htmlFor="deck-feedback-comment">
             {stage.rating === POSITIVE_RATING
-              ? 'Glad it came out right. Anything that would make it better?'
-              : 'What went wrong?'}
+              ? t('feedback.followUpPositive')
+              : t('feedback.followUpNegative')}
           </label>
           <textarea
             id="deck-feedback-comment"
             className={styles.textarea}
             placeholder={
               stage.rating === POSITIVE_RATING
-                ? 'For example: keep my headings, or add a tag to each card.'
-                : "For example: images didn't come through, or cards were empty."
+                ? t('feedback.placeholderPositive')
+                : t('feedback.placeholderNegative')
             }
             value={comment}
             onChange={(e) => setComment(e.target.value)}
@@ -143,35 +145,37 @@ export function DeckFeedbackPrompt() {
               className={styles.primary}
               onClick={() => handleSend(stage.rating)}
             >
-              Send
+              {t('feedback.send')}
             </button>
             <button
               type="button"
               className={styles.secondary}
               onClick={() => handleSkip(stage.rating)}
             >
-              Skip
+              {t('feedback.skip')}
             </button>
           </div>
         </>
       )}
 
-      {stage.kind === 'sending' && <p className={styles.status}>Sending</p>}
+      {stage.kind === 'sending' && (
+        <p className={styles.status}>{t('feedback.sending')}</p>
+      )}
 
       {stage.kind === 'sent' && (
-        <p className={styles.status}>Feedback received.</p>
+        <p className={styles.status}>{t('feedback.received')}</p>
       )}
 
       {stage.kind === 'error' && (
         <>
-          <p className={styles.status}>Couldn&apos;t send that.</p>
+          <p className={styles.status}>{t('feedback.error')}</p>
           <div className={styles.actions}>
             <button
               type="button"
               className={styles.primary}
               onClick={stage.retry}
             >
-              Try again
+              {t('feedback.tryAgain')}
             </button>
           </div>
         </>

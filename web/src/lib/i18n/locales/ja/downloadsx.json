@@ -1,0 +1,67 @@
+{
+  "feedback": {
+    "ariaLabel": "デッキのフィードバック",
+    "dismiss": "閉じる",
+    "prompt": "このデッキは正しく作成されましたか？",
+    "yes": "はい、うまくいきました",
+    "somethingOff": "何かがおかしい",
+    "followUpPositive": "うまくいって何よりです。もっと良くできる点はありますか？",
+    "followUpNegative": "何がうまくいきませんでしたか？",
+    "placeholderPositive": "例：見出しを残す、各カードにタグを追加する。",
+    "placeholderNegative": "例：画像が反映されなかった、カードが空だった。",
+    "send": "送信",
+    "skip": "スキップ",
+    "sending": "送信中",
+    "received": "フィードバックを受け取りました。",
+    "error": "送信できませんでした。",
+    "tryAgain": "再試行"
+  },
+  "ankify": {
+    "sending": "あなたの Anki に送信中…",
+    "createdCount_other": "新規 {{count}} 件",
+    "updatedCount_other": "更新 {{count}} 件",
+    "sent": "送信済み",
+    "syncedToAnkiWeb": "AnkiWeb に同期しました",
+    "syncSkipped": "AnkiWeb の同期をスキップしました",
+    "tryAgain": "再試行",
+    "sendToAnki": "Anki に送信",
+    "setupHint": "先に Ankify ページで Anki を設定してください",
+    "syncFailedTitle": "AnkiWeb が同期を受け付けませんでした — ブラウザで Anki を開き、AnkiWeb にサインインしてください。{{error}}",
+    "sendingTitle": "{{deck}} をホスト型の Anki と AnkiWeb に送信しています。少し時間がかかります。",
+    "thisDeck": "このデッキ"
+  },
+  "producer": {
+    "title": "他の人のためにデッキを作っていますか？",
+    "body": "たくさんのデッキを作成されています。学生やクラス、顧客のために作っているなら、何が役立つかお聞かせください。まだそのための製品はありません — 何を作るか検討しています。",
+    "cta": "必要なものを教えてください",
+    "dismiss": "後で"
+  },
+  "imageDrop": {
+    "notion_other": "{{count}} 枚の画像をダウンロードできず、このデッキに含まれていません。Notion 内のリンクが期限切れになった可能性が高いです。ページを再度変換して取得を試してください。",
+    "uploadSingleDeck_other": "{{count}} 枚の画像をダウンロードできず、このデッキに含まれていません。ファイルが、到達できなかった別のサイトを参照しています。画像をファイル自体に保存してから、もう一度アップロードしてください。",
+    "uploadMultiDeck_other": "{{count}} 枚の画像をダウンロードできず、あなたのデッキに含まれていません。ファイルが、到達できなかった別のサイトを参照しています。画像をファイル自体に保存してから、もう一度アップロードしてください。"
+  },
+  "truncation": {
+    "converted": "最初の {{count}} ブロックを変換しました。無料プランはここまでです — <pricingLink>アップグレードしてページ全体を変換</pricingLink>。",
+    "subDeckSkipped": "トグル、見出し、データベースによるサブデッキのルールは有料プランで適用されます — このデッキはそれらなしで変換されました。"
+  },
+  "columnsGuessed": {
+    "text": "どの列が問題と解答かを判別できなかったため、このデッキは <front>{{frontField}}</front> を表、<back>{{backField}}</back> を裏として使用します。データベースを再度変換して別の列を選んでください。"
+  },
+  "paywall": {
+    "ariaLabel": "Unlimited にアップグレード",
+    "headline": "無料プランでは変換は一度に 1 つ",
+    "body": "すでに開始した変換を完了できるよう、この変換は一時停止されました。Unlimited にアップグレードすると複数を同時に実行できます。",
+    "opening": "チェックアウトを開いています",
+    "upgrade": "Unlimited にアップグレード",
+    "orWaitTitled": "または「<jobTitle>{{title}}</jobTitle>」の完了を待ってください — 開始 {{time}}。",
+    "orWaitUntitled": "または現在の変換の完了を待ってください — 開始 {{time}}。",
+    "seeAllPlans": "すべてのプランを見る"
+  },
+  "delete": {
+    "ariaLabel": "削除"
+  },
+  "jobs": {
+    "deleteInProgress": "このジョブはまだ実行中です。完了するまでお待ちください。"
+  }
+}

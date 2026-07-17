@@ -1,0 +1,72 @@
+{
+  "feedback": {
+    "ariaLabel": "Retour sur le paquet",
+    "dismiss": "Fermer",
+    "prompt": "Le paquet est-il correct ?",
+    "yes": "Oui, ça a marché",
+    "somethingOff": "Quelque chose n'allait pas",
+    "followUpPositive": "Ravi que ce soit correct. Y a-t-il quelque chose à améliorer ?",
+    "followUpNegative": "Qu'est-ce qui n'a pas marché ?",
+    "placeholderPositive": "Par exemple : garder mes titres ou ajouter une étiquette à chaque carte.",
+    "placeholderNegative": "Par exemple : les images ne sont pas passées ou les cartes étaient vides.",
+    "send": "Envoyer",
+    "skip": "Passer",
+    "sending": "Envoi en cours",
+    "received": "Retour reçu.",
+    "error": "Impossible d'envoyer.",
+    "tryAgain": "Réessayer"
+  },
+  "ankify": {
+    "sending": "Envoi vers votre Anki…",
+    "createdCount_one": "{{count}} nouvelle",
+    "createdCount_other": "{{count}} nouvelles",
+    "updatedCount_one": "{{count}} mise à jour",
+    "updatedCount_other": "{{count}} mises à jour",
+    "sent": "Envoyé",
+    "syncedToAnkiWeb": "synchronisé avec AnkiWeb",
+    "syncSkipped": "synchronisation AnkiWeb ignorée",
+    "tryAgain": "Réessayer",
+    "sendToAnki": "Envoyer vers Anki",
+    "setupHint": "Configurez d'abord votre Anki sur la page Ankify",
+    "syncFailedTitle": "AnkiWeb n'a pas accepté la synchronisation — ouvrez Anki dans votre navigateur et connectez-vous à AnkiWeb. {{error}}",
+    "sendingTitle": "Vous envoyez {{deck}} vers votre Anki hébergé et AnkiWeb. Cela prend un instant.",
+    "thisDeck": "ce paquet"
+  },
+  "producer": {
+    "title": "Vous créez des paquets pour d'autres personnes ?",
+    "body": "Vous avez créé beaucoup de paquets. Si vous les faites pour des étudiants, une classe ou des clients, nous voulons savoir ce qui vous aiderait. Il n'existe pas encore de produit pour cela — nous décidons quoi construire.",
+    "cta": "Dites-nous ce dont vous avez besoin",
+    "dismiss": "Pas maintenant"
+  },
+  "imageDrop": {
+    "notion_one": "{{count}} image n'a pas pu être téléchargée et n'est pas dans ce paquet. Le lien vers celle-ci dans Notion a probablement expiré. Convertissez à nouveau la page pour tenter de la récupérer.",
+    "notion_other": "{{count}} images n'ont pas pu être téléchargées et ne sont pas dans ce paquet. Les liens vers celles-ci dans Notion ont probablement expiré. Convertissez à nouveau la page pour tenter de les récupérer.",
+    "uploadSingleDeck_one": "{{count}} image n'a pas pu être téléchargée et n'est pas dans ce paquet. Votre fichier renvoie vers celle-ci sur un autre site que nous n'avons pas pu atteindre. Enregistrez l'image dans le fichier, puis téléversez à nouveau.",
+    "uploadSingleDeck_other": "{{count}} images n'ont pas pu être téléchargées et ne sont pas dans ce paquet. Votre fichier renvoie vers celles-ci sur d'autres sites que nous n'avons pas pu atteindre. Enregistrez les images dans le fichier, puis téléversez à nouveau.",
+    "uploadMultiDeck_one": "{{count}} image n'a pas pu être téléchargée et n'est pas dans vos paquets. Votre fichier renvoie vers celle-ci sur un autre site que nous n'avons pas pu atteindre. Enregistrez l'image dans le fichier, puis téléversez à nouveau.",
+    "uploadMultiDeck_other": "{{count}} images n'ont pas pu être téléchargées et ne sont pas dans vos paquets. Votre fichier renvoie vers celles-ci sur d'autres sites que nous n'avons pas pu atteindre. Enregistrez les images dans le fichier, puis téléversez à nouveau."
+  },
+  "truncation": {
+    "converted": "Les {{count}} premiers blocs ont été convertis. Le forfait gratuit s'arrête là — <pricingLink>passez à un forfait supérieur pour convertir toute la page</pricingLink>.",
+    "subDeckSkipped": "Les règles de sous-paquets issues des bascules, titres et bases de données s'appliquent aux forfaits payants — ce paquet a été converti sans elles."
+  },
+  "columnsGuessed": {
+    "text": "Nous n'avons pas pu déterminer quelles colonnes sont la question et la réponse, donc ce paquet utilise <front>{{frontField}}</front> comme recto et <back>{{backField}}</back> comme verso. Convertissez à nouveau la base de données pour choisir d'autres colonnes."
+  },
+  "paywall": {
+    "ariaLabel": "Passer à Unlimited",
+    "headline": "Une conversion à la fois sur le forfait gratuit",
+    "body": "Cette conversion a été mise en pause pour que celle déjà lancée puisse se terminer. Passez à Unlimited pour en exécuter plusieurs à la fois.",
+    "opening": "Ouverture du paiement",
+    "upgrade": "Passer à Unlimited",
+    "orWaitTitled": "Ou attendez que \"<jobTitle>{{title}}</jobTitle>\" se termine — commencé {{time}}.",
+    "orWaitUntitled": "Ou attendez que votre conversion en cours se termine — commencée {{time}}.",
+    "seeAllPlans": "Voir tous les forfaits"
+  },
+  "delete": {
+    "ariaLabel": "supprimer"
+  },
+  "jobs": {
+    "deleteInProgress": "Cette tâche est toujours en cours. Attendez qu'elle se termine."
+  }
+}

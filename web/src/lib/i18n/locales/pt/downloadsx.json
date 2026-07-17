@@ -1,0 +1,72 @@
+{
+  "feedback": {
+    "ariaLabel": "Feedback do baralho",
+    "dismiss": "Fechar",
+    "prompt": "O baralho ficou correto?",
+    "yes": "Sim, funcionou",
+    "somethingOff": "Algo não estava certo",
+    "followUpPositive": "Que bom que ficou certo. Há algo que o tornaria melhor?",
+    "followUpNegative": "O que deu errado?",
+    "placeholderPositive": "Por exemplo: manter meus títulos ou adicionar uma etiqueta a cada cartão.",
+    "placeholderNegative": "Por exemplo: as imagens não apareceram ou os cartões estavam vazios.",
+    "send": "Enviar",
+    "skip": "Ignorar",
+    "sending": "Enviando",
+    "received": "Feedback recebido.",
+    "error": "Não foi possível enviar.",
+    "tryAgain": "Tentar de novo"
+  },
+  "ankify": {
+    "sending": "Enviando para o seu Anki…",
+    "createdCount_one": "{{count}} novo",
+    "createdCount_other": "{{count}} novos",
+    "updatedCount_one": "{{count}} atualizado",
+    "updatedCount_other": "{{count}} atualizados",
+    "sent": "Enviado",
+    "syncedToAnkiWeb": "sincronizado com o AnkiWeb",
+    "syncSkipped": "sincronização com o AnkiWeb ignorada",
+    "tryAgain": "Tentar de novo",
+    "sendToAnki": "Enviar para o Anki",
+    "setupHint": "Configure seu Anki primeiro na página do Ankify",
+    "syncFailedTitle": "O AnkiWeb não aceitou a sincronização — abra o Anki no navegador e faça login no AnkiWeb. {{error}}",
+    "sendingTitle": "Você está enviando {{deck}} para o seu Anki hospedado e o AnkiWeb. Leva um momento.",
+    "thisDeck": "este baralho"
+  },
+  "producer": {
+    "title": "Criando baralhos para outras pessoas?",
+    "body": "Você criou muitos baralhos. Se os faz para estudantes, uma turma ou clientes, queremos saber o que ajudaria. Ainda não há um produto para isso — estamos decidindo o que construir.",
+    "cta": "Diga-nos o que você precisa",
+    "dismiss": "Agora não"
+  },
+  "imageDrop": {
+    "notion_one": "Não foi possível baixar {{count}} imagem e ela não está neste baralho. O link para ela no Notion provavelmente expirou. Converta a página novamente para tentar obtê-la.",
+    "notion_other": "Não foi possível baixar {{count}} imagens e elas não estão neste baralho. Os links para elas no Notion provavelmente expiraram. Converta a página novamente para tentar obtê-las.",
+    "uploadSingleDeck_one": "Não foi possível baixar {{count}} imagem e ela não está neste baralho. Seu arquivo aponta para ela em outro site que não conseguimos acessar. Salve a imagem no próprio arquivo e envie novamente.",
+    "uploadSingleDeck_other": "Não foi possível baixar {{count}} imagens e elas não estão neste baralho. Seu arquivo aponta para elas em outros sites que não conseguimos acessar. Salve as imagens no próprio arquivo e envie novamente.",
+    "uploadMultiDeck_one": "Não foi possível baixar {{count}} imagem e ela não está nos seus baralhos. Seu arquivo aponta para ela em outro site que não conseguimos acessar. Salve a imagem no próprio arquivo e envie novamente.",
+    "uploadMultiDeck_other": "Não foi possível baixar {{count}} imagens e elas não estão nos seus baralhos. Seu arquivo aponta para elas em outros sites que não conseguimos acessar. Salve as imagens no próprio arquivo e envie novamente."
+  },
+  "truncation": {
+    "converted": "Os primeiros {{count}} blocos foram convertidos. O plano gratuito para por aí — <pricingLink>faça upgrade para converter a página inteira</pricingLink>.",
+    "subDeckSkipped": "As regras de subbaralhos de alternadores, títulos e bancos de dados se aplicam nos planos pagos — este baralho foi convertido sem elas."
+  },
+  "columnsGuessed": {
+    "text": "Não conseguimos identificar quais colunas são a pergunta e a resposta, então este baralho usa <front>{{frontField}}</front> como frente e <back>{{backField}}</back> como verso. Converta o banco de dados novamente para escolher outras colunas."
+  },
+  "paywall": {
+    "ariaLabel": "Fazer upgrade para o Unlimited",
+    "headline": "Uma conversão por vez no plano gratuito",
+    "body": "Esta conversão foi pausada para que a que você já iniciou possa terminar. Faça upgrade para o Unlimited para executar várias ao mesmo tempo.",
+    "opening": "Abrindo o checkout",
+    "upgrade": "Fazer upgrade para o Unlimited",
+    "orWaitTitled": "Ou aguarde \"<jobTitle>{{title}}</jobTitle>\" terminar — iniciada {{time}}.",
+    "orWaitUntitled": "Ou aguarde sua conversão atual terminar — iniciada {{time}}.",
+    "seeAllPlans": "Ver todos os planos"
+  },
+  "delete": {
+    "ariaLabel": "excluir"
+  },
+  "jobs": {
+    "deleteInProgress": "Este trabalho ainda está em andamento. Aguarde ele terminar."
+  }
+}

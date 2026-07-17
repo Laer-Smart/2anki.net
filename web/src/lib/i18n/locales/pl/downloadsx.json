@@ -1,0 +1,82 @@
+{
+  "feedback": {
+    "ariaLabel": "Opinia o talii",
+    "dismiss": "Zamknij",
+    "prompt": "Czy talia wyszła poprawnie?",
+    "yes": "Tak, zadziałało",
+    "somethingOff": "Coś było nie tak",
+    "followUpPositive": "Cieszymy się, że wyszło dobrze. Czy jest coś, co można poprawić?",
+    "followUpNegative": "Co poszło nie tak?",
+    "placeholderPositive": "Na przykład: zachowaj moje nagłówki lub dodaj tag do każdej karty.",
+    "placeholderNegative": "Na przykład: obrazy się nie pojawiły lub karty były puste.",
+    "send": "Wyślij",
+    "skip": "Pomiń",
+    "sending": "Wysyłanie",
+    "received": "Opinia otrzymana.",
+    "error": "Nie udało się wysłać.",
+    "tryAgain": "Spróbuj ponownie"
+  },
+  "ankify": {
+    "sending": "Wysyłanie do Twojego Anki…",
+    "createdCount_one": "{{count}} nowa",
+    "createdCount_few": "{{count}} nowe",
+    "createdCount_many": "{{count}} nowych",
+    "createdCount_other": "{{count}} nowych",
+    "updatedCount_one": "{{count}} zaktualizowana",
+    "updatedCount_few": "{{count}} zaktualizowane",
+    "updatedCount_many": "{{count}} zaktualizowanych",
+    "updatedCount_other": "{{count}} zaktualizowanych",
+    "sent": "Wysłano",
+    "syncedToAnkiWeb": "zsynchronizowano z AnkiWeb",
+    "syncSkipped": "synchronizacja z AnkiWeb pominięta",
+    "tryAgain": "Spróbuj ponownie",
+    "sendToAnki": "Wyślij do Anki",
+    "setupHint": "Najpierw skonfiguruj Anki na stronie Ankify",
+    "syncFailedTitle": "AnkiWeb nie przyjął synchronizacji — otwórz Anki w przeglądarce i zaloguj się do AnkiWeb. {{error}}",
+    "sendingTitle": "Wysyłasz {{deck}} do swojego hostowanego Anki i AnkiWeb. Zajmie to chwilę.",
+    "thisDeck": "tę talię"
+  },
+  "producer": {
+    "title": "Tworzysz talie dla innych osób?",
+    "body": "Utworzyłeś wiele talii. Jeśli robisz je dla studentów, klasy lub klientów, chcemy wiedzieć, co by pomogło. Nie ma jeszcze produktu do tego — decydujemy, co zbudować.",
+    "cta": "Powiedz nam, czego potrzebujesz",
+    "dismiss": "Nie teraz"
+  },
+  "imageDrop": {
+    "notion_one": "{{count}} obraz nie został pobrany i nie ma go w tej talii. Link do niego w Notion prawdopodobnie wygasł. Przekonwertuj stronę ponownie, aby spróbować go pobrać.",
+    "notion_few": "{{count}} obrazy nie zostały pobrane i nie ma ich w tej talii. Linki do nich w Notion prawdopodobnie wygasły. Przekonwertuj stronę ponownie, aby spróbować je pobrać.",
+    "notion_many": "{{count}} obrazów nie zostało pobranych i nie ma ich w tej talii. Linki do nich w Notion prawdopodobnie wygasły. Przekonwertuj stronę ponownie, aby spróbować je pobrać.",
+    "notion_other": "{{count}} obrazów nie zostało pobranych i nie ma ich w tej talii. Linki do nich w Notion prawdopodobnie wygasły. Przekonwertuj stronę ponownie, aby spróbować je pobrać.",
+    "uploadSingleDeck_one": "{{count}} obraz nie został pobrany i nie ma go w tej talii. Twój plik odwołuje się do niego w innej witrynie, do której nie mogliśmy dotrzeć. Zapisz obraz w samym pliku, a następnie prześlij go ponownie.",
+    "uploadSingleDeck_few": "{{count}} obrazy nie zostały pobrane i nie ma ich w tej talii. Twój plik odwołuje się do nich w innych witrynach, do których nie mogliśmy dotrzeć. Zapisz obrazy w samym pliku, a następnie prześlij go ponownie.",
+    "uploadSingleDeck_many": "{{count}} obrazów nie zostało pobranych i nie ma ich w tej talii. Twój plik odwołuje się do nich w innych witrynach, do których nie mogliśmy dotrzeć. Zapisz obrazy w samym pliku, a następnie prześlij go ponownie.",
+    "uploadSingleDeck_other": "{{count}} obrazów nie zostało pobranych i nie ma ich w tej talii. Twój plik odwołuje się do nich w innych witrynach, do których nie mogliśmy dotrzeć. Zapisz obrazy w samym pliku, a następnie prześlij go ponownie.",
+    "uploadMultiDeck_one": "{{count}} obraz nie został pobrany i nie ma go w Twoich taliach. Twój plik odwołuje się do niego w innej witrynie, do której nie mogliśmy dotrzeć. Zapisz obraz w samym pliku, a następnie prześlij go ponownie.",
+    "uploadMultiDeck_few": "{{count}} obrazy nie zostały pobrane i nie ma ich w Twoich taliach. Twój plik odwołuje się do nich w innych witrynach, do których nie mogliśmy dotrzeć. Zapisz obrazy w samym pliku, a następnie prześlij go ponownie.",
+    "uploadMultiDeck_many": "{{count}} obrazów nie zostało pobranych i nie ma ich w Twoich taliach. Twój plik odwołuje się do nich w innych witrynach, do których nie mogliśmy dotrzeć. Zapisz obrazy w samym pliku, a następnie prześlij go ponownie.",
+    "uploadMultiDeck_other": "{{count}} obrazów nie zostało pobranych i nie ma ich w Twoich taliach. Twój plik odwołuje się do nich w innych witrynach, do których nie mogliśmy dotrzeć. Zapisz obrazy w samym pliku, a następnie prześlij go ponownie."
+  },
+  "truncation": {
+    "converted": "Przekonwertowano pierwsze {{count}} bloków. Darmowy plan kończy się tutaj — <pricingLink>przejdź na wyższy plan, aby przekonwertować całą stronę</pricingLink>.",
+    "subDeckSkipped": "Reguły podtalii z przełączników, nagłówków i baz danych obowiązują w planach płatnych — ta talia została przekonwertowana bez nich."
+  },
+  "columnsGuessed": {
+    "text": "Nie udało nam się ustalić, które kolumny to pytanie i odpowiedź, więc ta talia używa <front>{{frontField}}</front> jako przodu i <back>{{backField}}</back> jako tyłu. Przekonwertuj bazę danych ponownie, aby wybrać inne kolumny."
+  },
+  "paywall": {
+    "ariaLabel": "Przejdź na Unlimited",
+    "headline": "Jedna konwersja naraz w planie darmowym",
+    "body": "Ta konwersja została wstrzymana, aby ta już rozpoczęta mogła się zakończyć. Przejdź na Unlimited, aby uruchamiać kilka naraz.",
+    "opening": "Otwieranie płatności",
+    "upgrade": "Przejdź na Unlimited",
+    "orWaitTitled": "Lub poczekaj, aż „<jobTitle>{{title}}</jobTitle>” się zakończy — rozpoczęto {{time}}.",
+    "orWaitUntitled": "Lub poczekaj, aż Twoja obecna konwersja się zakończy — rozpoczęto {{time}}.",
+    "seeAllPlans": "Zobacz wszystkie plany"
+  },
+  "delete": {
+    "ariaLabel": "usuń"
+  },
+  "jobs": {
+    "deleteInProgress": "To zadanie wciąż trwa. Poczekaj, aż się zakończy."
+  }
+}

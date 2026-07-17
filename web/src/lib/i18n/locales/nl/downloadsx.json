@@ -1,0 +1,72 @@
+{
+  "feedback": {
+    "ariaLabel": "Feedback over het pakket",
+    "dismiss": "Sluiten",
+    "prompt": "Is dit pakket goed geworden?",
+    "yes": "Ja, het werkte",
+    "somethingOff": "Er klopte iets niet",
+    "followUpPositive": "Fijn dat het goed is gekomen. Is er iets dat het beter zou maken?",
+    "followUpNegative": "Wat ging er mis?",
+    "placeholderPositive": "Bijvoorbeeld: mijn koppen behouden of een tag aan elke kaart toevoegen.",
+    "placeholderNegative": "Bijvoorbeeld: afbeeldingen kwamen niet door of kaarten waren leeg.",
+    "send": "Verzenden",
+    "skip": "Overslaan",
+    "sending": "Bezig met verzenden",
+    "received": "Feedback ontvangen.",
+    "error": "Kon dat niet verzenden.",
+    "tryAgain": "Opnieuw proberen"
+  },
+  "ankify": {
+    "sending": "Verzenden naar je Anki…",
+    "createdCount_one": "{{count}} nieuw",
+    "createdCount_other": "{{count}} nieuw",
+    "updatedCount_one": "{{count}} bijgewerkt",
+    "updatedCount_other": "{{count}} bijgewerkt",
+    "sent": "Verzonden",
+    "syncedToAnkiWeb": "gesynchroniseerd met AnkiWeb",
+    "syncSkipped": "AnkiWeb-synchronisatie overgeslagen",
+    "tryAgain": "Opnieuw proberen",
+    "sendToAnki": "Naar Anki sturen",
+    "setupHint": "Stel je Anki eerst in op de Ankify-pagina",
+    "syncFailedTitle": "AnkiWeb accepteerde de synchronisatie niet — open Anki in je browser en meld je aan bij AnkiWeb. {{error}}",
+    "sendingTitle": "Je verstuurt {{deck}} naar je gehoste Anki en AnkiWeb. Dit duurt even.",
+    "thisDeck": "dit pakket"
+  },
+  "producer": {
+    "title": "Maak je pakketten voor anderen?",
+    "body": "Je hebt veel pakketten gemaakt. Als je ze maakt voor studenten, een klas of klanten, horen we graag wat zou helpen. Er is hier nog geen product voor — we bepalen wat we bouwen.",
+    "cta": "Vertel ons wat je nodig hebt",
+    "dismiss": "Niet nu"
+  },
+  "imageDrop": {
+    "notion_one": "{{count}} afbeelding kon niet worden gedownload en zit niet in dit pakket. De link ernaar in Notion is waarschijnlijk verlopen. Converteer de pagina opnieuw om deze op te halen.",
+    "notion_other": "{{count}} afbeeldingen konden niet worden gedownload en zitten niet in dit pakket. De links ernaar in Notion zijn waarschijnlijk verlopen. Converteer de pagina opnieuw om ze op te halen.",
+    "uploadSingleDeck_one": "{{count}} afbeelding kon niet worden gedownload en zit niet in dit pakket. Je bestand linkt ernaar op een andere site die we niet konden bereiken. Sla de afbeelding op in het bestand zelf en upload opnieuw.",
+    "uploadSingleDeck_other": "{{count}} afbeeldingen konden niet worden gedownload en zitten niet in dit pakket. Je bestand linkt ernaar op andere sites die we niet konden bereiken. Sla de afbeeldingen op in het bestand zelf en upload opnieuw.",
+    "uploadMultiDeck_one": "{{count}} afbeelding kon niet worden gedownload en zit niet in je pakketten. Je bestand linkt ernaar op een andere site die we niet konden bereiken. Sla de afbeelding op in het bestand zelf en upload opnieuw.",
+    "uploadMultiDeck_other": "{{count}} afbeeldingen konden niet worden gedownload en zitten niet in je pakketten. Je bestand linkt ernaar op andere sites die we niet konden bereiken. Sla de afbeeldingen op in het bestand zelf en upload opnieuw."
+  },
+  "truncation": {
+    "converted": "De eerste {{count}} blokken zijn geconverteerd. Het gratis abonnement stopt daar — <pricingLink>upgrade om de hele pagina te converteren</pricingLink>.",
+    "subDeckSkipped": "Subpakketregels uit schakelaars, koppen en databases gelden bij betaalde abonnementen — dit pakket is zonder deze geconverteerd."
+  },
+  "columnsGuessed": {
+    "text": "We konden niet bepalen welke kolommen de vraag en het antwoord zijn, dus dit pakket gebruikt <front>{{frontField}}</front> als voorkant en <back>{{backField}}</back> als achterkant. Converteer de database opnieuw om andere kolommen te kiezen."
+  },
+  "paywall": {
+    "ariaLabel": "Upgraden naar Unlimited",
+    "headline": "Eén conversie tegelijk op het gratis abonnement",
+    "body": "Deze conversie is gepauzeerd zodat de al gestarte conversie kan worden voltooid. Upgrade naar Unlimited om er meerdere tegelijk uit te voeren.",
+    "opening": "Afrekenen wordt geopend",
+    "upgrade": "Upgraden naar Unlimited",
+    "orWaitTitled": "Of wacht tot \"<jobTitle>{{title}}</jobTitle>\" klaar is — gestart {{time}}.",
+    "orWaitUntitled": "Of wacht tot je huidige conversie klaar is — gestart {{time}}.",
+    "seeAllPlans": "Alle abonnementen bekijken"
+  },
+  "delete": {
+    "ariaLabel": "verwijderen"
+  },
+  "jobs": {
+    "deleteInProgress": "Deze taak wordt nog uitgevoerd. Wacht tot deze klaar is."
+  }
+}
