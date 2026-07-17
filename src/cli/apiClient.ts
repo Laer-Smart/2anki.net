@@ -49,17 +49,7 @@ export class ApiClient {
     return text.length > 0 ? JSON.parse(text) : {};
   }
 
-  /** Lists the caller's API keys — also serves as a cheap auth/whoami probe. */
-  async listKeys(): Promise<Array<{ name: string; prefix: string }>> {
-    const res = await this.fetchImpl(`${this.base}/api/developer/keys`, {
-      headers: this.authHeader(),
-    });
-    const body = (await this.parse(res)) as {
-      keys?: Array<{ name: string; prefix: string }>;
-    };
-    return body.keys ?? [];
-  }
-
+  /** Key-authed read used to verify a key on login/whoami. */
   async listJobs(): Promise<UploadJob[]> {
     const res = await this.fetchImpl(`${this.base}/api/upload/jobs`, {
       headers: this.authHeader(),

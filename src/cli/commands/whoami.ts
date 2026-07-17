@@ -11,17 +11,17 @@ export async function whoami(): Promise<number> {
 
   const client = new ApiClient(config);
   try {
-    const keys = await client.listKeys();
+    // Probe a key-authed endpoint to confirm the stored key still works.
+    const jobs = await client.listJobs();
     info(`${ui.bold('Connected to')} ${resolveApiBase(config)}`);
-    info(
-      `${keys.length} API key${keys.length === 1 ? '' : 's'} on this account.`
-    );
-    for (const key of keys) {
-      info(`  ${ui.dim(key.prefix + '…')}  ${key.name}`);
-    }
+    info(`${jobs.length} recent job${jobs.length === 1 ? '' : 's'}.`);
     return 0;
   } catch (e) {
     if (e instanceof ApiError) {
+      if (e.status === 401) {
+        error('Your API key is no longer valid. Run `2anki login` again.');
+        return 1;
+      }
       error(e.message);
       return 1;
     }

@@ -40,7 +40,9 @@ export async function login(options: LoginOptions = {}): Promise<number> {
   const next = { ...config, apiKey: key };
   const client = new ApiClient(next);
   try {
-    await client.listKeys();
+    // Verify against a key-authed endpoint. Key management (/developer/keys) is
+    // session-only; the conversion endpoints are what an API key unlocks.
+    await client.listJobs();
   } catch (e) {
     if (e instanceof ApiError) {
       if (e.status === 403) {
