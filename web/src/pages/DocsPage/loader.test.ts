@@ -42,13 +42,22 @@ describe('loadDoc', () => {
     );
   });
 
-  it('falls back to English when no German translation exists', () => {
-    const german = loadDoc('reference/glossary', 'de');
-    const english = loadDoc('reference/glossary');
+  it('serves the German cards doc when language is de', () => {
+    const doc = loadDoc('cards/card-types', 'de');
+    expect(doc).not.toBeNull();
+    expect(doc?.frontmatter.title).toBe('Kartentypen');
+    expect(doc?.sourcePath).toBe(
+      'web/src/pages/DocsPage/content/de/cards/card-types.md'
+    );
+  });
+
+  it('falls back to English for legal docs left untranslated', () => {
+    const german = loadDoc('reference/terms', 'de');
+    const english = loadDoc('reference/terms');
     expect(german).not.toBeNull();
     expect(german).toEqual(english);
     expect(german?.sourcePath).toBe(
-      'web/src/pages/DocsPage/content/reference/glossary.md'
+      'web/src/pages/DocsPage/content/reference/terms.md'
     );
   });
 
