@@ -56,6 +56,12 @@ const pkg = {
   bin: { '2anki': '2anki.cjs' },
   files: ['2anki.cjs', 'README.md'],
   type: 'commonjs',
+  // Trusted-publishing provenance requires repository.url to match the source
+  // repo, or npm publish rejects with E422.
+  repository: {
+    type: 'git',
+    url: 'git+https://github.com/Laer-Smart/2anki.net.git',
+  },
   engines: { node: '>=18' },
   keywords: ['anki', '2anki', 'flashcards', 'cli'],
   homepage: 'https://2anki.net/developers',
