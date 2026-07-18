@@ -1,7 +1,13 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { zipSync } from 'fflate';
 import { setupTests } from '../../../test/configure-jest';
 import { embedFile } from './embedFile';
 import CustomExporter from './CustomExporter';
 import Workspace from '../WorkSpace';
+import { ZipHandler } from '../../zip/zip';
+import CardOption from '../Settings';
 
 beforeEach(() => setupTests());
 
@@ -114,5 +120,48 @@ describe('embedFile — filename-only fallback', () => {
 
     expect(result).toBeNull();
     expect(exporter.addMedia).not.toHaveBeenCalled();
+  });
+});
+
+describe('embedFile — disk-backed (spilled) zip entries', () => {
+  it('resolves a spilled image lazily from disk and embeds its real bytes', async () => {
+    const spill = fs.mkdtempSync(path.join(os.tmpdir(), 'embed-spill-'));
+    const imageBytes = Buffer.alloc(64, 7);
+    const zip = zipSync(
+      { 'chapter1/image.png': new Uint8Array(imageBytes) },
+      { level: 0 }
+    );
+
+    const handler = new ZipHandler(10);
+    await handler.build(zip, true, new CardOption({}), spill);
+
+    // The bytes are on disk; the in-memory entry reads them lazily.
+    expect(fs.existsSync(path.join(spill, 'chapter1/image.png'))).toBe(true);
+
+    const captured: Buffer[] = [];
+    const exporter = {
+      firstDeckName: 'deck',
+      workspace: '/tmp',
+      media: [],
+      addMedia: jest.fn((_name: string, contents: Buffer) => {
+        captured.push(Buffer.from(contents));
+        return '/tmp/x.png';
+      }),
+    } as unknown as CustomExporter;
+
+    const result = embedFile({
+      exporter,
+      files: handler.files,
+      filePath: 'chapter1/image.png',
+      // A location that does not exist so getFile falls through to the
+      // in-memory (now disk-backed) entry, exercising the lazy read.
+      workspace: {
+        location: '/nonexistent-workspace-xyzzy',
+      } as unknown as Workspace,
+    });
+
+    expect(result).not.toBeNull();
+    expect(captured).toHaveLength(1);
+    expect(captured[0]).toEqual(imageBytes);
   });
 });

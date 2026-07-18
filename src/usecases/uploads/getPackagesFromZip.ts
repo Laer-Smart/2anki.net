@@ -300,7 +300,12 @@ export const getPackagesFromZip = async (
   }
 
   const zipHandler = new ZipHandler(getMaxUploadCount(paying));
-  await zipHandler.build(fileContents as Uint8Array, paying, settings);
+  await zipHandler.build(
+    fileContents as Uint8Array,
+    paying,
+    settings,
+    workspace.location
+  );
 
   const ankiAppResult = await convertAnkiAppDecksFromZip(
     zipHandler.files,

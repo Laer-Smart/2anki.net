@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { strFromU8, unzipSync } from 'fflate';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getUploadLimits } from '../misc/getUploadLimits';
@@ -19,18 +21,33 @@ interface File {
   contents?: Buffer | Uint8Array | string;
 }
 
-// A zip passes the compressed-size check (`limits.fileSize`) yet can still
-// decompress to many gigabytes of image bytes that all sit resident in memory
-// at once — the whole archive is inflated up front and every entry is held in
-// `this.files`. A single such upload OOM-crashed the shared server (#3709),
-// which kills every *other* user's in-flight conversion on the process too.
-// Cap the cumulative decompressed size (across nested zips) and fail closed
-// with a clear, actionable error instead. The 16 GB heap on prod amplifies to
-// ~3× during processing, so 4 GB decompressed leaves headroom.
-const MAX_DECOMPRESSED_BYTES = 4 * 1024 * 1024 * 1024;
+// Binary entries (images, audio, misc media) are spilled to the workspace on
+// disk during extraction and backed by a lazy read, so they no longer sit
+// resident in memory — a deck of thousands of screenshots used to inflate the
+// whole archive into RAM at once and OOM-crash the shared server (#3709/#3711).
+// Only entries we KEEP in memory (decoded HTML/markdown text, the OCR html) are
+// counted toward this heap ceiling; disk-backed media is bounded instead by the
+// compressed-upload cap (`getUploadLimits().fileSize`). 4 GB of in-memory text
+// leaves headroom under the 16 GB prod heap.
+const MAX_IN_MEMORY_BYTES = 4 * 1024 * 1024 * 1024;
 
 function formatGigabytes(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
+
+// Back a spilled entry with a lazy disk read so every consumer that reads
+// `.contents` (embedFile, PrepareDeck converters, writeWorkspaceFile) still gets
+// real bytes, but only one entry's bytes are resident at a time instead of all.
+function makeDiskBackedFile(name: string, diskPath: string): File {
+  const file: File = { name };
+  Object.defineProperty(file, 'contents', {
+    enumerable: true,
+    configurable: true,
+    get() {
+      return fs.readFileSync(diskPath);
+    },
+  });
+  return file;
 }
 
 class ZipHandler {
@@ -38,33 +55,55 @@ class ZipHandler {
   zipFileCount: number;
   maxZipFiles: number;
   combinedHTML: string;
-  decompressedBytes: number;
-  maxDecompressedBytes: number;
+  inMemoryBytes: number;
+  maxInMemoryBytes: number;
+  spillLocation?: string;
 
   constructor(
     maxNestedZipFiles: number,
-    maxDecompressedBytes: number = MAX_DECOMPRESSED_BYTES
+    maxInMemoryBytes: number = MAX_IN_MEMORY_BYTES
   ) {
     this.files = [];
     this.zipFileCount = 0;
     this.maxZipFiles = maxNestedZipFiles;
     this.combinedHTML = '';
-    this.decompressedBytes = 0;
-    this.maxDecompressedBytes = maxDecompressedBytes;
+    this.inMemoryBytes = 0;
+    this.maxInMemoryBytes = maxInMemoryBytes;
   }
 
-  private trackDecompressedBytes(byteLength: number) {
-    this.decompressedBytes += byteLength;
-    if (this.decompressedBytes > this.maxDecompressedBytes) {
+  private trackInMemoryBytes(byteLength: number) {
+    this.inMemoryBytes += byteLength;
+    if (this.inMemoryBytes > this.maxInMemoryBytes) {
       throw new Error(
-        `This upload is too large to process — it decompresses to over ${formatGigabytes(
-          this.maxDecompressedBytes
-        )}. Split it into smaller uploads and try again.`
+        `This upload is too large to process — it holds over ${formatGigabytes(
+          this.maxInMemoryBytes
+        )} of text in memory. Split it into smaller uploads and try again.`
       );
     }
   }
 
-  async build(zipData: Uint8Array, paying: boolean, settings: CardOption) {
+  // Write a binary entry to the workspace on disk and return a lazily-read File.
+  // Returns undefined when there is no spill location (in-memory callers/tests).
+  private spillToDisk(name: string, file: Uint8Array): File | undefined {
+    if (this.spillLocation == null) return undefined;
+    const base = path.resolve(this.spillLocation);
+    const abs = path.resolve(base, name);
+    if (abs !== base && !abs.startsWith(base + path.sep)) {
+      console.warn('Skipped zip entry that escaped the spill directory');
+      return undefined;
+    }
+    fs.mkdirSync(path.dirname(abs), { recursive: true });
+    fs.writeFileSync(abs, file);
+    return makeDiskBackedFile(name, abs);
+  }
+
+  async build(
+    zipData: Uint8Array,
+    paying: boolean,
+    settings: CardOption,
+    spillLocation?: string
+  ) {
+    this.spillLocation = spillLocation;
     const size = Buffer.byteLength(zipData);
     const limits = getUploadLimits(paying);
 
@@ -140,20 +179,23 @@ class ZipHandler {
       return;
     }
 
-    // Every non-zip entry below is retained in memory (as a Buffer, Uint8Array,
-    // or decoded string). Count it toward the resident-payload ceiling before
-    // holding onto it, so an oversized deck fails closed instead of OOMing.
-    this.trackDecompressedBytes(file.length);
-
     if (isHTMLFile(name) || isMarkdownFile(name)) {
+      this.trackInMemoryBytes(file.length);
       this.files.push({ name, contents: strFromU8(file) });
     } else if (paying && settings.imageQuizHtmlToAnki && isImageFile(name)) {
+      this.trackInMemoryBytes(file.length);
       await this.convertAndAddImageToHTML(name, file);
     } else if (isPDFFile(name) && settings.processPDFs === false) {
       // Skip PDF processing when processPDFs is false
       return;
     } else {
-      this.files.push({ name, contents: file });
+      const spilled = this.spillToDisk(name, file);
+      if (spilled) {
+        this.files.push(spilled);
+      } else {
+        this.trackInMemoryBytes(file.length);
+        this.files.push({ name, contents: file });
+      }
     }
   }
 
