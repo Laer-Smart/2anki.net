@@ -24,6 +24,7 @@ describe('buildMcpServer', () => {
       'deck_capabilities',
       'get_deck_preview',
       'list_my_decks',
+      'photo_to_deck',
     ]);
   });
 
