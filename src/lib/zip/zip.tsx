@@ -19,17 +19,49 @@ interface File {
   contents?: Buffer | Uint8Array | string;
 }
 
+// A zip passes the compressed-size check (`limits.fileSize`) yet can still
+// decompress to many gigabytes of image bytes that all sit resident in memory
+// at once — the whole archive is inflated up front and every entry is held in
+// `this.files`. A single such upload OOM-crashed the shared server (#3709),
+// which kills every *other* user's in-flight conversion on the process too.
+// Cap the cumulative decompressed size (across nested zips) and fail closed
+// with a clear, actionable error instead. The 16 GB heap on prod amplifies to
+// ~3× during processing, so 4 GB decompressed leaves headroom.
+const MAX_DECOMPRESSED_BYTES = 4 * 1024 * 1024 * 1024;
+
+function formatGigabytes(bytes: number): string {
+  return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
+
 class ZipHandler {
   files: File[];
   zipFileCount: number;
   maxZipFiles: number;
   combinedHTML: string;
+  decompressedBytes: number;
+  maxDecompressedBytes: number;
 
-  constructor(maxNestedZipFiles: number) {
+  constructor(
+    maxNestedZipFiles: number,
+    maxDecompressedBytes: number = MAX_DECOMPRESSED_BYTES
+  ) {
     this.files = [];
     this.zipFileCount = 0;
     this.maxZipFiles = maxNestedZipFiles;
     this.combinedHTML = '';
+    this.decompressedBytes = 0;
+    this.maxDecompressedBytes = maxDecompressedBytes;
+  }
+
+  private trackDecompressedBytes(byteLength: number) {
+    this.decompressedBytes += byteLength;
+    if (this.decompressedBytes > this.maxDecompressedBytes) {
+      throw new Error(
+        `This upload is too large to process — it decompresses to over ${formatGigabytes(
+          this.maxDecompressedBytes
+        )}. Split it into smaller uploads and try again.`
+      );
+    }
   }
 
   async build(zipData: Uint8Array, paying: boolean, settings: CardOption) {
@@ -105,7 +137,15 @@ class ZipHandler {
     if (name.endsWith('.zip')) {
       this.zipFileCount++;
       await this.processZip(file, paying, settings);
-    } else if (isHTMLFile(name) || isMarkdownFile(name)) {
+      return;
+    }
+
+    // Every non-zip entry below is retained in memory (as a Buffer, Uint8Array,
+    // or decoded string). Count it toward the resident-payload ceiling before
+    // holding onto it, so an oversized deck fails closed instead of OOMing.
+    this.trackDecompressedBytes(file.length);
+
+    if (isHTMLFile(name) || isMarkdownFile(name)) {
       this.files.push({ name, contents: strFromU8(file) });
     } else if (paying && settings.imageQuizHtmlToAnki && isImageFile(name)) {
       await this.convertAndAddImageToHTML(name, file);
