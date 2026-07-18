@@ -86,6 +86,9 @@ describe('Upload file', () => {
       insertNativeDeck: function (): Promise<Uploads> {
         return Promise.reject(new Error('not implemented'));
       },
+      insertConvertedDeck: function (): Promise<Uploads> {
+        return Promise.reject(new Error('not implemented'));
+      },
     };
     const notionRepository: INotionRepository = {
       getNotionData: function (owner: string | number): Promise<NotionTokens> {
@@ -173,6 +176,7 @@ describe('Upload file — multer error handling', () => {
       getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
       findByOwnerAndDedupeKey: jest.fn().mockResolvedValue(null),
       insertNativeDeck: jest.fn(),
+      insertConvertedDeck: jest.fn(),
     };
     const notionRepository: INotionRepository = {
       getNotionData: jest.fn() as INotionRepository['getNotionData'],
@@ -232,6 +236,7 @@ describe('UploadController.retryPdfWithCredential rate limit', () => {
       getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
       findByOwnerAndDedupeKey: jest.fn().mockResolvedValue(null),
       insertNativeDeck: jest.fn(),
+      insertConvertedDeck: jest.fn(),
     };
     const notionRepository: INotionRepository = {
       getNotionData: jest.fn() as INotionRepository['getNotionData'],
@@ -312,6 +317,7 @@ describe('UploadController.retryPdfWithCredential rate limit', () => {
       getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
       findByOwnerAndDedupeKey: jest.fn().mockResolvedValue(null),
       insertNativeDeck: jest.fn(),
+      insertConvertedDeck: jest.fn(),
     };
     const notionRepository: INotionRepository = {
       getNotionData: jest.fn() as INotionRepository['getNotionData'],

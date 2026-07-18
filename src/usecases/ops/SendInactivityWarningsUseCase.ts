@@ -41,6 +41,11 @@ class NoOpUploadRepository implements IUploadRepository {
       new Error('NoOpUploadRepository does not support insertNativeDeck')
     );
   }
+  insertConvertedDeck(): Promise<never> {
+    return Promise.reject(
+      new Error('NoOpUploadRepository does not support insertConvertedDeck')
+    );
+  }
 }
 
 export class SendInactivityWarningsUseCase {

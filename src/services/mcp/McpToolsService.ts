@@ -1,4 +1,5 @@
 import express from 'express';
+import { randomUUID } from 'node:crypto';
 
 import { JobWithDownloadKey } from '../../data_layer/JobRepository';
 import ApkgPreviewService from '../ApkgPreviewService/ApkgPreviewService';
@@ -6,11 +7,15 @@ import DownloadService from '../DownloadService';
 import StorageHandler from '../../lib/storage/StorageHandler';
 import instrumentedAxios from '../observability/instrumentedAxios';
 import { getSafeFilename } from '../../lib/getSafeFilename';
+import { DeckPersistence } from './McpDeckPersistence';
+import { McpCard, serializeCardsToMarkdown } from './serializeCardsToMarkdown';
 
 const APKG_KEY_PATTERN = /\.apkg$/i;
 const MAX_TEXT_BYTES = 5 * 1024 * 1024;
 const MAX_URL_BYTES = 100 * 1024 * 1024;
 const PREVIEW_CARD_LIMIT = 20;
+const MAX_CARDS = 500;
+const DEFAULT_DECK_NAME = 'MCP deck';
 
 export interface DeckSummary {
   jobId: string;
@@ -37,8 +42,10 @@ export type ConvertResult =
     }
   | {
       kind: 'deck';
+      jobId?: string;
       cardCount: number | null;
       filename: string | null;
+      downloadUrl?: string;
       deckCount?: number;
       decks?: { id: number; name: string; cardCount: number }[];
       sampleCards?: { front: string; back: string }[];
@@ -134,7 +141,8 @@ export class McpToolsService {
     private readonly downloadService: DownloadService,
     private readonly previewService: ApkgPreviewService,
     private readonly uploadEntry: UploadEntrypoint,
-    private readonly storage: StorageHandler
+    private readonly storage: StorageHandler,
+    private readonly deckPersistence: DeckPersistence
   ) {}
 
   async listMyDecks(owner: string): Promise<DeckSummary[]> {
@@ -198,6 +206,7 @@ export class McpToolsService {
 
   async convertToDeck(
     input: ConvertInput,
+    owner: string,
     locals: Record<string, unknown>
   ): Promise<ConvertResult> {
     const file = await this.buildFile(input);
@@ -207,7 +216,60 @@ export class McpToolsService {
         message: 'Provide either a url or text to convert.',
       };
     }
+    const res = await this.runUpload(file, locals);
+    return this.mapUploadResult(res, owner, file.originalname);
+  }
 
+  async createDeck(
+    cards: McpCard[],
+    deckName: string | undefined,
+    owner: string,
+    locals: Record<string, unknown>
+  ): Promise<ConvertResult> {
+    if (!Array.isArray(cards) || cards.length === 0) {
+      return { kind: 'error', message: 'Provide at least 1 card.' };
+    }
+    if (cards.length > MAX_CARDS) {
+      return {
+        kind: 'error',
+        message: `Too many cards — the limit is ${MAX_CARDS}. Split into smaller decks.`,
+      };
+    }
+    if (cards.some((card) => card.front == null || card.front.trim() === '')) {
+      return { kind: 'error', message: 'Every card needs a non-empty front.' };
+    }
+
+    const title =
+      deckName != null && deckName.trim().length > 0
+        ? deckName.trim()
+        : DEFAULT_DECK_NAME;
+    const markdown = serializeCardsToMarkdown(cards);
+    const buffer = Buffer.from(markdown, 'utf-8');
+    if (buffer.byteLength > MAX_TEXT_BYTES) {
+      return {
+        kind: 'error',
+        message:
+          'These cards are over the 5 MB limit. Split into smaller decks.',
+      };
+    }
+
+    const file: UploadedFile = {
+      originalname: getSafeFilename(`${title}.md`),
+      size: buffer.byteLength,
+      buffer,
+    };
+    const res = await this.runUpload(file, locals);
+    const result = await this.mapUploadResult(res, owner, title);
+    if (result.kind === 'deck' && result.cardCount == null) {
+      return { ...result, cardCount: cards.length };
+    }
+    return result;
+  }
+
+  private async runUpload(
+    file: UploadedFile,
+    locals: Record<string, unknown>
+  ): Promise<CapturingResponse> {
     const req = {
       files: [file],
       body: {},
@@ -217,7 +279,7 @@ export class McpToolsService {
     const res = new CapturingResponse(req);
     res.locals = locals;
     await this.uploadEntry(req, res as unknown as express.Response);
-    return this.mapUploadResult(res);
+    return res;
   }
 
   private async previewFromBytes(
@@ -288,7 +350,9 @@ export class McpToolsService {
   }
 
   private async mapUploadResult(
-    res: CapturingResponse
+    res: CapturingResponse,
+    owner: string,
+    fallbackTitle: string
   ): Promise<ConvertResult> {
     if (res.statusCode === 202 && this.isJobBody(res.body)) {
       return {
@@ -310,20 +374,45 @@ export class McpToolsService {
       };
     }
     if (res.statusCode === 200 && res.bodyBuffer != null) {
-      const cardCountHeader = res.get('X-Card-Count');
-      const cardCount =
-        cardCountHeader != null ? Number(cardCountHeader) : null;
-      const filename = res.get('File-Name') ?? null;
-      const preview = await this.previewFromBytes(res.bodyBuffer, filename);
-      const summary =
-        cardCount != null
-          ? `${cardCount} cards. Find it in your 2anki downloads.`
-          : 'Deck ready. Find it in your 2anki downloads.';
-      return { kind: 'deck', cardCount, filename, ...preview, summary };
+      return this.persistDeckResult(res.bodyBuffer, res, owner, fallbackTitle);
     }
     return {
       kind: 'error',
       message: this.errorMessage(res.body),
+    };
+  }
+
+  private async persistDeckResult(
+    bytes: Buffer,
+    res: CapturingResponse,
+    owner: string,
+    fallbackTitle: string
+  ): Promise<ConvertResult> {
+    const cardCountHeader = res.get('X-Card-Count');
+    const cardCount = cardCountHeader != null ? Number(cardCountHeader) : null;
+    const filename = res.get('File-Name') ?? null;
+    const title = filename ?? fallbackTitle;
+    const objectId = randomUUID();
+    const key = await this.deckPersistence.persist(
+      owner,
+      objectId,
+      title,
+      bytes
+    );
+    const downloadUrl = await this.storage.getPresignedUrl(key);
+    const preview = await this.previewFromBytes(bytes, filename);
+    const summary =
+      cardCount != null
+        ? `${cardCount} cards. Ready to download.`
+        : 'Deck ready to download.';
+    return {
+      kind: 'deck',
+      jobId: objectId,
+      cardCount,
+      filename,
+      downloadUrl,
+      ...preview,
+      summary,
     };
   }
 

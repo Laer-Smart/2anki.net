@@ -21,6 +21,14 @@ export interface NativeDeckInsert {
   dedupe_key: string | null;
 }
 
+export interface ConvertedDeckInsert {
+  owner: number;
+  object_id: string;
+  key: string;
+  filename: string;
+  size_mb: number;
+}
+
 export interface IUploadRepository {
   deleteUpload(owner: number, key: string): Promise<number>;
   getUploadsByOwner(owner: number): Promise<Uploads[]>;
@@ -46,6 +54,7 @@ export interface IUploadRepository {
     dedupeKey: string
   ): Promise<Uploads | null>;
   insertNativeDeck(row: NativeDeckInsert): Promise<Uploads>;
+  insertConvertedDeck(row: ConvertedDeckInsert): Promise<Uploads>;
 }
 class UploadRepository implements IUploadRepository {
   private readonly table = 'uploads';
@@ -182,6 +191,20 @@ class UploadRepository implements IUploadRepository {
         object_id: null,
         source: 'app',
         dedupe_key: row.dedupe_key,
+      })
+      .returning('*');
+    return inserted;
+  }
+
+  async insertConvertedDeck(row: ConvertedDeckInsert): Promise<Uploads> {
+    const [inserted] = await this.database<Uploads>(this.table)
+      .insert({
+        owner: row.owner,
+        object_id: row.object_id,
+        key: row.key,
+        filename: row.filename,
+        size_mb: row.size_mb,
+        source: 'app',
       })
       .returning('*');
     return inserted;

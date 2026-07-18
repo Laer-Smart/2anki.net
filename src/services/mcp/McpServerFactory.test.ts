@@ -13,13 +13,14 @@ describe('buildMcpServer', () => {
     expect(() => buildMcpServer(buildContext())).not.toThrow();
   });
 
-  it('registers the three tools on the real MCP server', () => {
+  it('registers the four tools on the real MCP server', () => {
     const server = buildMcpServer(buildContext());
     const registered = (
       server as unknown as { _registeredTools: Record<string, unknown> }
     )._registeredTools;
     expect(Object.keys(registered).sort()).toEqual([
       'convert_to_deck',
+      'create_deck',
       'get_deck_preview',
       'list_my_decks',
     ]);
