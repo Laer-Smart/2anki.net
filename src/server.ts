@@ -67,6 +67,7 @@ import subscriptionClaimRouter from './routes/SubscriptionClaimRouter';
 import mindmapRouter from './routes/MindmapRouter';
 import pitchRouter from './routes/PitchRouter';
 import iapRouter from './routes/IapRouter';
+import mcpRouter from './routes/McpRouter';
 import wellKnownRouter from './routes/WellKnownRouter';
 import healthRouter from './routes/HealthRouter';
 import requestLoggingMiddleware from './routes/middleware/requestLoggingMiddleware';
@@ -198,6 +199,7 @@ const serve = async () => {
   app.use(mindmapRouter());
   app.use(pitchRouter());
   app.use(iapRouter());
+  app.use(mcpRouter());
 
   const database = getDatabase();
   app.use(healthRouter(database));

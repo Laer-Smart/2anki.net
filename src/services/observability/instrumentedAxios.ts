@@ -14,6 +14,7 @@ export const OBSERVABILITY_SERVICES = [
   'apple_login',
   'pexels',
   'wikimedia',
+  'mcp',
 ] as const;
 
 export type ObservabilityService = (typeof OBSERVABILITY_SERVICES)[number];
@@ -38,6 +39,7 @@ const FIXED_HOST_ALLOWLIST: Record<
     'en.wikipedia.org',
     'upload.wikimedia.org',
   ],
+  mcp: null,
 };
 
 const DOMAIN_SUFFIX_ALLOWLIST: Partial<
