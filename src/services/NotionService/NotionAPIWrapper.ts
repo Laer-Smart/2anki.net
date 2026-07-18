@@ -148,16 +148,18 @@ class NotionAPIWrapper {
         }
       }
     }
-    if (!createdAt || !lastEditedAt) {
+    if (createdAt && lastEditedAt) {
+      if (this.blocksCache && !paginationTruncated) {
+        await this.blocksCache.save({
+          id,
+          owner: this.owner,
+          payload: response,
+          createdAt,
+          lastEditedAt,
+        });
+      }
+    } else {
       console.log('not enough input block cache');
-    } else if (this.blocksCache && !paginationTruncated) {
-      await this.blocksCache.save({
-        id,
-        owner: this.owner,
-        payload: response,
-        createdAt,
-        lastEditedAt,
-      });
     }
     console.timeEnd(getBlocksLabel);
     return response;

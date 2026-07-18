@@ -1475,17 +1475,17 @@ export class DeckParser {
     disableIndentedBullets: boolean
   ) {
     const cards: Note[] = [];
-    const lists = !disableIndentedBullets
-      ? [...dom('ul').toArray(), ...dom('ol').toArray()]
-      : [...dom('.page-body > .bulleted-list').toArray()];
+    const lists = disableIndentedBullets
+      ? [...dom('.page-body > .bulleted-list').toArray()]
+      : [...dom('ul').toArray(), ...dom('ol').toArray()];
 
     lists.forEach((list) => {
-      if (!disableIndentedBullets) {
+      if (disableIndentedBullets) {
+        cards.push(new Note(dom(list).html() ?? '', ''));
+      } else {
         for (const child of dom(list).find('li')) {
           cards.push(new Note(dom(child).html() ?? '', ''));
         }
-      } else {
-        cards.push(new Note(dom(list).html() ?? '', ''));
       }
     });
 
