@@ -28,6 +28,19 @@ The main checkout (`/Users/a/src/github.com/2anki/server`) is where full-pipelin
 - **A new `web/src/App.tsx` route needs a matching entry in `src/routes/knownRoutes.ts` in the same PR.** `DefaultRouter` serves the SPA shell with a 200 only for listed paths; an unregistered path renders fine via client-side navigation but returns **404 on direct load or refresh** — invisible in normal clicking and in vitest. Verify post-deploy with `curl -w "%{http_code}"` on the new URL.
 - **`Graceful shutdown exceeded 25000ms — forcing exit` in prod logs is expected on every deploy** (an in-flight conversion holds the drain past the 25s window). Don't surface it in `/deploy-status` as a concern — only flag genuine faults (`uncaught exception`, native-binding failures, `EADDRINUSE`, crash loops).
 
+## Orphaned process hygiene — don't cook the maintainer's laptop
+
+Background agents and dev servers leak node processes that outlive whatever spawned them. On 2026-07-18 a token-max session with 5 parallel agents drove the load average to **40** and made the machine unusable: **23 node processes** stacked up under one agent's worktree (repeated `tsc`/`jest` `/check` runs that didn't die when the agent stopped), plus two ancient dev servers reparented to init — a **`vite preview` running 3 days** and a **`server.mjs` running 11 days** — from earlier sessions that never killed them. None showed as zombies; they were live, CPU-burning orphans (`PPID == 1`).
+
+Rules to keep it from recurring:
+
+- **A slow box is a process problem first, a disk problem second.** Diagnose with `uptime` (load average) and `ps aux -r | head` (top CPU), NOT just memory. A load average above ~2× core count means oversubscription — look for stacked `node`/`tsc`/`jest`/`vitest` procs before blaming anything else. `ps aux | grep -w node | grep -v grep | wc -l` is the fast smell test; a healthy idle box is near 0.
+- **`scripts/reap-orphans.sh` is the one-command cleanup.** Dry-run lists orphaned dev/build node procs (`PPID 1` + a `vite`/`server.mjs`/`pnpm dev`/`tsc`/`jest`/`vitest`/`esbuild` signature); `--force` kills them (TERM then KILL). It only ever touches `PPID 1` orphans, so it will NOT kill an actively-running agent's `/check` (that proc has a live parent). Run it whenever the box drags, and at the end of any multi-agent session.
+- **The SessionStart hook (`session-start.sh`) warns when orphans exist** so accumulation gets caught next session instead of festering for 11 days. It only warns — never auto-kills — because a long-lived `pnpm dev` may be one Alexander started on purpose.
+- **`git worktree remove` on a slow disk hangs deleting `node_modules`** (a 2-min timeout is not enough for a fully-installed worktree). Kill the worktree's processes FIRST (`reap-orphans.sh --force`, or the agent stop), then remove — with no procs holding files it's fast. If it still drags, `rm -rf <dir> && git worktree prune` in the background.
+- **After a parallel PR batch, reap and remove.** Every finished agent leaves a worktree (source + a full `node_modules`) and may leave check procs. Once its PR is pushed the local worktree is redundant: `git worktree remove <path>` (or the rm+prune above). Don't let done worktrees and their node_modules pile up — they're the disk half of the same problem.
+- **Never leave a dev server running.** `pnpm dev`, `vite preview`, and `test:golden-path` start servers that reparent to init if not stopped. If you (or an agent) start one, kill it in the same session. CLAUDE.md already says "ask before starting the server" — this is why: a forgotten one runs for days.
+
 ## Harness mechanics
 
 - A **non-zero Bash exit cancels every still-queued tool call after it** in the same turn (including spawned Agents). Run shippable git steps in their own message, and end multi-step bash scripts with a command that exits 0 (a final `git log`/`echo`) so a mid-script failure doesn't cascade-cancel the rest.

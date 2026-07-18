@@ -34,4 +34,21 @@ if [ "$TODO_COUNT" -gt 0 ]; then
   echo '```'
 fi
 
+# Orphaned dev/build process guard. Parallel agents each running /check stack
+# node procs that outlive the agent, and dev servers (vite preview, server.mjs,
+# pnpm dev) reparent to init when their session exits — a 2026-07-18 session let
+# 23 such procs accumulate (load average hit 40) plus a 3-day vite preview and an
+# 11-day server.mjs. This warns (never kills); run scripts/reap-orphans.sh to clean.
+ORPHANS=$(ps -Ao pid=,ppid=,command= 2>/dev/null | awk '
+  $2 == 1 && /node/ &&
+  /(vite[^A-Za-z]|server\.mjs|pnpm[[:space:]]+dev|[[:space:]]tsc([[:space:]]|$)|jest|vitest|esbuild)/')
+ORPHAN_COUNT=$(printf '%s' "$ORPHANS" | grep -c .)
+
+if [ "$ORPHAN_COUNT" -gt 0 ]; then
+  echo
+  echo "- ⚠️  Orphaned dev/build node processes (PPID 1): $ORPHAN_COUNT — likely leftover"
+  echo "  dev servers or stuck /check runs eating CPU. Inspect + clean:"
+  echo '  `scripts/reap-orphans.sh` (dry run) then `scripts/reap-orphans.sh --force`.'
+fi
+
 exit 0
