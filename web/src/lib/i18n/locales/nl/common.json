@@ -344,8 +344,8 @@
       "day24": "— 24 uur",
       "week1": "— 1 week",
       "redirecting": "Doorsturen…",
-      "getDayPass": "Get Day Pass",
-      "getWeekPass": "Get Week Pass"
+      "getDayPass": "Day Pass kopen",
+      "getWeekPass": "Week Pass kopen"
     },
     "unlimited": {
       "mostPopular": "Meest gekozen",
@@ -366,7 +366,7 @@
       "benefitCancel": "Altijd opzegbaar",
       "tryAgain": "Opnieuw proberen",
       "startingCheckout": "Afrekenen starten",
-      "getUnlimited": "Get Unlimited",
+      "getUnlimited": "Unlimited kopen",
       "termsYearly": "{{annualTotal}}/jaar, wordt jaarlijks verlengd. Altijd opzegbaar — je houdt toegang gedurende het jaar waarvoor je betaalde.",
       "termsMonthly": "{{monthlyTotal}}/maand, wordt maandelijks verlengd. Altijd opzegbaar.",
       "checkoutError": "Kon het afrekenen niet starten. Probeer het opnieuw, of mail support@2anki.net."
@@ -387,7 +387,7 @@
       "photoDesc": "Maak een foto van een pagina of slide — AI zet het om in kaarten",
       "mcqTitle": "Meerkeuze",
       "mcqDesc": "Quizkaarten met maximaal 7 opties",
-      "occlusionTitle": "Image occlusion",
+      "occlusionTitle": "Afbeeldingsocclusie",
       "occlusionDesc": "Verberg-en-onthul-kaarten van elk diagram",
       "mindMapsTitle": "Mindmaps",
       "mindMapsDesc": "Zet een pagina om in een visuele mindmap",
@@ -507,8 +507,8 @@
       "bodyNoReset": "Deze conversie zou je gratis limiet overschrijden, dus hij is niet voltooid. Koop een pass om nu verder te converteren.",
       "bodyWithReset": "Deze conversie zou je gratis limiet overschrijden, dus hij is niet voltooid. Je gratis kaarten vernieuwen op {{resetDate}}, of koop een pass om nu verder te converteren.",
       "openingCheckout": "Afrekenen openen",
-      "getDayPass": "Get Day Pass — {{price}}",
-      "getWeekPass": "Get Week Pass — {{price}}",
+      "getDayPass": "Day Pass kopen — {{price}}",
+      "getWeekPass": "Week Pass kopen — {{price}}",
       "upgradeUnlimited": "Upgraden naar Unlimited"
     }
   },
