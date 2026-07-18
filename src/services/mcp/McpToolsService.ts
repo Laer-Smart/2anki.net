@@ -148,9 +148,15 @@ export class McpToolsService {
     }));
   }
 
-  async getDeckPreview(owner: string, key: string): Promise<DeckPreview> {
-    if (!APKG_KEY_PATTERN.test(key)) {
-      throw new Error('Not an .apkg upload.');
+  async getDeckPreview(owner: string, jobId: string): Promise<DeckPreview> {
+    const jobs = await this.jobLister.getJobsByOwner(owner);
+    const job = jobs.find((entry) => entry.object_id === jobId);
+    if (!job) {
+      throw new Error('Deck not found.');
+    }
+    const key = job.download_key;
+    if (key == null || !APKG_KEY_PATTERN.test(key)) {
+      throw new Error('This deck has no .apkg to preview yet.');
     }
     const body = await this.downloadService.getFileBody(
       owner,
