@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-18-large-upload-guard",
+  "date": "2026-07-18",
+  "type": "fix",
+  "title": "Very large uploads show a clear size message instead of failing mid-conversion"
+}

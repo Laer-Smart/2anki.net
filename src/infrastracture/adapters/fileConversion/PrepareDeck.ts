@@ -30,6 +30,12 @@ import { writeWorkspaceFile } from './writeWorkspaceFile';
 
 const HTML_GENERATION_CONCURRENCY = 3;
 
+// Bound how many files convert at once. An unbounded Promise.all over a
+// large image/PDF deck holds every converter's working memory (base64 copies,
+// pdf→image buffers) resident simultaneously, which is a heap-OOM path on a big
+// upload (#3709). Order is preserved by mapWithConcurrency's indexed writes.
+const FILE_CONVERSION_CONCURRENCY = 4;
+
 async function mapWithConcurrency<T, R>(
   items: T[],
   concurrency: number,
@@ -366,8 +372,10 @@ export async function PrepareDeck(
   });
 
   const tConvert = Date.now();
-  const results = await Promise.all(
-    files.map((file) => convertFile(file, input))
+  const results = await mapWithConcurrency(
+    files,
+    FILE_CONVERSION_CONCURRENCY,
+    (file) => convertFile(file, input)
   );
   const convertedFiles = results.flatMap((r) => (r ? [r] : []));
   console.log('[PrepareDeck] file conversions done', {
@@ -543,8 +551,10 @@ export async function prepareDeckInfoOnly(
   outputWorkspace: Workspace
 ): Promise<DeckInfoOnlyResult> {
   const files = dedupeFilesByName(input.files);
-  const results = await Promise.all(
-    files.map((file) => convertFile(file, input))
+  const results = await mapWithConcurrency(
+    files,
+    FILE_CONVERSION_CONCURRENCY,
+    (file) => convertFile(file, input)
   );
   const convertedFiles = results.flatMap((r) => (r ? [r] : []));
   const allFiles = [...files, ...convertedFiles];
