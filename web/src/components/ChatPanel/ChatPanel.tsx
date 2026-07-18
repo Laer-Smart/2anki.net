@@ -9,6 +9,7 @@ import {
   suggestDeckName,
 } from '../../lib/chat/templates';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
+import { compressImageForUpload } from '../../lib/image/compressImageForUpload';
 import AssistantMarkdown from '../../pages/Chat/AssistantMarkdown';
 import CardPreview from '../../pages/Chat/CardPreview';
 import ConsentModal from '../ConsentModal/ConsentModal';
@@ -717,10 +718,10 @@ export default function ChatPanel({
     !isLoading &&
     !limitReached;
 
-  function addFiles(files: File[]) {
+  async function addFiles(incoming: File[]) {
     setNetworkError(null);
 
-    const disallowed = files.filter((f) => !ALLOWED_TYPES.has(f.type));
+    const disallowed = incoming.filter((f) => !ALLOWED_TYPES.has(f.type));
     if (disallowed.length > 0) {
       if (disallowed.length === 1) {
         setNetworkError(
@@ -733,6 +734,8 @@ export default function ChatPanel({
       }
       return;
     }
+
+    const files = await Promise.all(incoming.map(compressImageForUpload));
 
     const oversized = files.find((f) => f.size > MAX_FILE_BYTES);
     if (oversized != null) {
@@ -1109,7 +1112,7 @@ export default function ChatPanel({
       setIsDragging(false);
       const files = Array.from(e.dataTransfer.files);
       if (files.length > 0) {
-        addFiles(files);
+        void addFiles(files);
       }
     },
     [chips] // eslint-disable-line react-hooks/exhaustive-deps
