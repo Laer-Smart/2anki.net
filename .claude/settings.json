@@ -31,15 +31,12 @@
       "Bash(git fetch --prune *)",
       "Bash(git worktree remove *)",
       "Bash(git worktree prune)",
-
       "Write(src/**/*.test.ts)",
       "Write(web/src/**/*.test.ts)",
       "Write(web/src/**/*.test.tsx)",
-
       "Edit(src/**)",
       "Edit(web/src/**)",
       "Edit(web/public/**)",
-
       "Write(Documentation/specs/*.md)",
       "Edit(Documentation/specs/*.md)",
       "Write(Documentation/ankify/*.md)",
@@ -61,6 +58,16 @@
           {
             "type": "command",
             "command": "bash $CLAUDE_PROJECT_DIR/.claude/hooks/caveman-run.sh $CLAUDE_PROJECT_DIR/.claude/caveman/hooks/caveman-mode-tracker.js"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/sonar-secrets/build-scripts/prompt-secrets.sh",
+            "timeout": 60
           }
         ]
       }
@@ -127,6 +134,16 @@
           {
             "type": "command",
             "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/pre-write-secret-scan.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".claude/hooks/sonar-secrets/build-scripts/pretool-secrets.sh",
+            "timeout": 60
           }
         ]
       }
