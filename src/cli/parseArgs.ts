@@ -9,7 +9,10 @@ export interface ParsedArgs {
  * Dependency-free on purpose — the CLI ships no third-party arg library.
  */
 export function parseArgs(argv: string[]): ParsedArgs {
-  const [command = 'help', ...rest] = argv;
+  // `pnpm cli -- convert x` / `npx pkg -- convert x` forward a literal `--` as
+  // the first token; drop it so the command is read correctly.
+  const normalized = argv[0] === '--' ? argv.slice(1) : argv;
+  const [command = 'help', ...rest] = normalized;
   const positionals: string[] = [];
   const flags: Record<string, string | boolean> = {};
 

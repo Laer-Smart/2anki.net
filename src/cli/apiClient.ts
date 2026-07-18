@@ -17,6 +17,16 @@ export interface UploadJob {
   [k: string]: unknown;
 }
 
+export interface BatchDeck {
+  name: string;
+  filename: string;
+  downloadUrl: string;
+}
+
+export type ConvertResult =
+  | { kind: 'single'; bytes: Uint8Array; deckName: string; cardCount: number }
+  | { kind: 'batch'; decks: BatchDeck[] };
+
 export class ApiClient {
   private readonly base: string;
 
@@ -58,7 +68,12 @@ export class ApiClient {
     return Array.isArray(body) ? (body as UploadJob[]) : [];
   }
 
-  async uploadFile(filename: string, bytes: Uint8Array): Promise<UploadJob> {
+  /**
+   * Convert a file. `/api/upload/file` responds synchronously: a single deck
+   * comes back as raw `application/apkg` bytes (with File-Name / X-Card-Count
+   * headers); multiple decks come back as JSON with per-deck download URLs.
+   */
+  async convert(filename: string, bytes: Uint8Array): Promise<ConvertResult> {
     const form = new FormData();
     // Uint8Array is a valid BlobPart at runtime; the DOM lib's ArrayBuffer vs
     // ArrayBufferLike distinction is a type-only mismatch under Node.
@@ -69,7 +84,42 @@ export class ApiClient {
       headers: this.authHeader(),
       body: form,
     });
-    return (await this.parse(res)) as UploadJob;
+    if (!res.ok) {
+      const text = await res.text();
+      let message = `${res.status} ${res.statusText}`;
+      try {
+        const body = JSON.parse(text) as { message?: string };
+        if (body.message != null) message = body.message;
+      } catch {
+        if (text.trim().length > 0) message = text.trim();
+      }
+      throw new ApiError(message, res.status);
+    }
+    const contentType = res.headers.get('content-type') ?? '';
+    if (contentType.includes('application/json')) {
+      const body = (await res.json()) as { decks?: BatchDeck[] };
+      return { kind: 'batch', decks: body.decks ?? [] };
+    }
+    const out = new Uint8Array(await res.arrayBuffer());
+    const nameHeader = res.headers.get('file-name');
+    const deckName =
+      nameHeader != null && nameHeader.length > 0
+        ? decodeURIComponent(nameHeader)
+        : `${filename.replace(/\.[^.]+$/, '')}.apkg`;
+    const cardCount = Number(res.headers.get('x-card-count') ?? 0);
+    return { kind: 'single', bytes: out, deckName, cardCount };
+  }
+
+  /** Download a batch deck. The /download/:id/:file route is public (UUID). */
+  async downloadDeck(downloadUrl: string): Promise<Uint8Array> {
+    const res = await this.fetchImpl(`${this.base}${downloadUrl}`);
+    if (!res.ok) {
+      throw new ApiError(
+        `Download failed: ${res.status} ${res.statusText}`,
+        res.status
+      );
+    }
+    return new Uint8Array(await res.arrayBuffer());
   }
 }
 

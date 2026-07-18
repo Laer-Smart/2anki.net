@@ -11,6 +11,12 @@ describe('parseArgs', () => {
     expect(parsed.positionals).toEqual(['notes.md']);
   });
 
+  it('strips a leading -- forwarded by pnpm/npx', () => {
+    const parsed = parseArgs(['--', 'convert', 'notes.md']);
+    expect(parsed.command).toBe('convert');
+    expect(parsed.positionals).toEqual(['notes.md']);
+  });
+
   it('reads a flag with a value', () => {
     const parsed = parseArgs(['login', '--key', 'sk_live_abc']);
     expect(parsed.command).toBe('login');
