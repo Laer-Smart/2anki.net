@@ -37,6 +37,29 @@ const NOTE_APPS: RawEntry[] = [
     blurb:
       'Drop a .md file — bullets, Q/A pairs, and code blocks all become cards.',
   },
+  {
+    slug: 'obsidian-to-anki',
+    anchor: 'Convert Obsidian notes to Anki',
+    blurb:
+      'Drop a vault note or export — Markdown headings and links become cards, no plugin.',
+  },
+  {
+    slug: 'onenote-to-anki',
+    anchor: 'Convert OneNote pages to Anki',
+    blurb:
+      'Export a OneNote page to PDF or Word and turn its headings into cards.',
+  },
+  {
+    slug: 'evernote-to-anki',
+    anchor: 'Convert Evernote notes to Anki',
+    blurb:
+      'Export Evernote notes as HTML — your headings and lists become cards.',
+  },
+  {
+    slug: 'google-docs-to-anki',
+    anchor: 'Convert Google Docs to Anki',
+    blurb: 'Download a Google Doc as Word or Markdown and turn it into a deck.',
+  },
 ];
 
 const FLASHCARD_APPS: RawEntry[] = [
@@ -102,6 +125,44 @@ const FILE_FORMATS: RawEntry[] = [
     anchor: 'Export an Anki deck to CSV',
     blurb:
       'Upload an .apkg and download a spreadsheet of every card to edit or share.',
+  },
+  {
+    slug: 'excel-to-anki',
+    anchor: 'Convert an Excel .xlsx to Anki',
+    blurb:
+      'Drop an .xlsx — one row per card, column 1 front and column 2 back.',
+  },
+  {
+    slug: 'word-to-anki',
+    anchor: 'Convert a Word document to Anki',
+    blurb:
+      'Drop a .docx — headings become card fronts and the body becomes the back.',
+  },
+  {
+    slug: 'google-sheets-to-anki',
+    anchor: 'Convert Google Sheets to Anki',
+    blurb: 'Download a sheet as .csv or .xlsx — each row becomes a card.',
+  },
+  {
+    slug: 'txt-to-anki',
+    anchor: 'Convert a text file to Anki',
+    blurb: 'Drop a plain .txt list — question and answer lines become cards.',
+  },
+  {
+    slug: 'photo-to-anki',
+    anchor: 'Convert a photo of notes to Anki',
+    blurb:
+      'Upload a photo of your notes — AI writes question-and-answer cards you can edit.',
+  },
+  {
+    slug: 'screenshot-to-anki',
+    anchor: 'Convert a screenshot to Anki',
+    blurb: 'Upload a screenshot of a slide or page — AI turns it into a card.',
+  },
+  {
+    slug: 'google-slides-to-anki',
+    anchor: 'Convert Google Slides to Anki',
+    blurb: 'Export slides to PDF — each slide becomes a card front.',
   },
 ];
 
