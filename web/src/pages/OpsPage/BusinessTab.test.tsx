@@ -255,10 +255,24 @@ describe('BusinessTab', () => {
     const secondFetchPromise = new Promise<void>((r) => {
       resolveSecondFetch = r;
     });
-    let callCount = 0;
+    let businessCallCount = 0;
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockImplementation(
-      async () => {
-        const idx = callCount++;
+      async (url: string) => {
+        if (typeof url === 'string' && url.includes('cancel-funnel')) {
+          return {
+            ok: true,
+            status: 200,
+            statusText: 'OK',
+            json: async () => ({
+              stages: null,
+              save_rate_pct: 0,
+              offer_reach_pct: 0,
+              since: '',
+              as_of: '',
+            }),
+          };
+        }
+        const idx = businessCallCount++;
         if (idx === 1) {
           await secondFetchPromise;
         }

@@ -22,8 +22,14 @@ export function useSubscriptionCancellation(onSuccess?: () => void) {
   const [showFollowUp, setShowFollowUp] = useState<boolean>(false);
 
   const { mutate, isPending: isCancelling } = useMutation({
-    mutationFn: ({ mode }: { mode: CancelMode; periodEnd?: number | null }) =>
-      cancelSubscription(mode),
+    mutationFn: ({
+      mode,
+      reason,
+    }: {
+      mode: CancelMode;
+      periodEnd?: number | null;
+      reason?: string;
+    }) => cancelSubscription(mode, reason),
     onSuccess: (_data, variables) => {
       setCancelError('');
       setCancelSuccess(
@@ -54,11 +60,12 @@ export function useSubscriptionCancellation(onSuccess?: () => void) {
 
   const cancelUserSubscription = (
     mode: CancelMode = 'period_end',
-    periodEnd?: number | null
+    periodEnd?: number | null,
+    reason?: string
   ) => {
     setCancelError('');
     setCancelSuccess('');
-    mutate({ mode, periodEnd });
+    mutate({ mode, periodEnd, reason });
   };
 
   const submitFeedback = (reason: CancellationReason, comment: string) => {

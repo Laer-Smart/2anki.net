@@ -538,6 +538,15 @@ class UsersController {
         });
       }
 
+      const reason =
+        typeof req.body?.reason === 'string' && req.body.reason.length > 0
+          ? req.body.reason
+          : null;
+      track('subscription_cancelled', {
+        userId: owner,
+        props: { reason, cancel_type: requestedMode },
+      });
+
       const message =
         requestedMode === 'immediate'
           ? 'Your subscription has been cancelled. A confirmation email is on its way.'
@@ -576,6 +585,15 @@ class UsersController {
         id,
         requestedMode
       );
+
+      const reason =
+        typeof req.body?.reason === 'string' && req.body.reason.length > 0
+          ? req.body.reason
+          : null;
+      track('subscription_cancelled', {
+        userId: owner,
+        props: { reason, cancel_type: requestedMode },
+      });
 
       return res.status(200).json({ message: 'This plan has been cancelled.' });
     } catch (error) {

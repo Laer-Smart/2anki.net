@@ -7,7 +7,7 @@ import { usePauseSubscription } from '../hooks/usePauseSubscription';
 import { useStripeSubscriptions } from '../../../lib/hooks/useStripeSubscriptions';
 import { StripeSubscriptionSummary } from '../../../lib/backend/getSubscriptionStatus';
 import { track } from '../../../lib/analytics/track';
-import { CancelFlow } from './CancelFlow';
+import { CancelFlow, isLifecycleReason } from './CancelFlow';
 import { CancellationReason } from './CancellationFollowUp';
 import styles from '../AccountPage.module.css';
 import sharedStyles from '../../../styles/shared.module.css';
@@ -390,11 +390,31 @@ function StripeSubscriptionManagement({
     tenureDaysOf(activeSub) >= MIN_TENURE_DAYS_TO_PAUSE &&
     !hasMultipleActive;
 
+  const handleOpenCancelFlow = () => {
+    if (activeSub != null) {
+      track('subscription_cancel_started', {
+        tenure_days: tenureDaysOf(activeSub),
+        interval: isAnnual(activeSub) ? 'year' : 'month',
+      });
+    }
+    setConfirming(true);
+  };
+
   const handleCancelFromFlow = (reason: CancellationReasonInput) => {
     if (reason) {
       submitFeedback(reason, '');
     }
-    cancelUserSubscription('period_end', activeSub?.current_period_end);
+    if (pauseEligible && isLifecycleReason(reason)) {
+      track('subscription_pause_offer_declined', {
+        reason,
+        tenure_days: activeSub == null ? 0 : tenureDaysOf(activeSub),
+      });
+    }
+    cancelUserSubscription(
+      'period_end',
+      activeSub?.current_period_end,
+      reason || undefined
+    );
     setConfirming(false);
   };
 
@@ -438,7 +458,7 @@ function StripeSubscriptionManagement({
                   <button
                     type="button"
                     className={styles.secondaryButton}
-                    onClick={() => setConfirming(true)}
+                    onClick={handleOpenCancelFlow}
                     disabled={isCancelling}
                   >
                     {t('subscription.cancelSubscription')}

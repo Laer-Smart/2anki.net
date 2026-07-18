@@ -13,6 +13,7 @@ import { buildClaudePrompt } from './buildClaudePrompt';
 import CopyForClaudeButton from './CopyForClaudeButton';
 import MetricCard, { formatNumberOrDash } from './MetricCard';
 import ActiveSubsTimeseriesChart from './charts/ActiveSubsTimeseriesChart';
+import CancelFunnelChart from './charts/CancelFunnelChart';
 import CancellationCommentsList from './charts/CancellationCommentsList';
 import CancellationReasonsChart from './charts/CancellationReasonsChart';
 import ChartPanel from './charts/ChartPanel';
@@ -26,6 +27,7 @@ import ReEngagementReasonsChart from './charts/ReEngagementReasonsChart';
 import SignupCountriesChart from './charts/SignupCountriesChart';
 import styles from './OpsPage.module.css';
 import { useBusinessMetrics } from './useBusinessMetrics';
+import { useCancelFunnel } from './useCancelFunnel';
 
 const buildMrrFootnote = (
   asOf: string | null,
@@ -41,6 +43,8 @@ const buildMrrFootnote = (
 
 export default function BusinessTab() {
   const { data, error, isLoading, isFetching } = useBusinessMetrics();
+  const { data: cancelFunnel, isLoading: cancelFunnelLoading } =
+    useCancelFunnel();
   const [lastSnapshot, setLastSnapshot] =
     useState<BusinessMetricsResponse | null>(null);
 
@@ -235,6 +239,20 @@ export default function BusinessTab() {
           </p>
         </header>
         <div className={styles.grid}>
+          <ChartPanel
+            title="Cancel-flow funnel, last 30 days"
+            subtitle="How many cancels the pause offer saves"
+            isLoading={cancelFunnelLoading && cancelFunnel == null}
+            isEmpty={
+              cancelFunnel?.stages == null ||
+              cancelFunnel.stages.cancel_started === 0
+            }
+            emptyText="No cancel-flow activity in this window."
+            autoHeight
+          >
+            <CancelFunnelChart data={cancelFunnel ?? null} />
+          </ChartPanel>
+
           <ChartPanel
             title="Why users cancel, last 90 days"
             isLoading={showInitialSkeleton}

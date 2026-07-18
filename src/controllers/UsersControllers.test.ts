@@ -2867,6 +2867,7 @@ describe('UsersController.cancelSubscription', () => {
 
   beforeEach(() => {
     (SubscriptionService.cancelUserSubscriptions as jest.Mock).mockReset();
+    trackMock.mockClear();
   });
 
   it('returns 422 with a recovery hint when no subscription matches the account', async () => {
@@ -2926,6 +2927,72 @@ describe('UsersController.cancelSubscription', () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(SubscriptionService.cancelUserSubscriptions).not.toHaveBeenCalled();
+  });
+
+  it('fires subscription_cancelled once with reason and period_end cancel_type', async () => {
+    (
+      SubscriptionService.cancelUserSubscriptions as jest.Mock
+    ).mockResolvedValue(1);
+    const { controller } = buildCancelController();
+    const req = {
+      body: { mode: 'period_end', reason: "I don't use it enough" },
+    } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscription(req, res);
+
+    expect(trackMock).toHaveBeenCalledTimes(1);
+    expect(trackMock).toHaveBeenCalledWith('subscription_cancelled', {
+      userId: 1,
+      props: { reason: "I don't use it enough", cancel_type: 'period_end' },
+    });
+  });
+
+  it('records cancel_type immediate when the mode is immediate', async () => {
+    (
+      SubscriptionService.cancelUserSubscriptions as jest.Mock
+    ).mockResolvedValue(2);
+    const { controller } = buildCancelController();
+    const req = {
+      body: { mode: 'immediate', reason: 'Too expensive' },
+    } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscription(req, res);
+
+    expect(trackMock).toHaveBeenCalledWith('subscription_cancelled', {
+      userId: 1,
+      props: { reason: 'Too expensive', cancel_type: 'immediate' },
+    });
+  });
+
+  it('sends reason null when the body omits a reason', async () => {
+    (
+      SubscriptionService.cancelUserSubscriptions as jest.Mock
+    ).mockResolvedValue(1);
+    const { controller } = buildCancelController();
+    const req = { body: { mode: 'period_end' } } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscription(req, res);
+
+    expect(trackMock).toHaveBeenCalledWith('subscription_cancelled', {
+      userId: 1,
+      props: { reason: null, cancel_type: 'period_end' },
+    });
+  });
+
+  it('does not fire subscription_cancelled when no subscription matches', async () => {
+    (
+      SubscriptionService.cancelUserSubscriptions as jest.Mock
+    ).mockResolvedValue(0);
+    const { controller } = buildCancelController();
+    const req = { body: { mode: 'period_end' } } as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscription(req, res);
+
+    expect(trackMock).not.toHaveBeenCalled();
   });
 });
 
@@ -3112,6 +3179,7 @@ describe('UsersController.cancelSubscriptionById', () => {
 
   beforeEach(() => {
     (SubscriptionService.cancelSubscriptionById as jest.Mock).mockReset();
+    trackMock.mockClear();
   });
 
   it('returns 401 when there is no authenticated owner', async () => {
@@ -3126,6 +3194,7 @@ describe('UsersController.cancelSubscriptionById', () => {
 
     expect(res.status).toHaveBeenCalledWith(401);
     expect(SubscriptionService.cancelSubscriptionById).not.toHaveBeenCalled();
+    expect(trackMock).not.toHaveBeenCalled();
   });
 
   it('returns 404 when the user is not found', async () => {
@@ -3192,6 +3261,42 @@ describe('UsersController.cancelSubscriptionById', () => {
       'immediate'
     );
     expect(res.status).toHaveBeenCalledWith(200);
+  });
+
+  it('fires subscription_cancelled with reason and cancel_type from the request', async () => {
+    (SubscriptionService.cancelSubscriptionById as jest.Mock).mockResolvedValue(
+      undefined
+    );
+    const { controller } = buildByIdController();
+    const req = {
+      params: { id: 'sub_owned' },
+      body: { mode: 'period_end', reason: 'I finished what I needed' },
+    } as unknown as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscriptionById(req, res);
+
+    expect(trackMock).toHaveBeenCalledTimes(1);
+    expect(trackMock).toHaveBeenCalledWith('subscription_cancelled', {
+      userId: 1,
+      props: { reason: 'I finished what I needed', cancel_type: 'period_end' },
+    });
+  });
+
+  it('does not fire subscription_cancelled when the subscription is not owned', async () => {
+    (SubscriptionService.cancelSubscriptionById as jest.Mock).mockRejectedValue(
+      new SubscriptionNotOwnedError()
+    );
+    const { controller } = buildByIdController();
+    const req = {
+      params: { id: 'sub_other' },
+      body: { mode: 'immediate' },
+    } as unknown as express.Request;
+    const res = buildResWithLocals();
+
+    await controller.cancelSubscriptionById(req, res);
+
+    expect(trackMock).not.toHaveBeenCalled();
   });
 });
 

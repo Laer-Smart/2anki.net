@@ -39,7 +39,30 @@ describe('useSubscriptionCancellation', () => {
     });
 
     await waitFor(() => {
-      expect(cancelSubscription).toHaveBeenCalledWith('period_end');
+      expect(cancelSubscription).toHaveBeenCalledWith('period_end', undefined);
+    });
+  });
+
+  it('forwards the cancellation reason to the backend call', async () => {
+    vi.mocked(cancelSubscription).mockResolvedValue({ message: 'ok' });
+
+    const { result } = renderHook(() => useSubscriptionCancellation(), {
+      wrapper: buildWrapper(),
+    });
+
+    act(() => {
+      result.current.cancelUserSubscription(
+        'period_end',
+        1_800_000_000,
+        "I don't use it enough"
+      );
+    });
+
+    await waitFor(() => {
+      expect(cancelSubscription).toHaveBeenCalledWith(
+        'period_end',
+        "I don't use it enough"
+      );
     });
   });
 

@@ -50,6 +50,8 @@ import { EventsMetricsRepository } from '../data_layer/EventsMetricsRepository';
 import { SyncStripeSubscriptionsUseCase } from '../usecases/ops/SyncStripeSubscriptionsUseCase';
 import { GetUploadFunnelUseCase } from '../usecases/ops/GetUploadFunnelUseCase';
 import { UploadFunnelService } from '../services/ops/UploadFunnelService';
+import { GetCancelFunnelUseCase } from '../usecases/ops/GetCancelFunnelUseCase';
+import { CancelFunnelService } from '../services/ops/CancelFunnelService';
 import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
 import { LandingPageYieldService } from '../services/ops/LandingPageYieldService';
 import { LandingPageYieldRepository } from '../data_layer/LandingPageYieldRepository';
@@ -186,7 +188,10 @@ const OpsRouter = () => {
         ),
       getEventsSink()
     ),
-    new GrantDeveloperAccessUseCase(new UsersRepository(database))
+    new GrantDeveloperAccessUseCase(new UsersRepository(database)),
+    new GetCancelFunnelUseCase(
+      new CancelFunnelService({ eventsRepo: new EventsRepository(database) })
+    )
   );
 
   /**
@@ -574,6 +579,37 @@ const OpsRouter = () => {
    */
   router.get('/api/ops/upload-funnel', RequireOpsAccess, (req, res) =>
     controller.getUploadFunnel(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/cancel-funnel:
+   *   get:
+   *     summary: Cancel-flow funnel by stage with pause save-rate
+   *     description: |
+   *       Returns event counts for each cancel-flow stage
+   *       (subscription_cancel_started, subscription_pause_offered,
+   *       subscription_paused, subscription_cancelled,
+   *       subscription_pause_offer_declined), plus the pause save-rate
+   *       (paused ÷ pause_offered) and offer-reach (pause_offered ÷ cancel_started).
+   *       Defaults to the last 30 days; pass ?window=7d|14d|30d|60d|90d.
+   *       Internal endpoint locked to the ops owner — returns 404 for everyone else.
+   *     tags: [Ops]
+   *     parameters:
+   *       - in: query
+   *         name: window
+   *         schema:
+   *           type: string
+   *           enum: ['7d', '14d', '30d', '60d', '90d']
+   *         description: Lookback window. Defaults to 30d.
+   *     responses:
+   *       200:
+   *         description: Cancel funnel payload
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.get('/api/ops/cancel-funnel', RequireOpsAccess, (req, res) =>
+    controller.getCancelFunnel(req, res)
   );
 
   /**

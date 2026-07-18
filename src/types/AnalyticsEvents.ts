@@ -94,6 +94,9 @@ export const KNOWN_EVENTS = new Set([
   'subscription_paused',
   'subscription_pause_resumed',
   'subscription_cancelled_during_pause',
+  'subscription_cancel_started',
+  'subscription_pause_offer_declined',
+  'subscription_cancelled',
   'language_changed',
 ] as const);
 

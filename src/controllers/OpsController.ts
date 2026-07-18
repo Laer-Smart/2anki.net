@@ -18,6 +18,7 @@ import {
   SetFeatureFlagUseCase,
 } from '../usecases/ops/SetFeatureFlagUseCase';
 import { GetUploadFunnelUseCase } from '../usecases/ops/GetUploadFunnelUseCase';
+import { GetCancelFunnelUseCase } from '../usecases/ops/GetCancelFunnelUseCase';
 import { GetOrphanedSubscriptionsUseCase } from '../usecases/ops/GetOrphanedSubscriptionsUseCase';
 import { ReconcileOrphanedSubscriptionsUseCase } from '../usecases/ops/ReconcileOrphanedSubscriptionsUseCase';
 import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
@@ -49,7 +50,8 @@ class OpsController {
     private readonly getCustomerSignalsUseCase?: GetCustomerSignalsUseCase,
     private readonly getPassUnlockMonitorUseCase?: GetPassUnlockMonitorUseCase,
     private readonly sendPassWinbackUseCase?: SendPassWinbackUseCase,
-    private readonly grantDeveloperAccessUseCase?: GrantDeveloperAccessUseCase
+    private readonly grantDeveloperAccessUseCase?: GrantDeveloperAccessUseCase,
+    private readonly getCancelFunnelUseCase?: GetCancelFunnelUseCase
   ) {}
 
   async grantDeveloperAccess(req: express.Request, res: express.Response) {
@@ -367,6 +369,22 @@ class OpsController {
     } catch (error) {
       console.error('[ops] getUploadFunnel failed', error);
       res.status(500).json({ message: 'Failed to load upload funnel' });
+    }
+  }
+
+  async getCancelFunnel(req: express.Request, res: express.Response) {
+    if (this.getCancelFunnelUseCase == null) {
+      res.status(500).json({ message: 'Cancel funnel not configured' });
+      return;
+    }
+    try {
+      const window =
+        typeof req.query.window === 'string' ? req.query.window : undefined;
+      const result = await this.getCancelFunnelUseCase.execute(window);
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] getCancelFunnel failed', error);
+      res.status(500).json({ message: 'Failed to load cancel funnel' });
     }
   }
 
