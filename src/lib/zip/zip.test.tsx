@@ -3,7 +3,8 @@ import os from 'os';
 import path from 'path';
 import { strToU8, zipSync } from 'fflate';
 
-import { ZipHandler } from './zip';
+import { ZipHandler, MAX_IN_MEMORY_BYTES, MAX_DECOMPRESSED_BYTES } from './zip';
+import { MAX_OLD_GENERATION_SIZE_MB } from '../conversionMemoryLimits';
 import CardOption from '../parser/Settings';
 
 function makeSpillDir(): string {
@@ -116,6 +117,57 @@ describe('ZipHandler in-memory text guard', () => {
     await expect(
       handler.build(outer, true, new CardOption({}))
     ).rejects.toThrow(/too large to process/);
+  });
+});
+
+describe('ZipHandler decompressed-size ceiling', () => {
+  it('rejects a highly-compressible zip that decompresses past the ceiling before inflating it', async () => {
+    const highlyCompressible = 'a'.repeat(64 * 1024);
+    const zip = buildZip({ 'bomb.html': highlyCompressible });
+    // The compressed archive is a tiny fraction of its decompressed size — a
+    // zip bomb's defining shape — so the compressed-size guard alone lets it in.
+    expect(zip.length).toBeLessThan(highlyCompressible.length / 10);
+
+    const handler = new ZipHandler(10, 8 * 1024 * 1024, 16 * 1024);
+    await expect(handler.build(zip, true, new CardOption({}))).rejects.toThrow(
+      /decompresses to over/
+    );
+    // Aborted in the filter before any entry was inflated into memory.
+    expect(handler.files).toHaveLength(0);
+  });
+
+  it('accepts a zip whose decompressed size stays under the ceiling', async () => {
+    const zip = buildZip({ 'a.html': 'a'.repeat(8 * 1024) });
+
+    const handler = new ZipHandler(10, 8 * 1024 * 1024, 64 * 1024);
+    await handler.build(zip, true, new CardOption({}));
+
+    expect(handler.getFileNames()).toEqual(['a.html']);
+  });
+
+  it('enforces the decompressed ceiling across nested zips via a shared counter', async () => {
+    const inner = buildZip({ 'big.html': 'a'.repeat(32 * 1024) });
+    const outer = zipSync({ 'nested.zip': inner }, { level: 0 });
+
+    const handler = new ZipHandler(10, 8 * 1024 * 1024, 16 * 1024);
+    await expect(
+      handler.build(outer, true, new CardOption({}))
+    ).rejects.toThrow(/decompresses to over/);
+  });
+});
+
+describe('ZipHandler memory ceilings derive from the worker heap cap', () => {
+  it('sets the in-memory text ceiling to half the worker old-gen cap, not a 4 GB literal', () => {
+    const workerBytes = MAX_OLD_GENERATION_SIZE_MB * 1024 * 1024;
+    expect(MAX_IN_MEMORY_BYTES).toBe(Math.floor(workerBytes * 0.5));
+    expect(MAX_IN_MEMORY_BYTES).toBeLessThan(workerBytes);
+    expect(MAX_IN_MEMORY_BYTES).not.toBe(4 * 1024 * 1024 * 1024);
+  });
+
+  it('sets the decompressed ceiling below the worker cap so a bomb fails before OOM', () => {
+    const workerBytes = MAX_OLD_GENERATION_SIZE_MB * 1024 * 1024;
+    expect(MAX_DECOMPRESSED_BYTES).toBe(Math.floor(workerBytes * 0.6));
+    expect(MAX_DECOMPRESSED_BYTES).toBeLessThan(workerBytes);
   });
 });
 

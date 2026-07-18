@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-18-compressed-upload-guard",
+  "date": "2026-07-18",
+  "type": "fix",
+  "title": "Heavily compressed uploads fail with a clear size message instead of dropping the conversion"
+}
