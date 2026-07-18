@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-18-zip-upload-resilience",
+  "date": "2026-07-18",
+  "type": "fix",
+  "title": "Zip uploads keep every supported file — Word docs and mixed exports no longer lose cards"
+}
