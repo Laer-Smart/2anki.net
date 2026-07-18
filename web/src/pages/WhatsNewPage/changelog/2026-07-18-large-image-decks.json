@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-18-large-image-decks",
+  "date": "2026-07-18",
+  "type": "fix",
+  "title": "Uploads with thousands of images convert instead of stalling the server"
+}

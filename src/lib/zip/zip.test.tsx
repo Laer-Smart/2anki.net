@@ -1,7 +1,14 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 import { strToU8, zipSync } from 'fflate';
 
 import { ZipHandler } from './zip';
 import CardOption from '../parser/Settings';
+
+function makeSpillDir(): string {
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'ziphandler-spill-'));
+}
 
 function buildZip(files: Record<string, string>): Uint8Array {
   const entries: Record<string, Uint8Array> = {};
@@ -80,14 +87,10 @@ describe('ZipHandler entry-name safety', () => {
   });
 });
 
-describe('ZipHandler decompressed-size guard', () => {
-  it('rejects a zip whose decompressed contents exceed the cap', async () => {
-    // Three 1 KB image entries decompress to ~3 KB; cap at 2 KB.
-    const zip = buildBinaryZip({
-      'a.png': 1024,
-      'b.png': 1024,
-      'c.png': 1024,
-    });
+describe('ZipHandler in-memory text guard', () => {
+  it('rejects a zip that holds more decoded text than the cap', async () => {
+    const big = 'x'.repeat(3 * 1024);
+    const zip = buildZip({ 'a.html': big });
 
     const handler = new ZipHandler(10, 2 * 1024);
 
@@ -96,24 +99,66 @@ describe('ZipHandler decompressed-size guard', () => {
     );
   });
 
-  it('accepts a zip that stays under the cap', async () => {
-    const zip = buildBinaryZip({ 'a.png': 1024, 'b.png': 1024 });
+  it('accepts a zip whose text stays under the cap', async () => {
+    const zip = buildZip({ 'a.html': 'x'.repeat(1024) });
 
     const handler = new ZipHandler(10, 8 * 1024);
     await handler.build(zip, true, new CardOption({}));
 
-    expect(handler.getFileNames()).toEqual(
-      expect.arrayContaining(['a.png', 'b.png'])
-    );
+    expect(handler.getFileNames()).toEqual(['a.html']);
   });
 
-  it('accumulates across nested zips', async () => {
-    const inner = buildBinaryZip({ 'big.png': 4 * 1024 });
+  it('accumulates text across nested zips', async () => {
+    const inner = buildZip({ 'big.html': 'x'.repeat(4 * 1024) });
     const outer = zipSync({ 'nested.zip': inner }, { level: 0 });
 
     const handler = new ZipHandler(10, 2 * 1024);
     await expect(
       handler.build(outer, true, new CardOption({}))
     ).rejects.toThrow(/too large to process/);
+  });
+});
+
+describe('ZipHandler disk spill', () => {
+  it('spills binary entries to the workspace and reads them back lazily', async () => {
+    const spill = makeSpillDir();
+    const zip = buildBinaryZip({ 'img.png': 2048 });
+
+    const handler = new ZipHandler(10);
+    await handler.build(zip, true, new CardOption({}), spill);
+
+    // The bytes live on disk, not in the in-memory entry's own storage.
+    expect(fs.existsSync(path.join(spill, 'img.png'))).toBe(true);
+    const entry = handler.files.find((f) => f.name === 'img.png');
+    expect(entry).toBeDefined();
+    expect(Buffer.from(entry!.contents as Buffer)).toEqual(
+      Buffer.alloc(2048, 1)
+    );
+  });
+
+  it('does not count spilled binary bytes toward the in-memory cap', async () => {
+    const spill = makeSpillDir();
+    // 8 KB of images with a tiny 1 KB in-memory cap: must NOT throw, because
+    // the images go to disk instead of memory.
+    const zip = buildBinaryZip({ 'a.png': 4096, 'b.png': 4096 });
+
+    const handler = new ZipHandler(10, 1024);
+    await handler.build(zip, true, new CardOption({}), spill);
+
+    expect(handler.getFileNames()).toEqual(
+      expect.arrayContaining(['a.png', 'b.png'])
+    );
+  });
+
+  it('keeps html in memory as a decoded string, not a disk path', async () => {
+    const spill = makeSpillDir();
+    const zip = buildZip({ 'page.html': '<p>real deck</p>' });
+
+    const handler = new ZipHandler(10);
+    await handler.build(zip, true, new CardOption({}), spill);
+
+    const entry = handler.files.find((f) => f.name === 'page.html');
+    expect(entry?.contents).toBe('<p>real deck</p>');
+    expect(fs.existsSync(path.join(spill, 'page.html'))).toBe(false);
   });
 });
