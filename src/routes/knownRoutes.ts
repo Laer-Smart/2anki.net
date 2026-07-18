@@ -97,6 +97,17 @@ const CONVERT_SLUGS = new Set<string>([
   'epub-to-anki',
   'kindle-to-anki',
   'enrich-anki-deck',
+  'excel-to-anki',
+  'word-to-anki',
+  'obsidian-to-anki',
+  'photo-to-anki',
+  'google-slides-to-anki',
+  'screenshot-to-anki',
+  'google-sheets-to-anki',
+  'txt-to-anki',
+  'onenote-to-anki',
+  'evernote-to-anki',
+  'google-docs-to-anki',
 ]);
 
 const ANSWERS_SLUGS = new Set<string>([
