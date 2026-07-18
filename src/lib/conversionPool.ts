@@ -19,6 +19,7 @@ import {
   resolveConversionWorkers,
   resolveConversionWorkerRecycleTasks,
 } from './pythonWorkerBudget';
+import { MAX_OLD_GENERATION_SIZE_MB } from './conversionMemoryLimits';
 
 export { resolveConversionWorkers } from './pythonWorkerBudget';
 
@@ -46,8 +47,10 @@ export const POOL_CLOSE_TIMEOUT_MS = 80_000;
 // resets periodically instead of only on restart. The old-gen cap stays at
 // 1024MB: lowering it risks OOMing the comprehensive/big-media path (which would
 // turn a slow leak into failed conversions), so recycling — not a smaller cap —
-// is the mechanism that bounds RSS.
-export const MAX_OLD_GENERATION_SIZE_MB = 1024;
+// is the mechanism that bounds RSS. The cap value lives in
+// conversionMemoryLimits.ts so the zip extractor can size its ceilings under it
+// without importing this heavy module (knex, Piscina, the Notion client).
+export { MAX_OLD_GENERATION_SIZE_MB };
 
 let completedTaskCount = 0;
 let recyclingPool = false;

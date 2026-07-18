@@ -15,21 +15,37 @@ import { isSafeZipEntryName } from './isSafeZipEntryName';
 import CardOption from '../parser/Settings';
 import { getRandomUUID } from '../../shared/helpers/getRandomUUID';
 import { convertImageToHTML } from '../../infrastracture/adapters/fileConversion/convertImageToHTML';
+import { MAX_OLD_GENERATION_SIZE_MB } from '../conversionMemoryLimits';
 
 interface File {
   name: string;
   contents?: Buffer | Uint8Array | string;
 }
 
-// Binary entries (images, audio, misc media) are spilled to the workspace on
-// disk during extraction and backed by a lazy read, so they no longer sit
-// resident in memory — a deck of thousands of screenshots used to inflate the
-// whole archive into RAM at once and OOM-crash the shared server (#3709/#3711).
-// Only entries we KEEP in memory (decoded HTML/markdown text, the OCR html) are
-// counted toward this heap ceiling; disk-backed media is bounded instead by the
-// compressed-upload cap (`getUploadLimits().fileSize`). 4 GB of in-memory text
-// leaves headroom under the 16 GB prod heap.
-const MAX_IN_MEMORY_BYTES = 4 * 1024 * 1024 * 1024;
+// Conversion runs in a Piscina worker whose V8 old-generation heap is capped at
+// MAX_OLD_GENERATION_SIZE_MB. Both ceilings below are derived from that cap so
+// the friendly "too large" error fires BEFORE V8 kills the worker with
+// ERR_WORKER_OUT_OF_MEMORY. The previous 4 GB literal sat far above the 1 GB
+// worker cap, so it was dead code — the worker OOMed first (#3717).
+const WORKER_OLD_GEN_BYTES = MAX_OLD_GENERATION_SIZE_MB * 1024 * 1024;
+
+// Text we KEEP in memory (decoded HTML/markdown, the OCR html) is stored as
+// UTF-16 strings — roughly 2× the counted byte length — so hold this ceiling to
+// about half the worker old-gen cap to leave headroom for that overhead, the
+// inflated archive map, and other allocations. Binary entries (images, audio,
+// misc media) are spilled to disk and bounded instead by the compressed-upload
+// cap (`getUploadLimits().fileSize`); they do not count here (#3709/#3711).
+const MAX_IN_MEMORY_BYTES = Math.floor(WORKER_OLD_GEN_BYTES * 0.5);
+
+// The whole archive is inflated into a { name: bytes } map by unzipSync before
+// any entry spills to disk, so peak resident bytes during extraction equal the
+// total DECOMPRESSED size. A highly-compressible zip bomb (DEFLATE of zeros,
+// ~1000:1) under the compressed cap inflates to tens of GB and OOM-kills the
+// worker; nested archives compound it. Bound the cumulative decompressed size
+// below the worker cap, summing each entry's declared size from the central
+// directory (which fflate also caps its own inflation at) BEFORE inflating, so a
+// bomb aborts with the friendly error instead of crashing the worker (#3717).
+const MAX_DECOMPRESSED_BYTES = Math.floor(WORKER_OLD_GEN_BYTES * 0.6);
 
 function formatGigabytes(bytes: number): string {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(1)} GB`;
@@ -57,11 +73,14 @@ class ZipHandler {
   combinedHTML: string;
   inMemoryBytes: number;
   maxInMemoryBytes: number;
+  decompressedBytes: number;
+  maxDecompressedBytes: number;
   spillLocation?: string;
 
   constructor(
     maxNestedZipFiles: number,
-    maxInMemoryBytes: number = MAX_IN_MEMORY_BYTES
+    maxInMemoryBytes: number = MAX_IN_MEMORY_BYTES,
+    maxDecompressedBytes: number = MAX_DECOMPRESSED_BYTES
   ) {
     this.files = [];
     this.zipFileCount = 0;
@@ -69,6 +88,8 @@ class ZipHandler {
     this.combinedHTML = '';
     this.inMemoryBytes = 0;
     this.maxInMemoryBytes = maxInMemoryBytes;
+    this.decompressedBytes = 0;
+    this.maxDecompressedBytes = maxDecompressedBytes;
   }
 
   private trackInMemoryBytes(byteLength: number) {
@@ -78,6 +99,20 @@ class ZipHandler {
         `This upload is too large to process — it holds over ${formatGigabytes(
           this.maxInMemoryBytes
         )} of text in memory. Split it into smaller uploads and try again.`
+      );
+    }
+  }
+
+  // Sum each entry's declared decompressed size (shared across nested archives
+  // via this instance counter) before fflate inflates it, so a zip bomb aborts
+  // early instead of materializing the whole inflated map into the worker heap.
+  private trackDecompressedBytes(originalSize: number) {
+    this.decompressedBytes += originalSize;
+    if (this.decompressedBytes > this.maxDecompressedBytes) {
+      throw new Error(
+        `This upload is too large to process — it decompresses to over ${formatGigabytes(
+          this.maxDecompressedBytes
+        )}. Split it into smaller uploads and try again.`
       );
     }
   }
@@ -134,7 +169,11 @@ class ZipHandler {
 
     try {
       const loadedZip = unzipSync(zipData, {
-        filter: (file) => !isHiddenFileOrDirectory(file.name),
+        filter: (file) => {
+          if (isHiddenFileOrDirectory(file.name)) return false;
+          this.trackDecompressedBytes(file.originalSize);
+          return true;
+        },
       });
 
       let noSuffixCount = 0;
@@ -242,4 +281,4 @@ ${this.combinedHTML}
   }
 }
 
-export { ZipHandler, File };
+export { ZipHandler, File, MAX_IN_MEMORY_BYTES, MAX_DECOMPRESSED_BYTES };
