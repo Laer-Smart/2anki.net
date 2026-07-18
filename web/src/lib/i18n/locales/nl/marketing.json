@@ -153,12 +153,12 @@
     "plans": "Abonnementen",
     "recommended": "Aanbevolen",
     "seePricing": "Bekijk prijzen",
-    "getUnlimited": "Get Unlimited",
+    "getUnlimited": "Unlimited kopen",
     "unlimitedBenefit1": "Onbeperkt flashcards van je Notion-pagina's",
     "unlimitedBenefit2": "Ondersteuning voor PDF, Markdown, HTML en CSV",
     "unlimitedBenefit3": "Altijd opzegbaar",
     "dayPassSuffix": "— 24 uur",
-    "getDayPass": "Get Day Pass",
+    "getDayPass": "Day Pass kopen",
     "dayPassBenefit1": "Onbeperkt kaarten voor 24 uur",
     "dayPassBenefit2": "Geen abonnement",
     "dayPassBenefit3": "Elk bestandsformaat",
@@ -183,7 +183,7 @@
     "bodyDownloads": "Een Day Pass haalt de 100-kaartenlimiet 24 uur weg — geen abonnement.",
     "bodyUpload": "Een pass haalt de maandelijkse 100-kaartenlimiet weg — voor een dag of een week, geen abonnement.",
     "startingCheckout": "Afrekenen starten",
-    "getDayPass": "Get Day Pass — {{price}}",
+    "getDayPass": "Day Pass kopen — {{price}}",
     "seePlans": "Bekijk abonnementen"
   },
   "passLadder": {

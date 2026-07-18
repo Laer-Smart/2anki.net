@@ -88,10 +88,11 @@ describe('Dutch (nl) locale parity', () => {
     expect(translated / total).toBeGreaterThan(0.9);
   });
 
-  it('keeps protected brand and plan strings verbatim', () => {
+  it('keeps Stripe plan nouns verbatim while translating the CTA verb', () => {
     const common = flatten(nlCommon);
-    expect(common['pricing.pass.getDayPass']).toBe('Get Day Pass');
-    expect(common['pricing.unlimited.getUnlimited']).toBe('Get Unlimited');
+    expect(common['pricing.pass.getDayPass']).toBe('Day Pass kopen');
+    expect(common['pricing.pass.getWeekPass']).toBe('Week Pass kopen');
+    expect(common['pricing.unlimited.getUnlimited']).toBe('Unlimited kopen');
     expect(common['pricing.contextBanner']).toContain('100 kaarten per maand');
   });
 });
