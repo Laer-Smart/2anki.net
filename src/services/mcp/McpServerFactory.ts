@@ -38,8 +38,10 @@ function registerTool<Args>(
   config: ToolConfig,
   handler: (args: Args) => Promise<ToolResult>
 ): void {
-  const erased = server.registerTool as unknown as ErasedRegisterTool;
-  erased(
+  const erasedServer = server as unknown as {
+    registerTool: ErasedRegisterTool;
+  };
+  erasedServer.registerTool(
     name,
     config,
     handler as (args: Record<string, unknown>) => Promise<ToolResult>
