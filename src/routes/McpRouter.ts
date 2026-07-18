@@ -23,7 +23,7 @@ import { McpToolsService } from '../services/mcp/McpToolsService';
 import { buildMcpServer } from '../services/mcp/McpServerFactory';
 import { applyUserLocals } from './middleware/configureUserLocal';
 import { getEventsSink } from '../services/events/eventsSinkInstance';
-import { createMcpRouter } from './mcp/createMcpRouter';
+import { createMcpRouter, MCP_AUTHORIZE_PATH } from './mcp/createMcpRouter';
 
 function resolveIssuerUrl(): URL {
   return new URL(process.env.MCP_ISSUER_URL ?? 'https://2anki.net');
@@ -49,7 +49,7 @@ const McpRouter = () => {
     config: {
       resourceUrl,
       loginPath: '/login',
-      authorizePath: new URL('/authorize', issuerUrl).pathname,
+      authorizePath: MCP_AUTHORIZE_PATH,
       consentSecret: process.env.SECRET ?? '',
     },
   });

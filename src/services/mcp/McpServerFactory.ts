@@ -13,17 +13,48 @@ export interface McpRequestContext {
   recordToolCall: (toolName: string) => void;
 }
 
-function textResult(payload: unknown) {
+type ToolShape = Record<string, z.ZodTypeAny>;
+
+interface ToolResult {
+  content: { type: 'text'; text: string }[];
+  isError?: boolean;
+}
+
+interface ToolConfig {
+  title: string;
+  description: string;
+  inputSchema: ToolShape;
+}
+
+type ErasedRegisterTool = (
+  name: string,
+  config: ToolConfig,
+  handler: (args: Record<string, unknown>) => Promise<ToolResult>
+) => void;
+
+function registerTool<Args>(
+  server: McpServer,
+  name: string,
+  config: ToolConfig,
+  handler: (args: Args) => Promise<ToolResult>
+): void {
+  const erased = server.registerTool as unknown as ErasedRegisterTool;
+  erased(
+    name,
+    config,
+    handler as (args: Record<string, unknown>) => Promise<ToolResult>
+  );
+}
+
+function textResult(payload: unknown): ToolResult {
   return {
-    content: [
-      { type: 'text' as const, text: JSON.stringify(payload, null, 2) },
-    ],
+    content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
   };
 }
 
-function errorResult(message: string) {
+function errorResult(message: string): ToolResult {
   return {
-    content: [{ type: 'text' as const, text: message }],
+    content: [{ type: 'text', text: message }],
     isError: true,
   };
 }
@@ -34,7 +65,8 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     version: MCP_SERVER_VERSION,
   });
 
-  server.registerTool(
+  registerTool<Record<string, never>>(
+    server,
     'list_my_decks',
     {
       title: 'List my decks',
@@ -49,7 +81,8 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     }
   );
 
-  server.registerTool(
+  registerTool<{ key: string }>(
+    server,
     'get_deck_preview',
     {
       title: 'Get deck preview',
@@ -77,7 +110,8 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     }
   );
 
-  server.registerTool(
+  registerTool<{ url?: string; text?: string; filename?: string }>(
+    server,
     'convert_to_deck',
     {
       title: 'Convert to Anki deck',

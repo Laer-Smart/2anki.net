@@ -48,7 +48,8 @@ async function withServer(
   run: (baseUrl: string) => Promise<void>,
   onPost: express.RequestHandler = (_req, res) => {
     res.json({ ok: true });
-  }
+  },
+  mountExtra?: (app: express.Express) => void
 ): Promise<void> {
   const app = express();
   app.use(express.json());
@@ -60,6 +61,9 @@ async function withServer(
       onAuthenticatedPost: onPost,
     })
   );
+  if (mountExtra) {
+    mountExtra(app);
+  }
   const server = http.createServer(app);
   await new Promise<void>((resolve) => server.listen(0, resolve));
   const { port } = server.address() as AddressInfo;
@@ -77,9 +81,11 @@ describe('McpRouter discovery', () => {
       expect(res.status).toBe(200);
       const body = (await res.json()) as Record<string, string>;
       expect(body.issuer).toBe('https://2anki.net/');
-      expect(body.authorization_endpoint).toContain('/authorize');
-      expect(body.token_endpoint).toContain('/token');
-      expect(body.registration_endpoint).toContain('/register');
+      expect(body.authorization_endpoint).toBe(
+        'https://2anki.net/mcp/authorize'
+      );
+      expect(body.token_endpoint).toBe('https://2anki.net/mcp/token');
+      expect(body.registration_endpoint).toBe('https://2anki.net/mcp/register');
     });
   });
 
@@ -137,6 +143,51 @@ describe('McpRouter bearer enforcement', () => {
       });
       expect(res.status).toBe(405);
       expect(res.headers.get('allow')).toBe('POST');
+    });
+  });
+});
+
+describe('McpRouter endpoint namespacing (no /register collision)', () => {
+  it('does not shadow GET /register — the signup SPA still serves', async () => {
+    await withServer(
+      async (base) => {
+        const res = await fetch(`${base}/register`);
+        expect(res.status).toBe(200);
+        expect(await res.text()).toBe('SIGNUP_SPA');
+      },
+      undefined,
+      (app) => {
+        app.get('/register', (_req, res) => res.send('SIGNUP_SPA'));
+      }
+    );
+  });
+
+  it('registers a client via Dynamic Client Registration at /mcp/register', async () => {
+    await withServer(async (base) => {
+      const res = await fetch(`${base}/mcp/register`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ redirect_uris: ['https://claude.ai/callback'] }),
+      });
+      expect(res.status).toBe(201);
+      const body = (await res.json()) as { client_id?: string };
+      expect(typeof body.client_id).toBe('string');
+    });
+  });
+
+  it('routes POST /mcp (resource) and /mcp/authorize (AS) to distinct handlers', async () => {
+    await withServer(async (base) => {
+      const authorize = await fetch(`${base}/mcp/authorize`, {
+        redirect: 'manual',
+      });
+      expect(authorize.status).not.toBe(405);
+
+      const resource = await fetch(`${base}/mcp`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ jsonrpc: '2.0', method: 'ping', id: 1 }),
+      });
+      expect(resource.status).toBe(401);
     });
   });
 });
