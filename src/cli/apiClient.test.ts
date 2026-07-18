@@ -67,5 +67,10 @@ describe('ApiClient', () => {
       'Bearer sk_live_abc'
     );
     expect(init.body).toBeInstanceOf(FormData);
+    // The server multer field is `pakker`, not `file` — sending the wrong name
+    // yields an empty req.files and a 400 "Please select a file to upload."
+    const form = init.body as FormData;
+    expect(form.get('pakker')).not.toBeNull();
+    expect(form.get('file')).toBeNull();
   });
 });

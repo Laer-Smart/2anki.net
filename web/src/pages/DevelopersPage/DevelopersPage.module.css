@@ -1,3 +1,11 @@
+/* The shared .page has no vertical gap, so stacked section cards touch. */
+.page {
+  composes: page from '../../styles/shared.module.css';
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 .title {
   font-size: var(--text-2xl);
   font-weight: var(--font-semibold);
@@ -20,8 +28,8 @@
 
 .createRow {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
   flex-wrap: wrap;
 }
 
@@ -44,7 +52,7 @@
 .keyList {
   list-style: none;
   padding: 0;
-  margin: 0;
+  margin: 0.5rem 0 0;
 }
 
 .keyRow {
@@ -52,7 +60,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.6rem 0;
+  padding: 0.75rem 0;
   border-bottom: 1px solid var(--color-border-light);
 }
 
