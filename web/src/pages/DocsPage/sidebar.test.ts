@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { findAdjacent, findGroupForSlug, redirects, sidebar } from './sidebar';
+import {
+  findAdjacent,
+  findGroupForSlug,
+  localizeGroupLabel,
+  redirects,
+  sidebar,
+} from './sidebar';
 
 describe('sidebar', () => {
   it('every internal item maps to a unique slug', () => {
@@ -76,5 +82,21 @@ describe('redirects', () => {
     expect(redirects['troubleshooting/limits']).toBe('help/limits');
     expect(redirects['advanced/strategy']).toBeDefined();
     expect(redirects['misc/privacy-policy']).toBe('reference/privacy');
+  });
+
+  it('translates every group header for German', () => {
+    for (const group of sidebar) {
+      expect(localizeGroupLabel(group.label, 'de')).not.toBe('');
+    }
+    expect(localizeGroupLabel('Start here', 'de')).toBe("Los geht's");
+    expect(localizeGroupLabel('Make better cards', 'de')).toBe(
+      'Bessere Karten erstellen'
+    );
+  });
+
+  it('leaves group headers in English for English and unknown locales', () => {
+    expect(localizeGroupLabel('Start here', 'en')).toBe('Start here');
+    expect(localizeGroupLabel('Start here', undefined)).toBe('Start here');
+    expect(localizeGroupLabel('Reference', 'fr')).toBe('Reference');
   });
 });

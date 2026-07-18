@@ -148,3 +148,21 @@ export function findGroupForSlug(slug: string): SidebarGroup | null {
     null
   );
 }
+
+// Group headers aren't per-page docs, so the German mirror can't carry them.
+// Translate them here; item labels localize from each page's frontmatter title.
+const groupLabelDe: Record<string, string> = {
+  'Start here': "Los geht's",
+  'Make better cards': 'Bessere Karten erstellen',
+  'Sync with Notion': 'Mit Notion synchronisieren',
+  'When something breaks': 'Wenn etwas nicht klappt',
+  Reference: 'Referenz',
+  Links: 'Links',
+};
+
+export function localizeGroupLabel(label: string, language?: string): string {
+  if (language === 'de' && Object.hasOwn(groupLabelDe, label)) {
+    return groupLabelDe[label];
+  }
+  return label;
+}

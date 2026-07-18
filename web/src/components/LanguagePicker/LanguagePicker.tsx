@@ -68,12 +68,12 @@ export function LanguagePicker({ variant = 'compact' }: LanguagePickerProps) {
   }
 
   return (
-    <div className={styles.selectWrap}>
+    <div className={`${styles.selectWrap} ${styles.compact}`}>
       <span className={styles.globe} aria-hidden="true">
         🌐
       </span>
       <select
-        className={`${styles.select} ${styles.compact}`}
+        className={styles.select}
         value={current}
         onChange={handleChange}
         aria-label={t('language.picker')}
