@@ -22,6 +22,7 @@ import {
   parsePdfPasswordSentinel,
 } from '../../lib/pdf/pdfPasswordSentinel';
 import { buildLockedPdfWarning } from '../../lib/pdf/lockedPdfWarning';
+import { buildConversionFailureWarning } from './conversionFailureWarning';
 
 const LOCKED_PDF = Symbol('locked-pdf');
 
@@ -63,17 +64,24 @@ function chunkArray<T>(arr: T[], size: number): T[][] {
   return chunks;
 }
 
+interface BatchOutcome {
+  packages: Package[];
+  warnings: string[];
+  lockedPdfs: string[];
+  failedFiles: string[];
+}
+
 async function buildDeckBatch(
   fileNames: string[],
   zipHandler: ZipHandler,
   settings: CardOption,
   paying: boolean,
   workspace: Workspace
-): Promise<{ packages: Package[]; warnings: string[]; lockedPdfs: string[] }> {
+): Promise<BatchOutcome> {
   const packages: Package[] = [];
   const warnings: string[] = [];
 
-  const outcomes = await Promise.all(
+  const settled = await Promise.allSettled(
     fileNames.map((fileName) => {
       const relevantFiles = getRelevantFiles(fileName, zipHandler.files);
       const deckSubWorkspace = Workspace.subdir(workspace.location);
@@ -94,14 +102,17 @@ async function buildDeckBatch(
   );
 
   const lockedPdfs: string[] = [];
+  const failedFiles: string[] = [];
   const preparedResults: DeckInfoOnlyResult[] = [];
-  for (const outcome of outcomes) {
-    if (isLockedPdfEntry(outcome)) {
-      lockedPdfs.push(outcome.filename);
+  settled.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      failedFiles.push(fileNames[index]);
+    } else if (isLockedPdfEntry(result.value)) {
+      lockedPdfs.push(result.value.filename);
     } else {
-      preparedResults.push(outcome);
+      preparedResults.push(result.value);
     }
-  }
+  });
 
   const batchEntries = preparedResults
     .filter((r) => !r.needsIndividualBuild)
@@ -141,8 +152,9 @@ async function buildDeckBatch(
   packages.push(...stragglerOutcomes.packages);
   warnings.push(...stragglerOutcomes.warnings);
   lockedPdfs.push(...stragglerOutcomes.lockedPdfs);
+  failedFiles.push(...stragglerOutcomes.failedFiles);
 
-  return { packages, warnings, lockedPdfs };
+  return { packages, warnings, lockedPdfs, failedFiles };
 }
 
 async function buildStragglerDecks(
@@ -151,19 +163,20 @@ async function buildStragglerDecks(
   settings: CardOption,
   paying: boolean,
   workspace: Workspace
-): Promise<{ packages: Package[]; warnings: string[]; lockedPdfs: string[] }> {
+): Promise<BatchOutcome> {
   const packages: Package[] = [];
   const warnings: string[] = [];
   const lockedPdfs: string[] = [];
+  const failedFiles: string[] = [];
 
   for (const straggler of stragglers) {
     const relevantFiles = getRelevantFiles(
       straggler.inputFileName,
       zipHandler.files
     );
-    const outcome = await convertSkippingLockedPdf(
-      straggler.inputFileName,
-      () =>
+    let outcome;
+    try {
+      outcome = await convertSkippingLockedPdf(straggler.inputFileName, () =>
         PrepareDeck({
           name: straggler.inputFileName,
           files: relevantFiles,
@@ -171,7 +184,11 @@ async function buildStragglerDecks(
           noLimits: paying,
           workspace,
         })
-    );
+      );
+    } catch {
+      failedFiles.push(straggler.inputFileName);
+      continue;
+    }
     if (isLockedPdfEntry(outcome)) {
       lockedPdfs.push(outcome.filename);
     } else if (outcome) {
@@ -190,7 +207,7 @@ async function buildStragglerDecks(
     }
   }
 
-  return { packages, warnings, lockedPdfs };
+  return { packages, warnings, lockedPdfs, failedFiles };
 }
 
 async function buildClaudeFlashcardDeck(
@@ -240,7 +257,7 @@ async function buildAllInOneSlot(
   cap: number
 ): Promise<PackageResult> {
   const limit = pLimit(cap);
-  const outcomes = await Promise.all(
+  const settled = await Promise.allSettled(
     supportedFileNames.map((fileName) =>
       limit(() => {
         const relevantFiles = getRelevantFiles(fileName, zipHandler.files);
@@ -260,7 +277,13 @@ async function buildAllInOneSlot(
   const packages: Package[] = [];
   const warnings: string[] = [];
   const lockedPdfs: string[] = [];
-  for (const outcome of outcomes) {
+  const failedFiles: string[] = [];
+  settled.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      failedFiles.push(supportedFileNames[index]);
+      return;
+    }
+    const outcome = result.value;
     if (isLockedPdfEntry(outcome)) {
       lockedPdfs.push(outcome.filename);
     } else if (outcome) {
@@ -277,14 +300,23 @@ async function buildAllInOneSlot(
       );
       if (outcome.warning) warnings.push(outcome.warning);
     }
-  }
+  });
   appendLockedPdfWarning(warnings, lockedPdfs);
+  appendConversionFailureWarning(warnings, failedFiles);
   return { packages, warnings };
 }
 
 function appendLockedPdfWarning(warnings: string[], lockedPdfs: string[]) {
   const lockedWarning = buildLockedPdfWarning(lockedPdfs);
   if (lockedWarning) warnings.push(lockedWarning);
+}
+
+function appendConversionFailureWarning(
+  warnings: string[],
+  failedFiles: string[]
+) {
+  const failureWarning = buildConversionFailureWarning(failedFiles);
+  if (failureWarning) warnings.push(failureWarning);
 }
 
 export const getPackagesFromZip = async (
@@ -351,7 +383,7 @@ export const getPackagesFromZip = async (
   const chunks = chunkArray(supportedFileNames, batchSize);
   const limit = pLimit(cap);
 
-  const batchResults = await Promise.all(
+  const settledChunks = await Promise.allSettled(
     chunks.map((chunk) =>
       limit(() =>
         buildDeckBatch(chunk, zipHandler, effectiveSettings, paying, workspace)
@@ -362,12 +394,19 @@ export const getPackagesFromZip = async (
   const packages: Package[] = [];
   const warnings: string[] = [];
   const lockedPdfs: string[] = [];
-  for (const result of batchResults) {
-    packages.push(...result.packages);
-    if (result.warnings) warnings.push(...result.warnings);
-    lockedPdfs.push(...result.lockedPdfs);
-  }
+  const failedFiles: string[] = [];
+  settledChunks.forEach((result, index) => {
+    if (result.status === 'rejected') {
+      failedFiles.push(...chunks[index]);
+      return;
+    }
+    packages.push(...result.value.packages);
+    warnings.push(...result.value.warnings);
+    lockedPdfs.push(...result.value.lockedPdfs);
+    failedFiles.push(...result.value.failedFiles);
+  });
   appendLockedPdfWarning(warnings, lockedPdfs);
+  appendConversionFailureWarning(warnings, failedFiles);
 
   return { packages, warnings };
 };

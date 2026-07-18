@@ -300,7 +300,7 @@ describe('getPackagesFromZip — batch concurrency', () => {
     expect(runBatchCallCount).toBeLessThanOrEqual(2);
   });
 
-  it('propagates errors from runBatch', async () => {
+  it('drops a chunk whose batch build fails and warns instead of aborting', async () => {
     const fileCount = 8;
     const fileNames = Array.from(
       { length: fileCount },
@@ -332,14 +332,75 @@ describe('getPackagesFromZip — batch concurrency', () => {
     const settings = new CardOption({});
     const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
 
-    await expect(
-      getPackagesFromZip(
-        Buffer.from('fake-zip') as unknown as Uint8Array,
-        false,
-        settings,
-        workspace
-      )
-    ).rejects.toThrow('Python batch failed');
+    const result = await getPackagesFromZip(
+      Buffer.from('fake-zip') as unknown as Uint8Array,
+      false,
+      settings,
+      workspace
+    );
+
+    expect(result.packages).toEqual([]);
+    expect(
+      result.warnings?.some((w) => w.includes('could not be converted'))
+    ).toBe(true);
+  });
+
+  it('skips one file that fails to convert in the batch path and returns the rest', async () => {
+    const fileCount = 8;
+    const fileNames = Array.from(
+      { length: fileCount },
+      (_, i) => `deck${i}.html`
+    );
+
+    mockZipHandlerClass.mockImplementation(() => ({
+      build: jest.fn().mockResolvedValue(undefined),
+      getFileNames: jest.fn().mockReturnValue(fileNames),
+      files: fileNames.map((name) => ({ name, contents: '<html></html>' })),
+    }));
+
+    mockPrepareDeckInfoOnly.mockImplementation(({ name }: { name: string }) => {
+      if (name === 'deck3.html') {
+        return Promise.reject(new Error('docx_parse_failed: unreadable'));
+      }
+      return Promise.resolve({
+        deckInfoPath: `/fake/${name}/deck_info.json`,
+        outputPath: `/fake/${name}/out.apkg`,
+        name,
+        inputFileName: name,
+        deck: [],
+        cardCount: 1,
+        needsIndividualBuild: false,
+      });
+    });
+
+    mockCardGeneratorClass.mockImplementation(() => ({
+      runBatch: jest
+        .fn()
+        .mockImplementation((entries: Array<{ output: string }>) =>
+          Promise.resolve(entries.map((e) => e.output))
+        ),
+    }));
+
+    jest
+      .spyOn(require('node:fs'), 'readFileSync')
+      .mockReturnValue(Buffer.from('fake-apkg'));
+
+    const settings = new CardOption({});
+    const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
+
+    const result = await getPackagesFromZip(
+      Buffer.from('fake-zip') as unknown as Uint8Array,
+      false,
+      settings,
+      workspace
+    );
+
+    const names = result.packages.map((p) => p.name);
+    expect(names).toHaveLength(fileCount - 1);
+    expect(names).not.toContain('deck3.html');
+    expect(result.warnings).toContain(
+      'deck3.html could not be converted and was skipped. The rest of your upload converted — try uploading that file on its own.'
+    );
   });
 
   it('returns empty packages when fileContents is undefined', async () => {
@@ -476,7 +537,7 @@ describe('getPackagesFromZip — encrypted PDFs', () => {
     );
   });
 
-  it('still rejects on a non-password error from a zip entry', async () => {
+  it('skips a file whose converter throws a non-password error and returns the rest', async () => {
     process.env.MAX_PYTHON_WORKERS = '8';
     process.env.CONVERSION_WORKERS = '1';
 
@@ -503,13 +564,16 @@ describe('getPackagesFromZip — encrypted PDFs', () => {
     const settings = new CardOption({});
     const workspace = { location: FAKE_WORKSPACE_LOCATION } as Workspace;
 
-    await expect(
-      getPackagesFromZip(
-        Buffer.from('fake-zip') as unknown as Uint8Array,
-        false,
-        settings,
-        workspace
-      )
-    ).rejects.toThrow('pdfinfo_failed');
+    const result = await getPackagesFromZip(
+      Buffer.from('fake-zip') as unknown as Uint8Array,
+      false,
+      settings,
+      workspace
+    );
+
+    expect(result.packages.map((p) => p.name)).toEqual(['notes.html']);
+    expect(result.warnings).toContain(
+      'broken.pdf could not be converted and was skipped. The rest of your upload converted — try uploading that file on its own.'
+    );
   });
 });
