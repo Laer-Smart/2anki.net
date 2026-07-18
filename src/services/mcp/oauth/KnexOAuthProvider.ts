@@ -163,7 +163,9 @@ export class KnexOAuthProvider implements OAuthServerProvider {
     return this.store;
   }
 
-  private async resolveLoggedInUserId(res: Response): Promise<number | null> {
+  private async resolveLoggedInUser(
+    res: Response
+  ): Promise<{ id: number; developerAccess: boolean } | null> {
     const cookies = res.req?.cookies as Record<string, unknown> | undefined;
     const token = cookies?.token;
     if (typeof token !== 'string' || token.length === 0) {
@@ -173,7 +175,10 @@ export class KnexOAuthProvider implements OAuthServerProvider {
     if (user == null) {
       return null;
     }
-    return Number(user.id);
+    return {
+      id: Number(user.id),
+      developerAccess: user.developer_access === true,
+    };
   }
 
   private redirectToLogin(res: Response): void {
@@ -192,16 +197,41 @@ export class KnexOAuthProvider implements OAuthServerProvider {
     res.redirect(target);
   }
 
+  private redirectWithError(
+    params: AuthorizationParams,
+    error: string,
+    description: string,
+    res: Response
+  ): void {
+    const redirect = new URL(params.redirectUri);
+    redirect.searchParams.set('error', error);
+    redirect.searchParams.set('error_description', description);
+    if (params.state != null) {
+      redirect.searchParams.set('state', params.state);
+    }
+    res.redirect(redirect.toString());
+  }
+
   async authorize(
     client: OAuthClientInformationFull,
     params: AuthorizationParams,
     res: Response
   ): Promise<void> {
-    const userId = await this.resolveLoggedInUserId(res);
-    if (userId == null) {
+    const user = await this.resolveLoggedInUser(res);
+    if (user == null) {
       this.redirectToLogin(res);
       return;
     }
+    if (!user.developerAccess) {
+      this.redirectWithError(
+        params,
+        'access_denied',
+        'MCP access is in limited beta.',
+        res
+      );
+      return;
+    }
+    const userId = user.id;
 
     const code = generateAuthorizationCode();
     const expiresAt = new Date(

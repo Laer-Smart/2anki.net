@@ -77,6 +77,13 @@ const McpRouter = () => {
       res.status(401).json({ error: 'invalid_token' });
       return;
     }
+    if (user.developer_access !== true) {
+      res.status(403).json({
+        error: 'access_denied',
+        error_description: 'MCP access is in limited beta.',
+      });
+      return;
+    }
     await applyUserLocals(
       res,
       { ...user, owner: user.id },

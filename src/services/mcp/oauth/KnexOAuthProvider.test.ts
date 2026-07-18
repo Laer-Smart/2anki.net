@@ -130,9 +130,15 @@ function makeProvider(overrides: Partial<McpOAuthDeps> = {}) {
   const tokenRepo = new FakeTokenRepo();
   const now = new Date('2026-07-18T00:00:00.000Z');
   const authService = {
-    getUserFrom: jest.fn(async (token: string) =>
-      token === 'valid-session' ? { id: 42, email: 'a@b.co' } : null
-    ),
+    getUserFrom: jest.fn(async (token: string) => {
+      if (token === 'valid-session') {
+        return { id: 42, email: 'a@b.co', developer_access: true };
+      }
+      if (token === 'valid-no-dev') {
+        return { id: 43, email: 'c@d.co', developer_access: false };
+      }
+      return null;
+    }),
   } as unknown as McpOAuthDeps['authService'];
   const usersRepo = {
     getById: jest.fn(async (id: string) =>
@@ -231,6 +237,24 @@ describe('KnexOAuthProvider authorize', () => {
     expect(codeRepo.rows).toHaveLength(1);
     expect(codeRepo.rows[0].code_challenge).toBe('chal-123');
     expect(codeRepo.rows[0].user_id).toBe(42);
+  });
+
+  it('denies a signed-in user without developer_access and issues no code', async () => {
+    const { provider, codeRepo } = makeProvider();
+    const { res, calls } = fakeResponse('valid-no-dev');
+    await provider.authorize(
+      CLIENT,
+      {
+        codeChallenge: 'chal',
+        redirectUri: 'https://claude.ai/callback',
+        state: 'xyz',
+      },
+      res
+    );
+    expect(calls.redirectedTo).toContain('error=access_denied');
+    expect(calls.redirectedTo).toContain('state=xyz');
+    expect(calls.redirectedTo).not.toContain('code=');
+    expect(codeRepo.rows).toHaveLength(0);
   });
 });
 
