@@ -1,5 +1,7 @@
 import { NavLink } from 'react-router-dom';
-import { findGroupForSlug, sidebar } from './sidebar';
+import { useTranslation } from 'react-i18next';
+import { findGroupForSlug, localizeGroupLabel, sidebar } from './sidebar';
+import { loadDoc } from './loader';
 import { DocsSearchTrigger } from './DocsSearchTrigger';
 import styles from './DocsPage.module.css';
 
@@ -16,9 +18,15 @@ export function DocsSidebar({
   isDrawer,
   activeSlug,
 }: Readonly<DocsSidebarProps>) {
+  const { i18n } = useTranslation();
+  const language = i18n.resolvedLanguage ?? i18n.language;
   const activeGroupLabel = activeSlug
     ? findGroupForSlug(activeSlug)?.label
     : undefined;
+
+  const itemLabel = (slug: string, fallback: string) =>
+    (language === 'de' ? loadDoc(slug, 'de')?.frontmatter.title : undefined) ??
+    fallback;
 
   return (
     <nav
@@ -30,7 +38,9 @@ export function DocsSidebar({
         const isActiveGroup = group.label === activeGroupLabel;
         return (
           <div key={group.label} className={styles.sidebarGroup}>
-            <div className={styles.sidebarGroupLabel}>{group.label}</div>
+            <div className={styles.sidebarGroupLabel}>
+              {localizeGroupLabel(group.label, language)}
+            </div>
             <ul
               className={`${styles.sidebarList} ${
                 isActiveGroup ? styles.sidebarListActive : ''
@@ -45,7 +55,7 @@ export function DocsSidebar({
                       target="_blank"
                       rel="noopener noreferrer"
                     >
-                      {item.label}
+                      {itemLabel(item.slug, item.label)}
                     </a>
                   ) : (
                     <NavLink
@@ -58,7 +68,7 @@ export function DocsSidebar({
                       onClick={onNavigate}
                       end
                     >
-                      {item.label}
+                      {itemLabel(item.slug, item.label)}
                     </NavLink>
                   )}
                 </li>

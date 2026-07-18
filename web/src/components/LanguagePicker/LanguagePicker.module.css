@@ -18,14 +18,21 @@
 }
 
 .selectWrap {
-  position: relative;
   display: inline-flex;
   align-items: center;
+  gap: 8px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+  transition: background var(--transition-fast);
+}
+
+.selectWrap:hover {
+  background: var(--color-bg-primary);
 }
 
 .globe {
-  position: absolute;
-  left: 10px;
   font-size: 14px;
   line-height: 1;
   pointer-events: none;
@@ -33,24 +40,24 @@
 
 .select {
   appearance: none;
-  padding: var(--space-2) var(--space-4) var(--space-2) 32px;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-full);
-  background: var(--color-bg-tertiary);
+  padding: 0;
+  border: none;
+  background: transparent;
   color: var(--color-text-primary);
   font-size: var(--text-sm);
+  line-height: 1.2;
   cursor: pointer;
-  transition:
-    background var(--transition-fast),
-    color var(--transition-fast);
-}
-
-.select:hover {
-  color: var(--color-text-primary);
-  background: var(--color-bg-primary);
 }
 
 .compact {
+  gap: 6px;
+  padding: 6px var(--space-3);
+}
+
+.compact .globe {
+  font-size: 13px;
+}
+
+.compact .select {
   font-size: var(--text-xs);
-  padding: 6px var(--space-3) 6px 28px;
 }
