@@ -2,6 +2,8 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 
 import { McpToolsService } from './McpToolsService';
+import { McpConvertOptions } from './mcpOptionsToCardSettings';
+import { DECK_CAPABILITIES } from './deckCapabilities';
 
 export const MCP_SERVER_NAME = '2anki';
 export const MCP_SERVER_VERSION = '1.0.0';
@@ -112,13 +114,62 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     }
   );
 
-  registerTool<{ url?: string; text?: string; filename?: string }>(
+  const convertOptionsSchema = z
+    .object({
+      noteType: z
+        .enum(['basic', 'basic-reversed', 'cloze', 'input', 'mcq'])
+        .optional()
+        .describe(
+          'The Anki note type. Cloze also needs {{c1::}} markup in the text.'
+        ),
+      tags: z
+        .array(z.string())
+        .optional()
+        .describe('Anki tags applied to every card in the deck.'),
+      deckName: z
+        .string()
+        .optional()
+        .describe('Name the deck. Use :: to nest subdecks, e.g. MS3::Cardio.'),
+      splitByHeadings: z
+        .boolean()
+        .optional()
+        .describe('Turn each heading and section into its own subdeck.'),
+      splitSectionsIntoDecks: z
+        .boolean()
+        .optional()
+        .describe('Alias of splitByHeadings.'),
+      styleTemplate: z
+        .enum(['specialstyle', 'nostyle', 'abhiyan', 'alex_deluxe'])
+        .optional()
+        .describe('The card visual style. nostyle strips all styling.'),
+      tts: z
+        .object({
+          enabled: z.boolean(),
+          language: z
+            .string()
+            .optional()
+            .describe(
+              'A fixed voice language, e.g. ja-JP. Omit to auto-detect.'
+            ),
+          side: z.enum(['front', 'back', 'both']).optional(),
+        })
+        .optional()
+        .describe('Add text-to-speech playback to the cards.'),
+    })
+    .optional();
+
+  registerTool<{
+    url?: string;
+    text?: string;
+    filename?: string;
+    options?: McpConvertOptions;
+  }>(
     server,
     'convert_to_deck',
     {
       title: 'Convert to Anki deck',
       description:
-        'Convert a URL or text into an Anki deck. Returns the deck preview (card count and a sample of cards) for an immediate conversion, or a job id to check with list_my_decks for a queued one — never raw file bytes.',
+        'Convert a URL or text into an Anki deck. Pass options to control the output: request a note type (basic, basic-reversed, cloze, input, or mcq), add tags, name and nest the deck with ::, split sections into subdecks, pick a style, or add text-to-speech. Call deck_capabilities first to learn every option. Returns the deck preview (card count and a sample of cards) for an immediate conversion, or a job id to check with list_my_decks for a queued one — never raw file bytes.',
       inputSchema: {
         url: z
           .string()
@@ -133,12 +184,15 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
           .string()
           .optional()
           .describe('Optional filename, e.g. notes.md.'),
+        options: convertOptionsSchema.describe(
+          'Curated card options. See deck_capabilities for the full list.'
+        ),
       },
     },
-    async ({ url, text, filename }) => {
+    async ({ url, text, filename, options }) => {
       context.recordToolCall('convert_to_deck');
       const result = await context.toolsService.convertToDeck(
-        { url, text, filename },
+        { url, text, filename, options },
         context.owner,
         context.locals
       );
@@ -188,6 +242,21 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
         return errorResult(result.message);
       }
       return textResult(result);
+    }
+  );
+
+  registerTool<Record<string, never>>(
+    server,
+    'deck_capabilities',
+    {
+      title: 'Deck capabilities',
+      description:
+        'Discover what convert_to_deck can produce — the note types with when to use each, the curated card options, the supported input kinds, and the cloze and :: subdeck conventions. Call this once to learn the surface before converting.',
+      inputSchema: {},
+    },
+    async () => {
+      context.recordToolCall('deck_capabilities');
+      return textResult(DECK_CAPABILITIES);
     }
   );
 

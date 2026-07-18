@@ -7,6 +7,7 @@ export const CARD_OPTION_DEFAULTS: Record<string, string> = {
   avocado: 'false',
   tags: 'true',
   'section-tags': 'false',
+  'global-tags': '',
   cloze: 'true',
   'cloze-from-toggle-content': 'false',
   'group-cloze-per-toggle': 'false',

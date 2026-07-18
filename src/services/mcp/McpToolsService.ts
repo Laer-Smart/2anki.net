@@ -9,6 +9,10 @@ import instrumentedAxios from '../observability/instrumentedAxios';
 import { getSafeFilename } from '../../lib/getSafeFilename';
 import { DeckPersistence } from './McpDeckPersistence';
 import { McpCard, serializeCardsToMarkdown } from './serializeCardsToMarkdown';
+import {
+  McpConvertOptions,
+  mcpOptionsToCardSettings,
+} from './mcpOptionsToCardSettings';
 
 const APKG_KEY_PATTERN = /\.apkg$/i;
 const MAX_TEXT_BYTES = 5 * 1024 * 1024;
@@ -57,6 +61,7 @@ export interface ConvertInput {
   url?: string;
   text?: string;
   filename?: string;
+  options?: McpConvertOptions;
 }
 
 export interface JobLister {
@@ -272,7 +277,7 @@ export class McpToolsService {
   ): Promise<CapturingResponse> {
     const req = {
       files: [file],
-      body: {},
+      body: mcpOptionsToCardSettings(input.options),
       headers: {},
       cookies: {},
     } as unknown as express.Request;
