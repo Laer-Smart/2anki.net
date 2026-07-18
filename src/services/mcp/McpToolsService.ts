@@ -39,6 +39,9 @@ export type ConvertResult =
       kind: 'deck';
       cardCount: number | null;
       filename: string | null;
+      deckCount?: number;
+      decks?: { id: number; name: string; cardCount: number }[];
+      sampleCards?: { front: string; back: string }[];
       summary: string;
     }
   | { kind: 'error'; message: string };
@@ -217,6 +220,39 @@ export class McpToolsService {
     return this.mapUploadResult(res);
   }
 
+  private async previewFromBytes(
+    buffer: Buffer,
+    filename: string | null
+  ): Promise<Pick<DeckPreview, 'deckCount' | 'decks' | 'sampleCards'> | null> {
+    try {
+      const parsed = await this.previewService.parse(
+        filename ?? 'deck.apkg',
+        buffer
+      );
+      const meta = this.previewService.getMeta(parsed);
+      const page = this.previewService.getCardsPage(
+        parsed,
+        0,
+        PREVIEW_CARD_LIMIT,
+        ''
+      );
+      return {
+        deckCount: meta.decks.length,
+        decks: meta.decks.map((deck) => ({
+          id: deck.id,
+          name: deck.fullName,
+          cardCount: deck.cardCount,
+        })),
+        sampleCards: page.cards.map((card) => ({
+          front: card.front,
+          back: card.back,
+        })),
+      };
+    } catch {
+      return null;
+    }
+  }
+
   private async buildFile(input: ConvertInput): Promise<UploadedFile | null> {
     if (typeof input.text === 'string' && input.text.length > 0) {
       const buffer = Buffer.from(input.text, 'utf-8');
@@ -251,7 +287,9 @@ export class McpToolsService {
     }
   }
 
-  private mapUploadResult(res: CapturingResponse): ConvertResult {
+  private async mapUploadResult(
+    res: CapturingResponse
+  ): Promise<ConvertResult> {
     if (res.statusCode === 202 && this.isJobBody(res.body)) {
       return {
         kind: 'processing',
@@ -276,11 +314,12 @@ export class McpToolsService {
       const cardCount =
         cardCountHeader != null ? Number(cardCountHeader) : null;
       const filename = res.get('File-Name') ?? null;
+      const preview = await this.previewFromBytes(res.bodyBuffer, filename);
       const summary =
         cardCount != null
           ? `${cardCount} cards. Find it in your 2anki downloads.`
           : 'Deck ready. Find it in your 2anki downloads.';
-      return { kind: 'deck', cardCount, filename, summary };
+      return { kind: 'deck', cardCount, filename, ...preview, summary };
     }
     return {
       kind: 'error',

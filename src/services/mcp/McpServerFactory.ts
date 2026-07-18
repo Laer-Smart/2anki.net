@@ -118,7 +118,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     {
       title: 'Convert to Anki deck',
       description:
-        'Convert a URL or text into an Anki deck. Returns a download link or job id, never raw file bytes.',
+        'Convert a URL or text into an Anki deck. Returns the deck preview (card count and a sample of cards) for an immediate conversion, or a job id to check with list_my_decks for a queued one — never raw file bytes.',
       inputSchema: {
         url: z
           .string()
