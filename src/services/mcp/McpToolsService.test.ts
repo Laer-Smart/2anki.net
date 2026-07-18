@@ -174,7 +174,7 @@ describe('McpToolsService.convertToDeck', () => {
     });
   });
 
-  it('maps a single-deck byte response to a card-count summary', async () => {
+  it('maps a single-deck byte response to a card-count summary with an inline preview', async () => {
     const uploadEntry: UploadEntrypoint = (_req, res) => {
       res.set('X-Card-Count', '42');
       res.set('File-Name', 'deck.apkg');
@@ -186,7 +186,29 @@ describe('McpToolsService.convertToDeck', () => {
       kind: 'deck',
       cardCount: 42,
       filename: 'deck.apkg',
+      deckCount: 1,
+      decks: [{ id: 1, name: 'Bio', cardCount: 3 }],
+      sampleCards: [{ front: 'Q', back: 'A' }],
     });
+  });
+
+  it('still returns the deck when inline preview parsing fails', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.set('X-Card-Count', '7');
+      res.set('File-Name', 'deck.apkg');
+      res.status(200).send(Buffer.from('CORRUPT'));
+    };
+    const { service } = makeService({
+      uploadEntry,
+      preview: {
+        parse: jest.fn(async () => {
+          throw new Error('bad apkg');
+        }),
+      },
+    });
+    const result = await service.convertToDeck({ text: 'x' }, {});
+    expect(result).toMatchObject({ kind: 'deck', cardCount: 7 });
+    expect((result as { decks?: unknown }).decks).toBeUndefined();
   });
 
   it('returns an error result when neither url nor text is given', async () => {
