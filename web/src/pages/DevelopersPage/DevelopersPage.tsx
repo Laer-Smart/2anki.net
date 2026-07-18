@@ -276,7 +276,7 @@ export default function DevelopersPage() {
     data?.locals?.patreon === true || data?.locals?.developer_access === true;
 
   return (
-    <div className={sharedStyles.page}>
+    <div className={styles.page}>
       <Helmet>
         <title>Developers — 2anki</title>
       </Helmet>

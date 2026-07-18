@@ -62,7 +62,8 @@ export class ApiClient {
     const form = new FormData();
     // Uint8Array is a valid BlobPart at runtime; the DOM lib's ArrayBuffer vs
     // ArrayBufferLike distinction is a type-only mismatch under Node.
-    form.append('file', new Blob([bytes as unknown as BlobPart]), filename);
+    // The server's multer parses the upload field named `pakker` (.array).
+    form.append('pakker', new Blob([bytes as unknown as BlobPart]), filename);
     const res = await this.fetchImpl(`${this.base}/api/upload/file`, {
       method: 'POST',
       headers: this.authHeader(),
