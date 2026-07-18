@@ -82,7 +82,7 @@ describe('cancelSubscription', () => {
     await expect(cancelSubscription()).rejects.toThrow('Internal Server Error');
   });
 
-  it('does not send a reason or comment with the cancel request', async () => {
+  it('does not send a reason when none is provided', async () => {
     vi.mocked(api.post).mockResolvedValue(
       createMockResponse(200, { message: 'ok' })
     );
@@ -91,6 +91,19 @@ describe('cancelSubscription', () => {
 
     expect(api.post).toHaveBeenCalledWith('/api/users/cancel-subscription', {
       mode: 'period_end',
+    });
+  });
+
+  it('sends the reason alongside the mode when provided', async () => {
+    vi.mocked(api.post).mockResolvedValue(
+      createMockResponse(200, { message: 'ok' })
+    );
+
+    await cancelSubscription('period_end', "I don't use it enough");
+
+    expect(api.post).toHaveBeenCalledWith('/api/users/cancel-subscription', {
+      mode: 'period_end',
+      reason: "I don't use it enough",
     });
   });
 });

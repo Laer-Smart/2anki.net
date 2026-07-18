@@ -6,9 +6,11 @@ const OK = 200;
 export type CancelMode = 'immediate' | 'period_end';
 
 export const cancelSubscription = async (
-  mode: CancelMode = 'period_end'
+  mode: CancelMode = 'period_end',
+  reason?: string
 ): Promise<{ message: string }> => {
-  const response = await post('/api/users/cancel-subscription', { mode });
+  const body = reason == null ? { mode } : { mode, reason };
+  const response = await post('/api/users/cancel-subscription', body);
 
   if (response?.status === UNAUTHORIZED) {
     globalThis.location.href = '/login';

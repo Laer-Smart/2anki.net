@@ -8,6 +8,7 @@ import { DeleteInactiveUsersUseCase } from '../usecases/ops/DeleteInactiveUsersU
 import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
 import { GetCustomerSignalsUseCase } from '../usecases/ops/GetCustomerSignalsUseCase';
 import { GetPassUnlockMonitorUseCase } from '../usecases/ops/GetPassUnlockMonitorUseCase';
+import { GetCancelFunnelUseCase } from '../usecases/ops/GetCancelFunnelUseCase';
 
 const buildRes = () => {
   const json = jest.fn();
@@ -504,5 +505,91 @@ describe('OpsController.deleteInactiveUsers', () => {
     expect(res.json).toHaveBeenCalledWith(
       expect.objectContaining({ message: expect.any(String) })
     );
+  });
+});
+
+describe('OpsController.getCancelFunnel', () => {
+  const buildController = (useCase?: GetCancelFunnelUseCase) =>
+    new OpsController(
+      {} as unknown as GetOpsMetricsUseCase,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      useCase
+    );
+
+  it('passes the window down and returns the funnel payload', async () => {
+    const payload = {
+      stages: {
+        cancel_started: 100,
+        pause_offered: 40,
+        paused: 12,
+        cancelled: 70,
+        pause_offer_declined: 25,
+      },
+      save_rate_pct: 30,
+      offer_reach_pct: 40,
+      since: '2026-06-01T00:00:00.000Z',
+      as_of: '2026-07-01T00:00:00.000Z',
+    };
+    const useCase = {
+      execute: jest.fn().mockResolvedValue(payload),
+    } as unknown as GetCancelFunnelUseCase;
+    const controller = buildController(useCase);
+    const req = { query: { window: '14d' } } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.getCancelFunnel(req, res);
+
+    expect(useCase.execute as jest.Mock).toHaveBeenCalledWith('14d');
+    expect(res.status).toHaveBeenCalledWith(200);
+    expect(res.json).toHaveBeenCalledWith(payload);
+  });
+
+  it('responds 500 when the use case is not configured', async () => {
+    const controller = buildController(undefined);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRes();
+
+    await controller.getCancelFunnel(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    expect(res.json).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.any(String) })
+    );
+  });
+
+  it('responds 500 when the use case throws', async () => {
+    const useCase = {
+      execute: jest.fn().mockRejectedValue(new Error('db down')),
+    } as unknown as GetCancelFunnelUseCase;
+    const controller = buildController(useCase);
+    const req = { query: {} } as unknown as express.Request;
+    const res = buildRes();
+    const errSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+
+    await controller.getCancelFunnel(req, res);
+
+    expect(res.status).toHaveBeenCalledWith(500);
+    errSpy.mockRestore();
   });
 });

@@ -15,7 +15,7 @@ export const LIFECYCLE_REASONS: readonly CancellationReason[] = [
   "I don't use it enough",
 ];
 
-const isLifecycleReason = (reason: CancellationReason | ''): boolean =>
+export const isLifecycleReason = (reason: CancellationReason | ''): boolean =>
   LIFECYCLE_REASONS.includes(reason as CancellationReason);
 
 interface CancelFlowProps {
