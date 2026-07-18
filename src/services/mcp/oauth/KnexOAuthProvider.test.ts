@@ -1,4 +1,8 @@
-import { Response } from 'express';
+import express, { Response } from 'express';
+import http from 'node:http';
+import type { AddressInfo } from 'node:net';
+import cookieParser from 'cookie-parser';
+import { authorizationHandler } from '@modelcontextprotocol/sdk/server/auth/handlers/authorize.js';
 import type { OAuthClientInformationFull } from '@modelcontextprotocol/sdk/shared/auth.js';
 
 import { KnexOAuthProvider, McpOAuthDeps } from './KnexOAuthProvider';
@@ -17,8 +21,10 @@ import {
   StoredMcpClient,
 } from '../../../data_layer/McpOAuthClientRepository';
 import { hashSecret } from './tokens';
+import { computeConsentToken } from './consent';
 
 const RESOURCE = 'https://2anki.net/mcp';
+const TEST_CONSENT_SECRET = 'test-consent-secret';
 
 class FakeClientRepo implements IMcpOAuthClientRepository {
   clients = new Map<string, StoredMcpClient>();
@@ -104,21 +110,41 @@ class FakeTokenRepo implements IMcpTokenRepository {
   async revokeAllForUserClient(): Promise<void> {}
 }
 
-function fakeResponse(cookieToken?: string) {
+function fakeResponse(
+  cookieToken?: string,
+  reqOverrides: { method?: string; body?: Record<string, unknown> } = {}
+) {
   const calls = {
     redirectedTo: null as string | null,
     cookies: [] as { name: string; value: string }[],
+    statusCode: null as number | null,
+    body: null as unknown,
+    headers: {} as Record<string, string>,
   };
   const res = {
     req: {
       cookies: cookieToken != null ? { token: cookieToken } : {},
       originalUrl: '/authorize?client_id=abc&state=xyz',
+      method: reqOverrides.method ?? 'GET',
+      body: reqOverrides.body ?? {},
     },
     redirect(target: string) {
       calls.redirectedTo = target;
     },
     cookie(name: string, value: string) {
       calls.cookies.push({ name, value });
+    },
+    status(code: number) {
+      calls.statusCode = code;
+      return this;
+    },
+    set(field: string, value: string) {
+      calls.headers[field.toLowerCase()] = value;
+      return this;
+    },
+    send(payload: unknown) {
+      calls.body = payload;
+      return this;
     },
   } as unknown as Response;
   return { res, calls };
@@ -151,7 +177,12 @@ function makeProvider(overrides: Partial<McpOAuthDeps> = {}) {
     tokenRepo,
     authService,
     usersRepo,
-    config: { resourceUrl: new URL(RESOURCE), loginPath: '/login' },
+    config: {
+      resourceUrl: new URL(RESOURCE),
+      loginPath: '/login',
+      authorizePath: '/authorize',
+      consentSecret: TEST_CONSENT_SECRET,
+    },
     now: () => now,
     ...overrides,
   });
@@ -218,18 +249,32 @@ describe('KnexOAuthProvider authorize', () => {
     expect(calls.cookies[0].value).toContain('/mcp');
   });
 
-  it('mints a code bound to PKCE and redirects with code+state when signed in', async () => {
+  const AUTHORIZE_PARAMS = {
+    codeChallenge: 'chal-123',
+    redirectUri: 'https://claude.ai/callback',
+    state: 'xyz',
+    scopes: ['mcp'],
+  };
+
+  it('renders a consent page and issues no code on a GET when signed in', async () => {
     const { provider, codeRepo } = makeProvider();
     const { res, calls } = fakeResponse('valid-session');
-    await provider.authorize(
-      CLIENT,
-      {
-        codeChallenge: 'chal-123',
-        redirectUri: 'https://claude.ai/callback',
-        state: 'xyz',
-      },
-      res
-    );
+    await provider.authorize(CLIENT, AUTHORIZE_PARAMS, res);
+    expect(calls.redirectedTo).toBeNull();
+    expect(calls.statusCode).toBe(200);
+    expect(String(calls.body)).toContain('name="consent"');
+    expect(String(calls.body)).toContain('name="csrf"');
+    expect(codeRepo.rows).toHaveLength(0);
+  });
+
+  it('mints a code only after a POST approval with a valid CSRF token', async () => {
+    const { provider, codeRepo } = makeProvider();
+    const csrf = computeConsentToken('valid-session', TEST_CONSENT_SECRET);
+    const { res, calls } = fakeResponse('valid-session', {
+      method: 'POST',
+      body: { consent: 'approve', csrf },
+    });
+    await provider.authorize(CLIENT, AUTHORIZE_PARAMS, res);
     expect(calls.redirectedTo).toMatch(
       /^https:\/\/claude\.ai\/callback\?code=mcp_ac_/
     );
@@ -237,6 +282,43 @@ describe('KnexOAuthProvider authorize', () => {
     expect(codeRepo.rows).toHaveLength(1);
     expect(codeRepo.rows[0].code_challenge).toBe('chal-123');
     expect(codeRepo.rows[0].user_id).toBe(42);
+  });
+
+  it('does not mint a code on a POST approval with a wrong CSRF token', async () => {
+    const { provider, codeRepo } = makeProvider();
+    const { res, calls } = fakeResponse('valid-session', {
+      method: 'POST',
+      body: { consent: 'approve', csrf: 'forged-token' },
+    });
+    await provider.authorize(CLIENT, AUTHORIZE_PARAMS, res);
+    expect(calls.redirectedTo).toBeNull();
+    expect(calls.statusCode).toBe(200);
+    expect(codeRepo.rows).toHaveLength(0);
+  });
+
+  it('does not mint a code when the CSRF token is bound to a different session', async () => {
+    const { provider, codeRepo } = makeProvider();
+    const otherSessionCsrf = computeConsentToken(
+      'someone-elses-session',
+      TEST_CONSENT_SECRET
+    );
+    const { res } = fakeResponse('valid-session', {
+      method: 'POST',
+      body: { consent: 'approve', csrf: otherSessionCsrf },
+    });
+    await provider.authorize(CLIENT, AUTHORIZE_PARAMS, res);
+    expect(codeRepo.rows).toHaveLength(0);
+  });
+
+  it('redirects with access_denied and issues no code on a POST deny', async () => {
+    const { provider, codeRepo } = makeProvider();
+    const { res, calls } = fakeResponse('valid-session', {
+      method: 'POST',
+      body: { consent: 'deny' },
+    });
+    await provider.authorize(CLIENT, AUTHORIZE_PARAMS, res);
+    expect(calls.redirectedTo).toContain('error=access_denied');
+    expect(codeRepo.rows).toHaveLength(0);
   });
 
   it('denies a signed-in user without developer_access and issues no code', async () => {
@@ -425,5 +507,55 @@ describe('KnexOAuthProvider refresh + verify + revoke', () => {
     await expect(provider.verifyAccessToken('mcp_at_nope')).rejects.toThrow(
       /Invalid access token/
     );
+  });
+});
+
+describe('authorize endpoint through the SDK handler (CSRF gate)', () => {
+  async function withAuthorizeServer(
+    run: (base: string, codeRepo: FakeCodeRepo) => Promise<void>
+  ) {
+    const { provider, clientRepo, codeRepo } = makeProvider();
+    await clientRepo.create({
+      client_id: 'client-1',
+      client_name: 'Claude',
+      redirect_uris: ['https://claude.ai/callback'],
+      grant_types: ['authorization_code', 'refresh_token'],
+      response_types: ['code'],
+      scope: 'mcp',
+      token_endpoint_auth_method: 'none',
+      metadata: {},
+      client_id_issued_at: 1,
+    });
+    const app = express();
+    app.use(cookieParser());
+    app.use('/authorize', authorizationHandler({ provider, rateLimit: false }));
+    const server = http.createServer(app);
+    await new Promise<void>((resolve) => server.listen(0, resolve));
+    const { port } = server.address() as AddressInfo;
+    try {
+      await run(`http://127.0.0.1:${port}`, codeRepo);
+    } finally {
+      await new Promise<void>((resolve) => server.close(() => resolve()));
+    }
+  }
+
+  it('a signed-in GET renders consent and issues NO code (no CSRF-validated POST)', async () => {
+    await withAuthorizeServer(async (base, codeRepo) => {
+      const query = new URLSearchParams({
+        client_id: 'client-1',
+        redirect_uri: 'https://claude.ai/callback',
+        response_type: 'code',
+        code_challenge: 'chal',
+        code_challenge_method: 'S256',
+        state: 'xyz',
+      });
+      const res = await fetch(`${base}/authorize?${query.toString()}`, {
+        headers: { cookie: 'token=valid-session' },
+        redirect: 'manual',
+      });
+      expect(res.status).toBe(200);
+      expect(await res.text()).toContain('name="consent"');
+      expect(codeRepo.rows).toHaveLength(0);
+    });
   });
 });

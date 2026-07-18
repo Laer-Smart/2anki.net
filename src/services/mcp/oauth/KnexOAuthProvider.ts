@@ -32,6 +32,11 @@ import {
   generateRefreshToken,
   hashSecret,
 } from './tokens';
+import {
+  computeConsentToken,
+  consentTokenMatches,
+  renderConsentPage,
+} from './consent';
 
 const MAX_REDIRECT_URIS = 10;
 const MAX_CLIENT_NAME_LENGTH = 255;
@@ -39,6 +44,8 @@ const MAX_CLIENT_NAME_LENGTH = 255;
 export interface McpOAuthConfig {
   resourceUrl: URL;
   loginPath: string;
+  authorizePath: string;
+  consentSecret: string;
 }
 
 export interface McpOAuthDeps {
@@ -163,9 +170,11 @@ export class KnexOAuthProvider implements OAuthServerProvider {
     return this.store;
   }
 
-  private async resolveLoggedInUser(
-    res: Response
-  ): Promise<{ id: number; developerAccess: boolean } | null> {
+  private async resolveLoggedInUser(res: Response): Promise<{
+    id: number;
+    developerAccess: boolean;
+    sessionToken: string;
+  } | null> {
     const cookies = res.req?.cookies as Record<string, unknown> | undefined;
     const token = cookies?.token;
     if (typeof token !== 'string' || token.length === 0) {
@@ -178,6 +187,7 @@ export class KnexOAuthProvider implements OAuthServerProvider {
     return {
       id: Number(user.id),
       developerAccess: user.developer_access === true,
+      sessionToken: token,
     };
   }
 
@@ -231,8 +241,65 @@ export class KnexOAuthProvider implements OAuthServerProvider {
       );
       return;
     }
-    const userId = user.id;
 
+    const body = (res.req?.body ?? {}) as Record<string, unknown>;
+    const isPost = res.req?.method === 'POST';
+    if (isPost && body.consent === 'deny') {
+      this.redirectWithError(
+        params,
+        'access_denied',
+        'You denied the request.',
+        res
+      );
+      return;
+    }
+    const expectedCsrf = computeConsentToken(
+      user.sessionToken,
+      this.deps.config.consentSecret
+    );
+    if (
+      isPost &&
+      body.consent === 'approve' &&
+      consentTokenMatches(expectedCsrf, body.csrf)
+    ) {
+      await this.issueAuthorizationCode(client, params, user.id, res);
+      return;
+    }
+
+    this.renderConsent(client, params, expectedCsrf, res);
+  }
+
+  private renderConsent(
+    client: OAuthClientInformationFull,
+    params: AuthorizationParams,
+    csrf: string,
+    res: Response
+  ): void {
+    const html = renderConsentPage({
+      actionPath: this.deps.config.authorizePath,
+      clientName: client.client_name ?? 'An application',
+      scopes: params.scopes ?? [],
+      csrf,
+      fields: {
+        client_id: client.client_id,
+        redirect_uri: params.redirectUri,
+        response_type: 'code',
+        code_challenge: params.codeChallenge,
+        code_challenge_method: 'S256',
+        scope: (params.scopes ?? []).join(' '),
+        state: params.state,
+        resource: params.resource?.toString(),
+      },
+    });
+    res.set('Content-Type', 'text/html; charset=utf-8').status(200).send(html);
+  }
+
+  private async issueAuthorizationCode(
+    client: OAuthClientInformationFull,
+    params: AuthorizationParams,
+    userId: number,
+    res: Response
+  ): Promise<void> {
     const code = generateAuthorizationCode();
     const expiresAt = new Date(
       this.now().getTime() + AUTH_CODE_TTL_SECONDS * 1000

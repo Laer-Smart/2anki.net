@@ -46,7 +46,12 @@ const McpRouter = () => {
     tokenRepo: new McpTokenRepository(database),
     authService,
     usersRepo: usersRepository,
-    config: { resourceUrl, loginPath: '/login' },
+    config: {
+      resourceUrl,
+      loginPath: '/login',
+      authorizePath: new URL('/authorize', issuerUrl).pathname,
+      consentSecret: process.env.SECRET ?? '',
+    },
   });
 
   const uploadService = new UploadService(
