@@ -613,6 +613,498 @@ const kindleToAnki: LandingCopy = {
   ],
 };
 
+const excelToAnki: LandingCopy = {
+  relatedLinks: [
+    {
+      label: 'Convert a CSV or Excel sheet to Anki',
+      href: '/convert/csv-to-anki',
+    },
+    {
+      label: 'Convert Notion tables to Anki',
+      href: '/convert/notion-tables-to-anki',
+    },
+    {
+      label: 'Word to Anki — a step-by-step guide',
+      href: '/answers/word-to-anki',
+    },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
+  pathname: '/convert/excel-to-anki',
+  title: 'Excel to Anki — turn a spreadsheet into cards | 2anki',
+  description:
+    'Upload an .xlsx spreadsheet and download an Anki deck. Each row becomes a card — one column front, one column back. No add-on, no copy-paste.',
+  h1: 'Excel to Anki — turn a spreadsheet into flashcards',
+  subhead:
+    'Drop an .xlsx file and download a .apkg deck. Each row becomes a card — first column front, second column back.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'How do I turn an Excel spreadsheet into Anki cards?',
+      a: 'Save your sheet as an .xlsx file with one column for the front of the card and one for the back, upload it here, and download the .apkg deck. Open the deck in Anki to review. No add-on or copy-paste needed.',
+    },
+    {
+      q: 'Which column becomes the front of the card?',
+      a: "The first column is the front, the second column is the back. A header row is read as column names and isn't turned into a card, so you can label the columns whatever you like.",
+    },
+    {
+      q: 'Do images or cell formatting carry over from Excel?',
+      a: 'No. Text converts cleanly, including line breaks inside a cell, but embedded images, charts, colors, fonts, and formulas are dropped — a formula cell exports as its text result. For cards with images, use the HTML or Notion upload path.',
+    },
+    {
+      q: 'My workbook has several tabs — will all of them convert?',
+      a: 'The first sheet is the one converted. If you have multiple tabs, split each into its own .xlsx file and upload them separately.',
+    },
+    {
+      q: 'What if my file is a .csv instead of an .xlsx?',
+      a: 'Use the CSV to Anki path — it follows the same two-column layout, first column front and second column back. Both .csv and .xlsx are supported upload formats.',
+    },
+  ],
+};
+
+const wordToAnki: LandingCopy = {
+  relatedLinks: [
+    {
+      label: 'Word to Anki — a step-by-step guide',
+      href: '/answers/word-to-anki',
+    },
+    { label: 'Convert a PDF to Anki', href: '/convert/pdf-to-anki' },
+    {
+      label: 'Convert Markdown and Obsidian notes to Anki',
+      href: '/convert/markdown-to-anki',
+    },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
+  pathname: '/convert/word-to-anki',
+  title: 'Word to Anki — convert a .docx to flashcards | 2anki',
+  description:
+    'Upload a Word .docx and download an Anki deck. Headings and bold text become card fronts, the body becomes the back. No add-on required.',
+  h1: 'Word to Anki — convert a Word document into flashcards',
+  subhead:
+    'Upload a .docx and download a .apkg deck. Headings become card fronts, the text beneath becomes the back. No add-on.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'Do I need an Anki add-on to convert a Word document?',
+      a: 'No. The conversion runs in your browser on 2anki — you upload the .docx and download a .apkg file. Import that into Anki the normal way. Nothing to install in Anki itself.',
+    },
+    {
+      q: 'What in my document becomes the front of the card?',
+      a: "Headings. Each heading (H1 through H6) starts a new card and becomes its front; the paragraphs, lists, and images beneath it — up to the next heading — become the back. If your notes have no headings, add them where each card should begin, or you'll get one large card instead of many.",
+    },
+    {
+      q: 'Can I convert a Google Doc to Anki this way?',
+      a: 'Yes. In Google Docs choose File → Download → Microsoft Word (.docx), then upload that file. Docs export cleanly to .docx, so the same heading-to-card behaviour applies.',
+    },
+    {
+      q: "Why won't my .docx upload?",
+      a: 'The most common cause is a file renamed from another format rather than exported as a real .docx — for example a .pages or old .doc file given a .docx extension. Open it in Word or Google Docs and re-save or re-download as .docx, then upload again.',
+    },
+    {
+      q: 'Do images and formatting survive the conversion?',
+      a: 'Bold, italic, bullet and numbered lists, and embedded images all come across. Images are bundled into the deck so they render on the card rather than linking out. Equations stored as text need MathJax enabled in your Anki template to display.',
+    },
+  ],
+};
+
+const obsidianToAnki: LandingCopy = {
+  relatedLinks: [
+    {
+      label: 'Obsidian to Anki — a step-by-step guide',
+      href: '/answers/obsidian-to-anki',
+    },
+    {
+      label: 'Convert Markdown and Obsidian notes to Anki',
+      href: '/convert/markdown-to-anki',
+    },
+    { label: 'Convert Notion pages to Anki', href: '/convert/notion-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
+  pathname: '/convert/obsidian-to-anki',
+  title: 'Obsidian to Anki — export notes to a deck | 2anki',
+  description:
+    'Convert Obsidian Markdown notes into an Anki .apkg deck without a plugin. Upload a note or a vault export and download cards that open clean.',
+  h1: 'Obsidian to Anki — turn your vault notes into flashcards',
+  subhead:
+    'Upload a Markdown note or a zipped vault folder and download a .apkg deck. No plugin, no code pasted into your notes.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'Can I convert Obsidian notes to Anki without a plugin?',
+      a: 'Yes. Obsidian notes are plain Markdown, so you upload the .md file or a zipped folder to 2anki and download a .apkg deck. Nothing is installed in Obsidian and no code is pasted into your notes.',
+    },
+    {
+      q: 'How does 2anki decide what becomes a card?',
+      a: "Two patterns. A top-level bullet becomes the front and a nested bullet underneath becomes the back. Or write 'Q: question' followed by 'A: answer' on the next line. You can mix both in the same note.",
+    },
+    {
+      q: 'Can I convert my whole vault at once?',
+      a: 'Zip a folder from your vault and upload the .zip. Each note keeps its own deck name from its first heading. Uploading a folder at a time keeps the resulting decks easier to review than one giant export.',
+    },
+    {
+      q: 'What happens to wikilinks and block embeds?',
+      a: "Obsidian-specific syntax like [[wikilinks]] and ![[block embeds]] doesn't map to a card field, so it's skipped rather than turned into a broken card. Bullets, headings, bold, italic, and code blocks convert normally.",
+    },
+    {
+      q: 'Does LaTeX from my notes render in Anki?',
+      a: 'The math text always comes across. It renders as an equation only if MathJax is enabled in your Anki card template, using $…$ for inline and $$…$$ for block math.',
+    },
+  ],
+};
+
+const photoToAnki: LandingCopy = {
+  relatedLinks: [
+    {
+      label: 'Handwritten notes to Anki — a guide',
+      href: '/answers/handwritten-notes-to-anki',
+    },
+    {
+      label: 'Image occlusion in Anki — a guide',
+      href: '/answers/image-occlusion-anki',
+    },
+    { label: 'Convert a PDF to Anki', href: '/convert/pdf-to-anki' },
+    { label: 'AI flashcard generator', href: '/ai-flashcard-generator' },
+  ],
+  pathname: '/convert/photo-to-anki',
+  title: 'Photo to Anki — snap notes into flashcards | 2anki',
+  description:
+    'Upload a photo of your notes or a textbook page and get an Anki deck. AI reads the image and writes question-and-answer cards you can edit.',
+  h1: 'Photo to Anki — turn a picture of your notes into flashcards',
+  subhead:
+    'Upload a photo of your notes or a textbook page. AI reads the image and drafts question-and-answer cards you review before download.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'Can it read my handwriting?',
+      a: 'Legible handwriting reads well. The clearer the writing and the better the lighting, the fewer corrections you make at the review step. Every card is shown before download, so you catch any misread word before it lands in your deck.',
+    },
+    {
+      q: 'What photo formats can I upload?',
+      a: 'JPEG, PNG, WebP, GIF, and HEIC/HEIF — the format an iPhone shoots by default — up to 10 MB per photo. You can take the photo with your camera or pick one from your library.',
+    },
+    {
+      q: 'Do I get to check the cards before they go into Anki?',
+      a: "Yes. AI reads the photo and drafts the cards, then shows every card for review. Fix a misread word, cut a card you don't want, and keep the rest before you download the APKG file.",
+    },
+    {
+      q: 'How many photos can I turn into cards?',
+      a: 'Add several photos at once — one per page, or a few pages of the same topic in one go. The free plan covers 5 photos per month; paid plans lift the limit.',
+    },
+    {
+      q: 'I have the notes as a PDF, not a photo. What then?',
+      a: 'Use PDF to Anki instead — it reads a whole chapter in one upload, which is faster than photographing each page. Photo to Anki is for pictures: handwritten notes, a single textbook page, or a lecture slide you snapped.',
+    },
+  ],
+};
+
+const googleSlidesToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert PowerPoint slides to Anki', href: '/powerpoint-to-anki' },
+    { label: 'Convert a PDF to Anki', href: '/convert/pdf-to-anki' },
+    {
+      label: 'Anki from medical lecture slides',
+      href: '/anki-from-medical-lecture-slides',
+    },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
+  pathname: '/convert/google-slides-to-anki',
+  title: 'Google Slides to Anki — slides into cards | 2anki',
+  description:
+    'Export Google Slides to PDF, upload it, and download an Anki deck. Each slide becomes a card front, speaker notes or the next slide the back.',
+  h1: 'Google Slides to Anki — turn a lecture deck into flashcards',
+  subhead:
+    'Export your Slides deck to PDF, upload it, and download a .apkg. Each slide becomes a card you can edit before download.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'Can I convert Google Slides to Anki directly, without exporting?',
+      a: 'Not directly — export the deck to PDF first (File, Download, PDF Document). 2anki reads the PDF and turns each slide into a card. The export takes a few seconds and keeps images and diagrams intact.',
+    },
+    {
+      q: 'How does 2anki decide the front and back of each card?',
+      a: 'By default the slide is the front and the following slide is the back, so a question-then-answer sequence lines up for review. If your deck has speaker notes, those can go on the back instead. You can change the front and back before downloading.',
+    },
+    {
+      q: 'Will images and diagrams from my slides come through?',
+      a: 'Yes. Anything visible on the slide when you export to PDF — charts, diagrams, images — comes through on the card. Staged animations flatten to their final state in the export.',
+    },
+    {
+      q: 'What file do I get back, and how do I open it?',
+      a: 'You download an Anki .apkg file. Double-click it to import into Anki desktop, or import it through AnkiWeb. The whole lecture lands as a deck of cards.',
+    },
+    {
+      q: 'My slides are in PowerPoint, not Google Slides. Does that work?',
+      a: 'Yes — use the PowerPoint to Anki page for .pptx files. The result is the same: one card per slide, downloadable as an Anki deck.',
+    },
+  ],
+};
+
+const screenshotToAnki: LandingCopy = {
+  relatedLinks: [
+    {
+      label: 'Turn a photo of your notes into Anki cards',
+      href: '/convert/photo-to-anki',
+    },
+    {
+      label: 'Image occlusion in Anki — a guide',
+      href: '/answers/image-occlusion-anki',
+    },
+    { label: 'AI flashcard generator', href: '/ai-flashcard-generator' },
+    { label: 'Convert a PDF to Anki', href: '/convert/pdf-to-anki' },
+  ],
+  pathname: '/convert/screenshot-to-anki',
+  title: 'Screenshot to Anki — clip to flashcards | 2anki',
+  description:
+    'Upload a screenshot of a slide, chart, or page and get an Anki card. AI reads the image and writes a question and answer you can edit.',
+  h1: 'Screenshot to Anki — turn a captured slide into flashcards',
+  subhead:
+    'Upload a screenshot of a slide, chart, or page. AI reads the image and writes a question and answer you can edit.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'Screenshot vs photo — which page do I want?',
+      a: 'A screenshot is a digital capture — a slide, a webpage, a PDF on your screen. A photo is taken with your camera — a textbook page, a whiteboard, handwritten notes. Both work here; the camera path lives on the photo to Anki page.',
+    },
+    {
+      q: 'Do I have to retype anything?',
+      a: 'No. The AI reads the text in the image and writes the card. You edit only what you want to change.',
+    },
+    {
+      q: 'Can I hide part of a diagram instead of a plain question and answer?',
+      a: 'For labelled diagrams where you want to blank out one region at a time, use image occlusion in Anki.',
+    },
+    {
+      q: 'What if the card comes out wrong?',
+      a: 'Edit it before downloading. The question and answer are text fields — rewrite them, and re-upload a cleaner crop if the AI misread the image.',
+    },
+    {
+      q: 'Is it free?',
+      a: 'You can convert on the free plan up to the monthly card limit. Heavier use and larger uploads are covered by a subscription.',
+    },
+  ],
+};
+
+const googleSheetsToAnki: LandingCopy = {
+  relatedLinks: [
+    {
+      label: 'Convert an Excel spreadsheet to Anki',
+      href: '/convert/excel-to-anki',
+    },
+    {
+      label: 'Convert a CSV or Excel sheet to Anki',
+      href: '/convert/csv-to-anki',
+    },
+    {
+      label: 'Convert Notion tables to Anki',
+      href: '/convert/notion-tables-to-anki',
+    },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
+  pathname: '/convert/google-sheets-to-anki',
+  title: 'Google Sheets to Anki — rows into cards | 2anki',
+  description:
+    'Download a Google Sheet as .csv or .xlsx, upload it, and get an Anki deck. Each row becomes a card — pick which columns are front and back.',
+  h1: 'Google Sheets to Anki — turn spreadsheet rows into flashcards',
+  subhead:
+    'Download your sheet as .csv or .xlsx, upload it, and download a .apkg deck. Each row becomes a card, columns you pick.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'Do I need a Google Sheets add-on or plugin?',
+      a: "No. You export the sheet as a .csv or .xlsx from the built-in File → Download menu and upload that file. There's nothing to install in Sheets or in Anki.",
+    },
+    {
+      q: 'Which export format should I choose, .csv or .xlsx?',
+      a: "Either works. .csv is the simplest — plain text, one row per card. Choose .xlsx if your sheet already has the columns arranged the way you want and you'd rather keep the spreadsheet structure. Both land as the same deck.",
+    },
+    {
+      q: 'Can I pick which columns become the front and back?',
+      a: "Yes. After upload you map columns to the card's front and back, so it doesn't matter which order they sit in your sheet. Extra columns can be left out or kept as notes.",
+    },
+    {
+      q: 'Does each row really become one card?',
+      a: 'Yes — one row in, one card out. A 200-row vocabulary sheet gives you a 200-card deck.',
+    },
+    {
+      q: 'Can I convert an Excel file the same way?',
+      a: 'Yes. The .xlsx path is identical whether the file came from Google Sheets or Excel.',
+    },
+  ],
+};
+
+const txtToAnki: LandingCopy = {
+  relatedLinks: [
+    {
+      label: 'Convert Markdown and Obsidian notes to Anki',
+      href: '/convert/markdown-to-anki',
+    },
+    {
+      label: 'Convert a CSV or Excel sheet to Anki',
+      href: '/convert/csv-to-anki',
+    },
+    {
+      label: 'Lecture notes to Anki — a guide',
+      href: '/answers/lecture-notes-to-anki',
+    },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
+  pathname: '/convert/txt-to-anki',
+  title: 'Text file to Anki — .txt into flashcards | 2anki',
+  description:
+    'Upload a plain text or Markdown file and download an Anki deck. Question-and-answer lines become cards you can edit in Anki in seconds.',
+  h1: 'Text file to Anki — turn a plain .txt list into flashcards',
+  subhead:
+    'Upload a plain .txt or .md file and download a .apkg deck. Term-and-definition lines become cards you can edit in Anki.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'How should I format each line in the .txt file?',
+      a: "Put the term and its meaning on one line, separated by ' - ' or ' = ' (a space on each side), or by a Tab. For example: 'Mitochondria - the powerhouse of the cell'. Each line becomes one card.",
+    },
+    {
+      q: 'Will plain paragraphs of notes become cards?',
+      a: "No. A line needs a separator (' - ', ' = ', or a Tab) to split into a front and back. A prose line with no separator is skipped instead of becoming a blank card. If you have running notes, add the separator or use a bullet structure.",
+    },
+    {
+      q: 'Can I make cloze deletion cards from a text file?',
+      a: 'Yes. Wrap a word in backticks, like `photosynthesis`, or leave a blank as ___, and that line converts to a cloze card instead of a front/back card.',
+    },
+    {
+      q: 'What names the deck?',
+      a: "The filename. 'Spanish Verbs.txt' becomes a deck called Spanish Verbs. If the file starts with a Markdown heading, that heading is used instead.",
+    },
+    {
+      q: 'Is .md any different from .txt?',
+      a: 'No — plain text and Markdown go through the same path. A .md file also supports bullet-list cards, where a top-level bullet is the front and a nested bullet under it is the back.',
+    },
+  ],
+};
+
+const onenoteToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert a Word document to Anki', href: '/convert/word-to-anki' },
+    { label: 'Convert a PDF to Anki', href: '/convert/pdf-to-anki' },
+    {
+      label: 'Handwritten notes to Anki — a guide',
+      href: '/answers/handwritten-notes-to-anki',
+    },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
+  pathname: '/convert/onenote-to-anki',
+  title: 'OneNote to Anki — notebook into cards | 2anki',
+  description:
+    'Export a OneNote page to PDF or Word, upload it, and get an Anki deck. Headings become card fronts and the body becomes the back.',
+  h1: 'OneNote to Anki — turn a notebook page into flashcards',
+  subhead:
+    'Export a OneNote page to PDF or Word, upload it, and download a .apkg deck. Headings become card fronts, the body the back.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'Can I export directly from OneNote to Anki?',
+      a: "Not directly — OneNote has no Anki export. Export the page to PDF or Word first, then upload that file to 2anki to get an Anki deck. It's one extra step and takes a few seconds in OneNote's File menu.",
+    },
+    {
+      q: 'Should I export as PDF or Word?',
+      a: "Either works. Word (.docx) tends to preserve headings and lists more reliably, which gives cleaner card splits. PDF is fine when Word export isn't available. Try Word first if your page has clear headings.",
+    },
+    {
+      q: 'How do my OneNote headings become cards?',
+      a: "Each heading becomes the front of a card and the text beneath it becomes the back. Pages you've structured with headings and short sections convert into the most useful decks; unstructured pages give the converter less to work with.",
+    },
+    {
+      q: 'Will my handwritten OneNote notes convert?',
+      a: "No. Ink and handwriting export as images, not text, so the words can't be read into cards. Only typed text converts. If your notes are handwritten, the OneNote page won't produce readable card content.",
+    },
+    {
+      q: 'What file do I get back?',
+      a: 'An .apkg file. Open it in Anki on desktop or mobile, or sync it through AnkiWeb. No manual card entry — the deck is ready to study.',
+    },
+  ],
+};
+
+const evernoteToAnki: LandingCopy = {
+  relatedLinks: [
+    { label: 'Convert an HTML file to Anki', href: '/convert/html-to-anki' },
+    { label: 'Convert Notion pages to Anki', href: '/convert/notion-to-anki' },
+    { label: 'Convert a Word document to Anki', href: '/convert/word-to-anki' },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
+  pathname: '/convert/evernote-to-anki',
+  title: 'Evernote to Anki — notes into flashcards | 2anki',
+  description:
+    'Export Evernote notes to HTML, upload the file, and download an Anki deck. Your headings and lists become cards that open clean in Anki.',
+  h1: 'Evernote to Anki — turn exported notes into flashcards',
+  subhead:
+    'Export your Evernote notes to HTML, upload the file, and download a .apkg deck. Headings and lists become cards.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'How do I export Evernote notes to Anki?',
+      a: 'Export the note from the Evernote desktop app as HTML (select the note, right-click, Export, choose HTML). Upload the .html file to 2anki and download an .apkg deck you import into Anki.',
+    },
+    {
+      q: "Does 2anki read Evernote's .enex export?",
+      a: "Not directly — the .enex format isn't supported. Export your notes as HTML instead. If your Evernote version only offers ENEX, open the note in the web view and save it as HTML from your browser, then upload that file.",
+    },
+    {
+      q: 'Will images from my Evernote notes come across?',
+      a: 'Yes, when you upload them with the HTML. Exporting a note with images gives you an .html file plus an attachments folder — zip them together and upload the zip, and the images embed in the cards.',
+    },
+    {
+      q: 'Why did my note become one card instead of many?',
+      a: "Cards come from structure. A note that's one long block of prose has no front/back split to work from. Break it into headings and lists, write Q: and A: lines, or use the AI mode to generate question-and-answer cards from the text.",
+    },
+    {
+      q: 'Do I need an Anki add-on to import the deck?',
+      a: 'No. 2anki gives you a standard .apkg file. Open it with File → Import in Anki, or double-click it, and the cards load into a new deck. It works on desktop Anki and syncs to AnkiWeb.',
+    },
+  ],
+};
+
+const googleDocsToAnki: LandingCopy = {
+  relatedLinks: [
+    {
+      label: 'Google Docs to Anki — a step-by-step guide',
+      href: '/answers/google-docs-to-anki',
+    },
+    { label: 'Convert a Word document to Anki', href: '/convert/word-to-anki' },
+    {
+      label: 'Convert Markdown and Obsidian notes to Anki',
+      href: '/convert/markdown-to-anki',
+    },
+    { label: 'Browse every converter', href: '/convert' },
+  ],
+  pathname: '/convert/google-docs-to-anki',
+  title: 'Google Docs to Anki — docs to a deck | 2anki',
+  description:
+    'Turn a Google Doc into an Anki deck. Download as Word or Markdown, upload, and get a .apkg — headings name decks, images embed, tables become cards.',
+  h1: 'Google Docs to Anki — convert docs to flashcards',
+  subhead:
+    'Download your doc as Word or Markdown, upload it, and download a .apkg deck. Headings name decks, images embed, tables become cards.',
+  whatComesAcross: ankiFidelityProof,
+  faqs: [
+    {
+      q: 'Can I connect Google Docs to 2anki directly?',
+      a: 'No. Download the doc as Word (.docx) or Markdown first — File → Download in Google Docs — then upload the file. It converts the same way as any Word or Markdown upload.',
+    },
+    {
+      q: 'Do images from my Google Doc come across?',
+      a: 'Yes, when you export as Word (.docx). Images embed directly in the cards. For an image-heavy doc, use the Word export rather than Markdown, which drops images.',
+    },
+    {
+      q: 'Will a two-column table become flashcards?',
+      a: 'Yes. A term-and-definition table converts one card per row — term on the front, definition on the back. Export as Word to keep the table structure intact.',
+    },
+    {
+      q: 'Do I need to install an add-on in Anki?',
+      a: 'No. 2anki produces a standard .apkg file. Double-click it in Anki and the deck imports — no add-on required.',
+    },
+    {
+      q: 'Is Google Docs to Anki free?',
+      a: 'The free plan covers your first 100 cards a month. Larger decks and unlimited monthly cards are on the paid plan.',
+    },
+  ],
+};
+
 export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['notion-to-anki', notionToAnki],
   ['pdf-to-anki', pdfToAnki],
@@ -629,4 +1121,15 @@ export const CONVERT_LANDING_PAGES: ReadonlyMap<string, LandingCopy> = new Map([
   ['language-reactor-to-anki', languageReactorToAnki],
   ['epub-to-anki', epubToAnki],
   ['kindle-to-anki', kindleToAnki],
+  ['excel-to-anki', excelToAnki],
+  ['word-to-anki', wordToAnki],
+  ['obsidian-to-anki', obsidianToAnki],
+  ['photo-to-anki', photoToAnki],
+  ['google-slides-to-anki', googleSlidesToAnki],
+  ['screenshot-to-anki', screenshotToAnki],
+  ['google-sheets-to-anki', googleSheetsToAnki],
+  ['txt-to-anki', txtToAnki],
+  ['onenote-to-anki', onenoteToAnki],
+  ['evernote-to-anki', evernoteToAnki],
+  ['google-docs-to-anki', googleDocsToAnki],
 ]);

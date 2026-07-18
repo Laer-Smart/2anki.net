@@ -146,8 +146,39 @@ describe('ConvertLandingPage', () => {
     );
   });
 
-  it('covers all 16 supported input types', () => {
-    expect(CONVERT_LANDING_PAGES.size).toBe(15);
+  it('covers all supported input types', () => {
+    expect(CONVERT_LANDING_PAGES.size).toBe(26);
+  });
+
+  const newConvertSlugs = [
+    'excel-to-anki',
+    'word-to-anki',
+    'obsidian-to-anki',
+    'photo-to-anki',
+    'google-slides-to-anki',
+    'screenshot-to-anki',
+    'google-sheets-to-anki',
+    'txt-to-anki',
+    'onenote-to-anki',
+    'evernote-to-anki',
+    'google-docs-to-anki',
+  ];
+
+  it.each(newConvertSlugs)('resolves the new converter slug "%s"', (slug) => {
+    const copy = CONVERT_LANDING_PAGES.get(slug);
+    expect(copy?.pathname).toBe(`/convert/${slug}`);
+  });
+
+  it.each(newConvertSlugs)('renders the title and H1 for "%s"', (slug) => {
+    const copy = CONVERT_LANDING_PAGES.get(slug);
+    if (copy == null) {
+      throw new Error(`missing config for ${slug}`);
+    }
+    expect(copy.title).toMatch(/\| 2anki$/);
+    renderAtSlug(slug);
+    expect(
+      screen.getByRole('heading', { level: 1, name: copy.h1 })
+    ).toBeInTheDocument();
   });
 
   it('serves dedicated EPUB and Kindle highlight converter pages', () => {
