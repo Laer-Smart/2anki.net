@@ -83,7 +83,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     }
   );
 
-  registerTool<{ key: string }>(
+  registerTool<{ jobId: string }>(
     server,
     'get_deck_preview',
     {
@@ -91,17 +91,17 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
       description:
         'Preview an .apkg deck you own — total cards, decks, and a sample of cards.',
       inputSchema: {
-        key: z
+        jobId: z
           .string()
-          .describe('The storage key of the .apkg upload (ends in .apkg).'),
+          .describe('The jobId of the deck, as returned by list_my_decks.'),
       },
     },
-    async ({ key }) => {
+    async ({ jobId }) => {
       context.recordToolCall('get_deck_preview');
       try {
         const preview = await context.toolsService.getDeckPreview(
           context.owner,
-          key
+          jobId
         );
         return textResult(preview);
       } catch (error) {

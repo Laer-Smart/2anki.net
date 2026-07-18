@@ -80,30 +80,62 @@ describe('McpToolsService.listMyDecks', () => {
 });
 
 describe('McpToolsService.getDeckPreview', () => {
-  it('rejects a non-apkg key without hitting storage', async () => {
-    const { service, downloadService } = makeService({});
-    await expect(service.getDeckPreview('owner', 'notes.txt')).rejects.toThrow(
-      /Not an .apkg/
+  const jobFixture = (
+    overrides: Partial<JobWithDownloadKey>
+  ): JobWithDownloadKey =>
+    ({
+      object_id: 'job-1',
+      title: 'Bio',
+      status: 'done',
+      created_at: null,
+      download_key: 'deck.apkg',
+      ...overrides,
+    }) as unknown as JobWithDownloadKey;
+
+  it('rejects an unknown jobId as not found', async () => {
+    const { service, downloadService } = makeService({
+      jobs: [jobFixture({ object_id: 'job-1' })],
+    });
+    await expect(service.getDeckPreview('owner', 'nope')).rejects.toThrow(
+      /Deck not found/
     );
     expect(downloadService.getFileBody).not.toHaveBeenCalled();
   });
 
-  it('returns meta and sample cards for an owned deck', async () => {
-    const { service } = makeService({
-      getFileBody: jest.fn(async () => Buffer.from('apkg')),
+  it('rejects a job with no .apkg without hitting storage', async () => {
+    const { service, downloadService } = makeService({
+      jobs: [jobFixture({ object_id: 'job-1', download_key: null })],
     });
-    const preview = await service.getDeckPreview('owner', 'deck.apkg');
+    await expect(service.getDeckPreview('owner', 'job-1')).rejects.toThrow(
+      /no .apkg/
+    );
+    expect(downloadService.getFileBody).not.toHaveBeenCalled();
+  });
+
+  it('resolves the jobId to its download_key and returns meta + sample cards', async () => {
+    const getFileBody = jest.fn(async () => Buffer.from('apkg'));
+    const { service } = makeService({
+      jobs: [jobFixture({ object_id: 'job-1', download_key: 'deck.apkg' })],
+      getFileBody,
+    });
+    const preview = await service.getDeckPreview('owner', 'job-1');
+    expect(getFileBody).toHaveBeenCalledWith(
+      'owner',
+      'deck.apkg',
+      expect.anything()
+    );
     expect(preview.cardCount).toBe(3);
     expect(preview.decks).toEqual([{ id: 1, name: 'Bio', cardCount: 3 }]);
     expect(preview.sampleCards).toEqual([{ front: 'Q', back: 'A' }]);
   });
 
-  it('reports when the deck is not owned or missing', async () => {
+  it('reports when the resolved file is missing from storage', async () => {
     const { service } = makeService({
+      jobs: [jobFixture({ object_id: 'job-1', download_key: 'deck.apkg' })],
       getFileBody: jest.fn(async () => null),
     });
-    await expect(service.getDeckPreview('owner', 'deck.apkg')).rejects.toThrow(
-      /not found/
+    await expect(service.getDeckPreview('owner', 'job-1')).rejects.toThrow(
+      /Upload not found/
     );
   });
 });
