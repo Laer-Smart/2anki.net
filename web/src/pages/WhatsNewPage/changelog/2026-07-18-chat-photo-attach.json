@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-18-chat-photo-attach",
+  "date": "2026-07-18",
+  "type": "fix",
+  "title": "Phone photos attach in chat — large images are resized instead of rejected"
+}
