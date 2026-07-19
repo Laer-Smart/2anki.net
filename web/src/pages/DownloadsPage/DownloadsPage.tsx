@@ -77,7 +77,12 @@ const VALID_FILTERS = new Set<FilterValue>([
   'drive',
 ]);
 const APKG_PATTERN = /\.apkg$/i;
+const EMPTY_DECK_REASON_PREFIX = 'No cards in this deck yet.';
 const ACTIVE_STATUSES = new Set(['done', 'failed', 'cancelled', 'interrupted']);
+
+function isEmptyDeckReason(reason: string | null): boolean {
+  return reason != null && reason.startsWith(EMPTY_DECK_REASON_PREFIX);
+}
 
 function isActiveJob(status: string): boolean {
   return !ACTIVE_STATUSES.has(status);
@@ -219,6 +224,9 @@ function renderJobStatusWithToggle(
   t: TFunction
 ) {
   if (isFailedJob(job.status)) {
+    if (isEmptyDeckReason(job.job_reason_failure)) {
+      return <StatusTag status={job.status as JobStatus} />;
+    }
     const isMonthlyLimit =
       parseMonthlyLimitPayload(job.job_reason_failure) != null;
     return (
@@ -786,7 +794,10 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                 </td>
                               </tr>
                               {isFailed &&
-                                isExpanded &&
+                                (isExpanded ||
+                                  isEmptyDeckReason(
+                                    row.job.job_reason_failure
+                                  )) &&
                                 row.job.job_reason_failure != null && (
                                   <tr key={`job-${row.job.id}-panel`}>
                                     <td

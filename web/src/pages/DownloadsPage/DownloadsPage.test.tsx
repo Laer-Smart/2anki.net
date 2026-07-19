@@ -615,7 +615,7 @@ describe('DownloadsPage failure reason panel', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('renders the toggle teaching copy and docs CTA for empty deck errors', () => {
+  it('shows the toggle teaching copy and docs CTA for empty deck errors without a click', () => {
     mockJobs = [
       buildJob({
         status: 'failed',
@@ -625,11 +625,6 @@ describe('DownloadsPage failure reason panel', () => {
     ];
     renderAt('/downloads');
 
-    const statusButton = screen.getByRole('button', {
-      name: /Show failure reason/i,
-    });
-    fireEvent.click(statusButton);
-
     expect(
       screen.getByText(/makes a card from every Notion toggle/i)
     ).toBeInTheDocument();
@@ -637,6 +632,24 @@ describe('DownloadsPage failure reason panel', () => {
       name: 'See how toggles become cards',
     });
     expect(cta).toHaveAttribute('href', '/documentation/cards/notion-blocks');
+  });
+
+  it('does not render a show/collapse toggle for empty deck errors', () => {
+    mockJobs = [
+      buildJob({
+        status: 'failed',
+        job_reason_failure:
+          "No cards in this deck yet. 2anki makes a card from every Notion toggle — the toggle title becomes the question, what's inside becomes the answer. Wrap your key terms in toggles, then convert again.",
+      }),
+    ];
+    renderAt('/downloads');
+
+    expect(
+      screen.queryByRole('button', { name: /Show failure reason/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /Collapse failure reason/i })
+    ).not.toBeInTheDocument();
   });
 
   it('does not show the toggles docs CTA for non-empty-deck errors', () => {
