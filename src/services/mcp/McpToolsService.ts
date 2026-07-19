@@ -385,7 +385,7 @@ export class McpToolsService {
       size: buffer.byteLength,
       buffer,
     };
-    const res = await this.runUpload(file, locals);
+    const res = await this.runUpload(file, locals, { deckName: title });
     const result = await this.mapUploadResult(res, owner, title);
     if (result.kind === 'deck' && result.cardCount == null) {
       return { ...result, cardCount: cards.length };
