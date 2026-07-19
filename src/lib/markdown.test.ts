@@ -1,4 +1,4 @@
-import { markdownToHTML } from './markdown';
+import { markdownToHTML, markdownToInlineHTML } from './markdown';
 
 describe('markdownToHTML', () => {
   describe('basic inline formatting', () => {
@@ -143,6 +143,46 @@ describe('markdownToHTML', () => {
     it('does not leak raw pipe characters as text', () => {
       const result = markdownToHTML(galactosaemia);
       expect(result).not.toContain('| --- | --- |');
+    });
+  });
+
+  describe('furigana and toggle markup (regression: #3739)', () => {
+    it('passes ruby furigana tags through instead of escaping them', () => {
+      const result = markdownToHTML('<ruby>一<rt>いち</rt></ruby>');
+      expect(result).toContain('<ruby>一<rt>いち</rt></ruby>');
+      expect(result).not.toContain('&lt;ruby&gt;');
+    });
+
+    it('passes rp and rb ruby fallback tags through', () => {
+      const result = markdownToHTML(
+        '<ruby><rb>一</rb><rp>(</rp><rt>いち</rt><rp>)</rp></ruby>'
+      );
+      expect(result).toContain('<rb>一</rb>');
+      expect(result).toContain('<rp>(</rp>');
+      expect(result).not.toContain('&lt;rb&gt;');
+    });
+
+    it('passes details and summary toggle tags through', () => {
+      const result = markdownToHTML('<summary>hint</summary>answer');
+      expect(result).toContain('<summary>hint</summary>');
+      expect(result).not.toContain('&lt;summary&gt;');
+    });
+
+    it('renders furigana in an inline (front) render too', () => {
+      const result = markdownToInlineHTML('<ruby>猫<rt>ねこ</rt></ruby>');
+      expect(result).toContain('<ruby>猫<rt>ねこ</rt></ruby>');
+    });
+
+    it('still escapes non-allowlisted tags like script', () => {
+      const result = markdownToHTML('<script>alert(1)</script>');
+      expect(result).not.toContain('<script>');
+      expect(result).toContain('&lt;script&gt;');
+    });
+
+    it('does not un-escape a tag that merely starts with an allowlisted name', () => {
+      const result = markdownToHTML('<rubyish>x</rubyish>');
+      expect(result).not.toContain('<rubyish>');
+      expect(result).toContain('&lt;rubyish&gt;');
     });
   });
 });

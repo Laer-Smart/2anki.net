@@ -70,7 +70,7 @@ describe('serializeCardsToMarkdown', () => {
     expect(notes).toHaveLength(1);
   });
 
-  it('neutralizes a <details> block in the body so it does not pre-empt', () => {
+  it('escapes a <details> toggle so it does not hijack the card format, then renders it (regression: #3739)', () => {
     const markdown = serializeCardsToMarkdown([
       {
         front: 'First card',
@@ -82,6 +82,8 @@ describe('serializeCardsToMarkdown', () => {
     const { format, notes } = parseCards(markdown);
     expect(format).toBe('heading-body');
     expect(notes).toHaveLength(2);
+    expect(notes[0].back).toContain('<details>');
+    expect(notes[0].back).toContain('<summary>Hint</summary>');
   });
 
   it('escapes a markdown heading inside the body so it does not split the card', () => {

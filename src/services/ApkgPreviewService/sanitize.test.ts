@@ -72,6 +72,16 @@ describe('sanitizeCardHtml', () => {
     const html = '<p><strong>bold</strong> and <em>italic</em></p>';
     expect(sanitizeCardHtml(html)).toBe(html);
   });
+
+  it('preserves ruby furigana markup including rb and rp (regression: #3739)', () => {
+    const html = '<ruby><rb>一</rb><rp>(</rp><rt>いち</rt><rp>)</rp></ruby>';
+    expect(sanitizeCardHtml(html)).toBe(html);
+  });
+
+  it('preserves details and summary toggle markup (regression: #3739)', () => {
+    const html = '<details open><summary>hint</summary>answer</details>';
+    expect(sanitizeCardHtml(html)).toBe(html);
+  });
 });
 
 describe('sanitizeCss', () => {
