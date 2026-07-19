@@ -15,7 +15,7 @@ A strategy issue may be *filed* in `2anki/server` for tracking (e.g. #3582 ASO, 
 
 Mission: give people the simplest, fastest way to turn what they're studying into beautiful Anki flashcards. Drop something in, get a clean deck back.
 Scale: grow 2anki.net past 300K users.
-Revenue: grow MRR past $5K — ARPU and retention are the levers; user count follows. The system sat at its mathematical ceiling (adds ÷ churn) at $2.24 ARPU until the June 2026 reprice; never again let user-count work crowd out revenue work.
+Revenue: retention and per-user value are the levers; user count follows. The system sat at its mathematical ceiling (adds ÷ churn) until the June 2026 reprice; never again let user-count work crowd out revenue work. No MRR target is tracked (decision 2026-07-19).
 Allocation: every week ships at least one acquisition-facing change — landing pages, SEO, onboarding, or signup/first-conversion friction — and it ships **before** any new product surface starts that week. Acquisition is the only lane that creates users; starve it and the 300K goal stalls no matter how much else moves. History note: 2026 ran 6% acquisition work and 2023-25 ran 0% across 36 months — both starved the only lane that makes users.
 Every PR is checked against all three — does it make the experience simpler/faster/more beautiful, does it move us toward scale, and does it (for user-facing changes) state which funnel or revenue metric it should move?
 
@@ -34,9 +34,9 @@ Every PR is checked against all three — does it make the experience simpler/fa
 - **Color**: reuse `web/src/styles/base.css` tokens (5 themes), one blue accent + the status triad — no new ramp
 - **Constraints**: React, WCAG AA, the 5-theme token system, product restraint (one signature move exempt)
 
-### Business baseline (as of 2026-06-23 — weekly-retro updates this block)
+### Business baseline (as of 2026-07-19 — weekly-retro updates this block)
 
-MRR $1,823 · 759 paying subs · ARPU $2.40 · 18.2%/mo churn (79% lifecycle, not price) · 16 new paid/wk · 17,861 registered. Read live at `/api/ops/business/metrics` (ops-gated) and Stripe; funnel events at `/api/ops/metrics`.
+723 paying subs · 8 new paid/wk · 34 pass sales/wk · 18.2%/mo churn (stale, from 2026-06-23; 79% lifecycle, not price) · 15,773 registered (down ~2 088 from 2026-06-23 — inactive-user deletion, not churn). MRR/ARPU no longer tracked here (decision 2026-07-19) — dollar figures read off the Stripe dashboard when needed. Funnel events at `/api/ops/metrics`.
 Pricing v2 shipped 2026-06-10: $7.99/mo + $64/yr for new members, legacy $6/$60 lock-in until 21 Jun, annual default. Scheduled reads: v2 funnel week of 15 Jun (targets: ≥70 new paid/wk, page→checkout ≥10%, checkout→paid ≥50%); minimal-layout CTR guardrail 24 Jun.
 
 ## Tech stack

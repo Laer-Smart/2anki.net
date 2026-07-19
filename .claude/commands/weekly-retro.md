@@ -10,34 +10,46 @@ Use the `pm` agent.
 Pull these **before** any GA4 work — they're the load-bearing numbers, GA4 is the qualifier:
 
 - **Total registered users** (vs the 300K goal in `CLAUDE.md`)
-- **Signups this week** (`users.created_at >= now() - interval '7 days'`)
-- **MRR (USD)**, **active paying subs**, **30d paid churn %**
+- **Signups this week** (`users.created_at >= now() - interval '7 days'`) and the prior week for WoW
+- **Active paying subs**, **new paid subs this week**, **pass sales this week**, **30d paid churn % (approximation)**
 - **Top cancellation reasons (last 14d)** — replaces the manual "top 3 support themes" ask
 
-The `BusinessMetricsService` (`src/services/ops/BusinessMetricsService.ts`) already computes all of these and is exposed at `GET /api/ops/business/metrics` (gated by `RequireOpsAccess`).
+**Do not measure MRR or ARPU** — dropped from the retro by decision 2026-07-19. Revenue movement is read as paying subs × new-paid/wk × pass sales; when a dollar figure is needed, Alexander reads the Stripe dashboard directly.
 
-Fetch it in this order — first one that works wins:
+**Fetch via read-only psql on prod over SSH — no cookies, no asking the user to paste anything:**
 
-1. **Authenticated curl** to prod:
-   ```bash
-   curl -s -H "Cookie: $OPS_COOKIE" https://2anki.net/api/ops/business/metrics | jq
-   ```
-   Requires `OPS_COOKIE` env var set to the ops owner's session cookie (`session=...`). If unset, skip to step 2.
-2. **Ask the user to paste** the JSON from `https://2anki.net/api/ops/business/metrics` (they can visit `/ops` and copy the network response, or hit the endpoint directly in a logged-in browser).
-3. **Fallback:** ask the user to read the values off the `/ops` dashboard manually.
+```bash
+ssh alemayhu@2anki.net 'DBURL=$(grep "^DATABASE_URL=" /home/alemayhu/src/github.com/2anki/2anki.net/.env | cut -d= -f2-); psql "$DBURL" -At <<SQL ... SQL'
+```
 
-For the **total registered users** number (not in `/api/ops/business/metrics`), ask the user to paste it, or query `SELECT count(*) FROM users` if a postgres MCP is wired for this project.
+Queries (all read-only):
 
-**If any of the above fails**, do not silently skip — record the missing field under "Gaps to close before next retro" in the output.
+- Registered: `SELECT count(*) FROM users`
+- Signups: `count(*) FROM users WHERE created_at >= now() - interval '7 days'` (and the 7–14 day window for WoW)
+- Active subs: `count(*) FROM subscriptions WHERE active = true`
+- New paid subs 7d: `count(*) FROM subscriptions WHERE active = true AND to_timestamp((payload->>'created')::bigint) >= now() - interval '7 days'`
+- Pass sales 7d: `SELECT props->>'plan', count(*) FROM events WHERE name = 'checkout_completed' AND created_at >= now() - interval '7 days' GROUP BY 1` (`24h`/`7d` = passes, `subscription` = subs)
+- Churn 30d approx: subs with `payload->>'canceled_at'` in the last 30 days ÷ active subs. This is a DB approximation of the Stripe-derived number — label it as such.
+- Cancellation reasons: `SELECT reason, count(*) FROM cancellation_feedback WHERE created_at >= now() - interval '14 days' GROUP BY 1 ORDER BY 2 DESC`
+
+**If a query fails**, do not silently skip — record the missing field under "Gaps to close before next retro" in the output.
 
 ### 1a. Pull the v2 funnel read (per signup_origin)
 
 This is the "stop flying blind" read — the leak between landing → upload → download → checkout → paid, per acquisition source. Pull it every retro; it answers whether the v2 targets (page→checkout ≥10%, checkout→paid ≥50%) are being hit and which origin leaks.
 
-- **Upload funnel** — `GET /api/ops/upload-funnel?window=7d` (gated by `RequireOpsAccess`). Returns the aggregate `stages` + `upload_to_download_rate_pct` / `download_to_signup_rate_pct` / `download_to_paid_rate_pct`, and `by_origin[]` repeating the same stages and rates per `signup_origin` (attributed from the first_touch cookie, ordered by upload volume). Read `by_origin` to name the worst-converting source.
-- **Landing-page yield** — `GET /api/ops/landing-page-yield?window=30d`. Signups → subscription / pass / paid per `signup_origin` (the post-signup tail).
+Pull it with the same SSH+psql channel as section 1 (the ops endpoints are cookie-gated; the DB query is the same data):
 
-Same fetch order as section 1 (authenticated curl with `$OPS_COOKIE`, else ask the user to paste, else read off `/ops`). Report one table: per origin, `upload_started → deck_downloaded → account_created → checkout_completed` and the two rate columns. Name the single biggest leak stage and the origin it hits hardest. If the read fails, record it under "Gaps to close before next retro" — do not skip silently.
+```sql
+SELECT COALESCE(props->>'signup_origin','(none)') AS origin, name AS stage,
+       count(distinct COALESCE(user_id::text, anonymous_id)) AS n
+FROM events
+WHERE name IN ('upload_started','deck_downloaded','account_created','checkout_completed')
+  AND created_at >= now() - interval '7 days'
+GROUP BY 1, 2 ORDER BY 1, 2;
+```
+
+Report one table: per origin, `upload_started → deck_downloaded → account_created → checkout_completed` plus upload→download and download→paid rates. Name the single biggest leak stage and the origin it hits hardest. Known gap (as of 2026-07-19): `signup_origin` is missing on `upload_started`/`checkout_completed` events, so the per-origin read is mostly `(none)` until that instrumentation fix lands — keep flagging it in the gaps section while true. If the read fails, record it under "Gaps to close before next retro" — do not skip silently.
 
 ## 2. Pull GA4 traffic + engagement (last 7 days vs prior 7 days)
 
@@ -57,7 +69,7 @@ The data can be distorted by a crawler surge faster than the GA4 admin UI can fi
 
 ## 4. Compute
 
-- Week-over-week change for each metric (sessions, new users, engagement rate, paid conversions, signups, MRR).
+- Week-over-week change for each metric (sessions, new users, engagement rate, paid conversions, signups).
 - Required weekly growth rate to reach the 300K-user goal in 24 / 18 / 12 months from the **DB user count** (not GA4 new users).
 - Gap between actual and required.
 - **Traffic Sources table**: which channels grew, which shrank, which drove engaged users vs bounce-and-leave.
@@ -71,7 +83,7 @@ Two standing checks on the week's merged PRs — both run every retro, both repo
 
 ## 6. Write back the business-baseline block in `CLAUDE.md`
 
-You already pulled MRR, paying subs, ARPU, churn, new-paid/wk, and registered users in section 1 — write them into the `### Business baseline` block in `CLAUDE.md` (update the date in the header and every number on the line). This is the one place the baseline is allowed to change; every other agent reads it frozen. If a field couldn't be pulled this run, leave its prior value and note the staleness in "Gaps to close before next retro" — never blank it.
+You already pulled paying subs, churn (approx), new-paid/wk, pass sales/wk, and registered users in section 1 — write them into the `### Business baseline` block in `CLAUDE.md` (update the date in the header and every number on the line). MRR and ARPU are not tracked there anymore — do not re-add them. This is the one place the baseline is allowed to change; every other agent reads it frozen. If a field couldn't be pulled this run, leave its prior value and note the staleness in "Gaps to close before next retro" — never blank it.
 
 ## 7. Identify the single biggest gap
 
