@@ -86,6 +86,16 @@ describe('serializeCardsToMarkdown', () => {
     expect(notes[0].back).toContain('<summary>Hint</summary>');
   });
 
+  it('renders inline HTML like <br> and <b> in the card back (regression: #3743)', () => {
+    const markdown = serializeCardsToMarkdown([
+      { front: 'Formatting', back: 'foo<br><b>bar</b>' },
+    ]);
+    const { notes } = parseCards(markdown);
+    expect(notes).toHaveLength(1);
+    expect(notes[0].back).toContain('foo<br><b>bar</b>');
+    expect(notes[0].back).not.toContain('&lt;br&gt;');
+  });
+
   it('escapes a markdown heading inside the body so it does not split the card', () => {
     const markdown = serializeCardsToMarkdown([
       { front: 'Outline', back: '## Overview\nSome detail' },

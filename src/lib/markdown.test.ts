@@ -185,4 +185,44 @@ describe('markdownToHTML', () => {
       expect(result).toContain('&lt;rubyish&gt;');
     });
   });
+
+  describe('inline HTML formatting tags (regression: #3743)', () => {
+    it('passes br and bold tags through instead of escaping them', () => {
+      const result = markdownToHTML('foo<br><b>bar</b>');
+      expect(result).toContain('foo<br><b>bar</b>');
+      expect(result).not.toContain('&lt;br&gt;');
+      expect(result).not.toContain('&lt;b&gt;');
+    });
+
+    it('passes the common inline set through (em, u, s, code, sub, sup, mark, small)', () => {
+      const result = markdownToHTML(
+        '<em>a</em><u>b</u><s>c</s><code>d</code><sub>e</sub><sup>f</sup><mark>g</mark><small>h</small>'
+      );
+      for (const tag of [
+        'em',
+        'u',
+        's',
+        'code',
+        'sub',
+        'sup',
+        'mark',
+        'small',
+      ]) {
+        expect(result).toContain(`<${tag}>`);
+        expect(result).not.toContain(`&lt;${tag}&gt;`);
+      }
+    });
+
+    it('renders inline formatting in an inline (front) render too', () => {
+      const result = markdownToInlineHTML('term<br><strong>x</strong>');
+      expect(result).toContain('<br>');
+      expect(result).toContain('<strong>x</strong>');
+    });
+
+    it('does not un-escape blockquote just because it starts with b', () => {
+      const result = markdownToHTML('<blockquote>x</blockquote>');
+      expect(result).not.toContain('<blockquote>');
+      expect(result).toContain('&lt;blockquote&gt;');
+    });
+  });
 });
