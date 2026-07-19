@@ -89,31 +89,45 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     }
   );
 
-  registerTool<{ jobId: string }>(
+  registerTool<{ jobId?: string; key?: string }>(
     server,
     'get_deck_preview',
     {
       title: 'Get deck preview',
       description:
-        'Preview an .apkg deck you own — total cards, decks, and a sample of cards.',
+        'Preview an .apkg deck you own — total cards, decks, and a sample of cards. Pass a jobId (preferred, from list_my_decks) or an .apkg deck key.',
       inputSchema: {
         jobId: z
           .string()
+          .optional()
           .describe('The jobId of the deck, as returned by list_my_decks.'),
+        key: z
+          .string()
+          .optional()
+          .describe('The .apkg storage key of the deck.'),
       },
     },
-    async ({ jobId }) => {
+    async ({ jobId, key }) => {
       context.recordToolCall('get_deck_preview');
+      const identifier = jobId ?? key;
+      if (identifier == null) {
+        return errorResult(
+          'Provide a jobId (from list_my_decks) or a deck key.'
+        );
+      }
       try {
         const preview = await context.toolsService.getDeckPreview(
           context.owner,
-          jobId
+          identifier
         );
         return textResult(preview);
       } catch (error) {
-        return errorResult(
-          error instanceof Error ? error.message : 'Could not load the deck.'
+        const message =
+          error instanceof Error ? error.message : 'Could not load the deck.';
+        console.error(
+          `[mcp] get_deck_preview failed for ${identifier}: ${message}`
         );
+        return errorResult(message);
       }
     }
   );
