@@ -221,7 +221,11 @@ export class McpToolsService {
         message: 'Provide either a url or text to convert.',
       };
     }
-    const res = await this.runUpload(file, locals);
+    const res = await this.runUpload(
+      file,
+      locals,
+      mcpOptionsToCardSettings(input.options)
+    );
     return this.mapUploadResult(res, owner, file.originalname);
   }
 
@@ -273,11 +277,12 @@ export class McpToolsService {
 
   private async runUpload(
     file: UploadedFile,
-    locals: Record<string, unknown>
+    locals: Record<string, unknown>,
+    body: Record<string, unknown> = {}
   ): Promise<CapturingResponse> {
     const req = {
       files: [file],
-      body: mcpOptionsToCardSettings(input.options),
+      body,
       headers: {},
       cookies: {},
     } as unknown as express.Request;

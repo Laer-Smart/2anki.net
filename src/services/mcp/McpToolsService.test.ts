@@ -247,6 +247,7 @@ describe('McpToolsService.convertToDeck', () => {
           styleTemplate: 'nostyle',
         },
       },
+      'owner',
       {}
     );
     expect(capturedBody).toEqual({
@@ -264,7 +265,7 @@ describe('McpToolsService.convertToDeck', () => {
       res.status(202).json({ jobId: 'job-async' });
     };
     const { service } = makeService({ uploadEntry });
-    await service.convertToDeck({ text: '# hi' }, {});
+    await service.convertToDeck({ text: '# hi' }, 'owner', {});
     expect(capturedBody).toEqual({});
   });
 
