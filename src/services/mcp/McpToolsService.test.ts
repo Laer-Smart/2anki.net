@@ -260,6 +260,24 @@ describe('McpToolsService.convertToDeck', () => {
     );
   });
 
+  it('decodes a percent-encoded File-Name header into a readable filename (regression: #3748)', async () => {
+    const japanese = '日本語レッスン：まるごと１・旅行ロールプレイ.apkg';
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.set('X-Card-Count', '40');
+      res.set('File-Name', encodeURIComponent(japanese));
+      res.status(200).send(Buffer.from('APKG-BYTES'));
+    };
+    const { service, persist } = makeService({ uploadEntry });
+    const result = await service.convertToDeck({ text: 'x' }, 'owner-9', {});
+    expect(result).toMatchObject({ kind: 'deck', filename: japanese });
+    expect(persist).toHaveBeenCalledWith(
+      'owner-9',
+      expect.any(String),
+      japanese,
+      Buffer.from('APKG-BYTES')
+    );
+  });
+
   it('still returns the deck when inline preview parsing fails', async () => {
     const uploadEntry: UploadEntrypoint = (_req, res) => {
       res.set('X-Card-Count', '7');
