@@ -4,6 +4,10 @@ import { z } from 'zod';
 import { McpToolsService } from './McpToolsService';
 import { McpConvertOptions } from './mcpOptionsToCardSettings';
 import { DECK_CAPABILITIES } from './deckCapabilities';
+import type {
+  PhotoDensity,
+  PhotoMode,
+} from '../../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
 
 export const MCP_SERVER_NAME = '2anki';
 export const MCP_SERVER_VERSION = '1.0.0';
@@ -257,6 +261,61 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     async () => {
       context.recordToolCall('deck_capabilities');
       return textResult(DECK_CAPABILITIES);
+    }
+  );
+
+  registerTool<{
+    image: string;
+    density?: PhotoDensity;
+    mode?: PhotoMode;
+    includeSourceImage?: boolean;
+  }>(
+    server,
+    'photo_to_deck',
+    {
+      title: 'Photo to flashcards',
+      description:
+        'Turn a photo of handwritten notes, a textbook page, or a slide into flashcards using 2anki vision. Returns the generated cards (front/back), not a file. Two-step flow: call photo_to_deck to get the cards, review them, then call create_deck to build and download the .apkg. Counts against your monthly AI photo quota.',
+      inputSchema: {
+        image: z
+          .string()
+          .describe(
+            'The photo as a base64 string or a data URL (data:image/png;base64,…). PNG, JPEG, WebP, or GIF, up to 10 MB.'
+          ),
+        density: z
+          .enum(['sparse', 'balanced', 'dense'])
+          .optional()
+          .describe('How many cards to generate. Default balanced.'),
+        mode: z
+          .enum(['generative', 'verbatim'])
+          .optional()
+          .describe(
+            'generative rewrites the page into question-and-answer cards; verbatim transcribes what is written. Default generative.'
+          ),
+        includeSourceImage: z
+          .boolean()
+          .optional()
+          .describe(
+            'Whether to embed the source image on each card when the deck is later built with create_deck.'
+          ),
+      },
+    },
+    async ({ image, density, mode, includeSourceImage }) => {
+      context.recordToolCall('photo_to_deck');
+      try {
+        const result = await context.toolsService.photoToDeck(
+          { image, density, mode, includeSourceImage },
+          context.owner,
+          context.locals
+        );
+        return textResult(result);
+      } catch (error) {
+        return errorResult(
+          error instanceof Error
+            ? error.message
+            : 'Could not read cards from this photo.'
+        );
+      }
     }
   );
 

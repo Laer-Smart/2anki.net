@@ -1,5 +1,6 @@
 import express from 'express';
 import { randomUUID } from 'node:crypto';
+import imageSize from 'image-size';
 
 import { JobWithDownloadKey } from '../../data_layer/JobRepository';
 import ApkgPreviewService from '../ApkgPreviewService/ApkgPreviewService';
@@ -13,13 +14,90 @@ import {
   McpConvertOptions,
   mcpOptionsToCardSettings,
 } from './mcpOptionsToCardSettings';
+import { detectFileMime } from '../../lib/detectFileMime';
+import { isPaying } from '../../lib/isPaying';
+import type { VisionMediaType } from '../../lib/claude/countVisionTokens';
+import {
+  PhotoToFlashcardsUseCase,
+  type GeneratedFlashcard,
+  type PhotoDensity,
+  type PhotoMode,
+} from '../../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
 
 const APKG_KEY_PATTERN = /\.apkg$/i;
 const MAX_TEXT_BYTES = 5 * 1024 * 1024;
 const MAX_URL_BYTES = 100 * 1024 * 1024;
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
 const PREVIEW_CARD_LIMIT = 20;
 const MAX_CARDS = 500;
 const DEFAULT_DECK_NAME = 'MCP deck';
+const DATA_URL_PREFIX = /^data:[^,]*,/;
+const ALLOWED_PHOTO_MEDIA_TYPES: VisionMediaType[] = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
+
+export interface PhotoDeckInput {
+  image: string;
+  density?: PhotoDensity;
+  mode?: PhotoMode;
+  includeSourceImage?: boolean;
+}
+
+export interface PhotoDeckResult {
+  cards: GeneratedFlashcard[];
+  count: number;
+  summary: string;
+}
+
+interface DecodedPhoto {
+  imageBase64: string;
+  mediaType: VisionMediaType;
+  width: number;
+  height: number;
+}
+
+function isAllowedPhotoMediaType(
+  value: string | null
+): value is VisionMediaType {
+  return (
+    value != null && (ALLOWED_PHOTO_MEDIA_TYPES as string[]).includes(value)
+  );
+}
+
+function decodePhotoInput(image: string): DecodedPhoto {
+  const base64 = image.replace(DATA_URL_PREFIX, '').trim();
+  if (base64.length === 0) {
+    throw new Error('Provide a photo as a base64 string or data URL.');
+  }
+
+  const buffer = Buffer.from(base64, 'base64');
+  if (buffer.length === 0) {
+    throw new Error("Couldn't decode the photo. Check the base64 data.");
+  }
+  if (buffer.length > MAX_PHOTO_BYTES) {
+    throw new Error('Photo is over the 10 MB limit. Try a smaller image.');
+  }
+
+  const mediaType = detectFileMime(buffer);
+  if (!isAllowedPhotoMediaType(mediaType)) {
+    throw new Error('Unsupported image type. Use PNG, JPEG, WebP, or GIF.');
+  }
+
+  const dims = imageSize(buffer);
+  if (dims.width == null || dims.height == null) {
+    throw new Error("Couldn't read the photo's dimensions.");
+  }
+
+  return {
+    imageBase64: base64,
+    mediaType,
+    width: dims.width,
+    height: dims.height,
+  };
+}
 
 export interface DeckSummary {
   jobId: string;
@@ -147,8 +225,34 @@ export class McpToolsService {
     private readonly previewService: ApkgPreviewService,
     private readonly uploadEntry: UploadEntrypoint,
     private readonly storage: StorageHandler,
-    private readonly deckPersistence: DeckPersistence
+    private readonly deckPersistence: DeckPersistence,
+    private readonly photoToFlashcards: PhotoToFlashcardsUseCase
   ) {}
+
+  async photoToDeck(
+    input: PhotoDeckInput,
+    owner: string,
+    locals: Record<string, unknown>
+  ): Promise<PhotoDeckResult> {
+    const photo = decodePhotoInput(input.image);
+    const generated = await this.photoToFlashcards.generateCards({
+      imageBase64: photo.imageBase64,
+      mediaType: photo.mediaType,
+      deckName: '',
+      owner,
+      isPaying: isPaying(locals),
+      imageDimensions: { width: photo.width, height: photo.height },
+      includeSourceImage: input.includeSourceImage,
+      density: input.density,
+      mode: input.mode,
+    });
+
+    return {
+      cards: generated.cards,
+      count: generated.cardCount,
+      summary: `${generated.cardCount} cards from your photo. Review them, then call create_deck to build and download the deck.`,
+    };
+  }
 
   async listMyDecks(owner: string): Promise<DeckSummary[]> {
     const jobs = await this.jobLister.getJobsByOwner(owner);

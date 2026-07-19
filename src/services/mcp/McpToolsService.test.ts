@@ -6,6 +6,14 @@ import { JobWithDownloadKey } from '../../data_layer/JobRepository';
 import ApkgPreviewService from '../ApkgPreviewService/ApkgPreviewService';
 import DownloadService from '../DownloadService';
 import type StorageHandler from '../../lib/storage/StorageHandler';
+import {
+  PhotoToFlashcardsUseCase,
+  type PhotoVisionCards,
+} from '../../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
+
+// 1x1 transparent PNG — real bytes so detectFileMime and image-size resolve.
+const ONE_PIXEL_PNG_BASE64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
 function makeService(overrides: {
   jobs?: JobWithDownloadKey[];
@@ -14,6 +22,7 @@ function makeService(overrides: {
   preview?: Partial<ApkgPreviewService>;
   persist?: DeckPersistence['persist'];
   getPresignedUrl?: StorageHandler['getPresignedUrl'];
+  generateCards?: jest.Mock;
 }) {
   const jobLister = {
     getJobsByOwner: jest.fn(async () => overrides.jobs ?? []),
@@ -47,15 +56,27 @@ function makeService(overrides: {
     overrides.getPresignedUrl ?? (async () => 'https://s3.example/presigned')
   );
   const storage = { getPresignedUrl } as unknown as StorageHandler;
+  const generateCards = overrides.generateCards ?? jest.fn();
+  const photoToFlashcards = {
+    generateCards,
+  } as unknown as PhotoToFlashcardsUseCase;
   const service = new McpToolsService(
     jobLister,
     downloadService,
     previewService,
     uploadEntry,
     storage,
-    deckPersistence
+    deckPersistence,
+    photoToFlashcards
   );
-  return { service, jobLister, downloadService, persist, getPresignedUrl };
+  return {
+    service,
+    jobLister,
+    downloadService,
+    persist,
+    getPresignedUrl,
+    generateCards,
+  };
 }
 
 describe('McpToolsService.listMyDecks', () => {
@@ -404,5 +425,116 @@ describe('McpToolsService.createDeck', () => {
     const result = await service.createDeck(cards, 'Deck', 'owner-9', {});
     expect(result).toMatchObject({ kind: 'error' });
     expect(persist).not.toHaveBeenCalled();
+  });
+});
+
+describe('McpToolsService.photoToDeck', () => {
+  const visionResult = (
+    cards: { front: string; back: string }[]
+  ): PhotoVisionCards => ({
+    decks: [],
+    cards,
+    cardCount: cards.length,
+    deckName: 'Photo deck',
+    estimatedCostUsd: 0.01,
+    tileCount: 1,
+    inputTokens: 100,
+    outputTokens: 50,
+  });
+
+  it('decodes a data URL, runs vision, and maps the cards to a result', async () => {
+    const generateCards = jest.fn(async () =>
+      visionResult([
+        { front: 'Q1', back: 'A1' },
+        { front: 'Q2', back: 'A2' },
+      ])
+    );
+    const { service } = makeService({ generateCards });
+    const result = await service.photoToDeck(
+      { image: `data:image/png;base64,${ONE_PIXEL_PNG_BASE64}` },
+      'owner-1',
+      { subscriber: true }
+    );
+    expect(generateCards).toHaveBeenCalledWith(
+      expect.objectContaining({
+        imageBase64: ONE_PIXEL_PNG_BASE64,
+        mediaType: 'image/png',
+        owner: 'owner-1',
+        isPaying: true,
+        imageDimensions: { width: 1, height: 1 },
+      })
+    );
+    expect(result.count).toBe(2);
+    expect(result.cards).toEqual([
+      { front: 'Q1', back: 'A1' },
+      { front: 'Q2', back: 'A2' },
+    ]);
+    expect(result.summary).toContain('2 cards');
+    expect(result.summary).toContain('create_deck');
+  });
+
+  it('accepts a bare base64 string without a data URL prefix', async () => {
+    const generateCards = jest.fn(async () => visionResult([]));
+    const { service } = makeService({ generateCards });
+    await service.photoToDeck({ image: ONE_PIXEL_PNG_BASE64 }, 'o', {});
+    expect(generateCards).toHaveBeenCalledWith(
+      expect.objectContaining({ imageBase64: ONE_PIXEL_PNG_BASE64 })
+    );
+  });
+
+  it('forwards density and mode to the vision use case', async () => {
+    const generateCards = jest.fn(async () => visionResult([]));
+    const { service } = makeService({ generateCards });
+    await service.photoToDeck(
+      { image: ONE_PIXEL_PNG_BASE64, density: 'dense', mode: 'verbatim' },
+      'o',
+      {}
+    );
+    expect(generateCards).toHaveBeenCalledWith(
+      expect.objectContaining({ density: 'dense', mode: 'verbatim' })
+    );
+  });
+
+  it('rejects an empty image without calling vision', async () => {
+    const generateCards = jest.fn();
+    const { service } = makeService({ generateCards });
+    await expect(
+      service.photoToDeck({ image: '   ' }, 'o', {})
+    ).rejects.toThrow(/base64/);
+    expect(generateCards).not.toHaveBeenCalled();
+  });
+
+  it('rejects a non-image payload without calling vision', async () => {
+    const generateCards = jest.fn();
+    const { service } = makeService({ generateCards });
+    const notAnImage = Buffer.from('this is plain text').toString('base64');
+    await expect(
+      service.photoToDeck({ image: notAnImage }, 'o', {})
+    ).rejects.toThrow(/Unsupported image type/);
+    expect(generateCards).not.toHaveBeenCalled();
+  });
+
+  it('rejects an oversized image without calling vision', async () => {
+    const generateCards = jest.fn();
+    const { service } = makeService({ generateCards });
+    const oversized = Buffer.alloc(10 * 1024 * 1024 + 1).toString('base64');
+    await expect(
+      service.photoToDeck({ image: oversized }, 'o', {})
+    ).rejects.toThrow(/10 MB/);
+    expect(generateCards).not.toHaveBeenCalled();
+  });
+
+  it('surfaces a quota-exceeded error from the vision use case', async () => {
+    const quotaError = Object.assign(
+      new Error('Free plan is 5 photos per month. Upgrade for unlimited.'),
+      { status: 429 }
+    );
+    const generateCards = jest.fn(async () => {
+      throw quotaError;
+    });
+    const { service } = makeService({ generateCards });
+    await expect(
+      service.photoToDeck({ image: ONE_PIXEL_PNG_BASE64 }, 'o', {})
+    ).rejects.toThrow(/Free plan is 5 photos per month/);
   });
 });

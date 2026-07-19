@@ -22,6 +22,8 @@ import { KnexOAuthProvider } from '../services/mcp/oauth/KnexOAuthProvider';
 import { McpToolsService } from '../services/mcp/McpToolsService';
 import { McpDeckPersistence } from '../services/mcp/McpDeckPersistence';
 import { buildMcpServer } from '../services/mcp/McpServerFactory';
+import { PhotoToFlashcardsUseCase } from '../usecases/imageOcclusion/PhotoToFlashcardsUseCase';
+import { EventsRepository } from '../data_layer/EventsRepository';
 import { applyUserLocals } from './middleware/configureUserLocal';
 import { getEventsSink } from '../services/events/eventsSinkInstance';
 import { createMcpRouter, MCP_AUTHORIZE_PATH } from './mcp/createMcpRouter';
@@ -74,7 +76,8 @@ const McpRouter = () => {
       new JobRepository(database),
       new UploadRepository(database),
       storage
-    )
+    ),
+    new PhotoToFlashcardsUseCase(new EventsRepository(database))
   );
 
   const onAuthenticatedPost: RequestHandler = async (req, res) => {

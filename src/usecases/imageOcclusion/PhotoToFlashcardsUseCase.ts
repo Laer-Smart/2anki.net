@@ -67,6 +67,22 @@ export interface PhotoToFlashcardsResult {
   mcqSkippedCount: number;
 }
 
+export interface GeneratedFlashcard {
+  front: string;
+  back: string;
+}
+
+export interface PhotoVisionCards {
+  decks: CompactDeck[];
+  cards: GeneratedFlashcard[];
+  cardCount: number;
+  deckName: string;
+  estimatedCostUsd: number;
+  tileCount: number;
+  inputTokens: number;
+  outputTokens: number;
+}
+
 function ownerToUserId(owner: string): number | null {
   const n = Number(owner);
   return Number.isFinite(n) && n > 0 ? n : null;
@@ -274,6 +290,17 @@ interface CompactDeck {
   cards: CompactCard[];
 }
 
+function cardBack(card: CompactCard): string {
+  if (typeof card.a === 'string' && card.a.length > 0) return card.a;
+  return typeof card.rationale === 'string' ? card.rationale : '';
+}
+
+function flattenDecksToCards(decks: CompactDeck[]): GeneratedFlashcard[] {
+  return decks.flatMap((deck) =>
+    deck.cards.map((card) => ({ front: card.q ?? '', back: cardBack(card) }))
+  );
+}
+
 function logUnreadableVisionResponse(raw: string): void {
   console.log(
     JSON.stringify({
@@ -473,9 +500,9 @@ function buildDeckInfo(
 export class PhotoToFlashcardsUseCase {
   constructor(private readonly events?: IEventsRepository) {}
 
-  async execute(
+  async generateCards(
     input: PhotoToFlashcardsInput
-  ): Promise<PhotoToFlashcardsResult> {
+  ): Promise<PhotoVisionCards> {
     const userId = ownerToUserId(input.owner);
 
     if (!input.isPaying && this.events != null) {
@@ -564,6 +591,47 @@ export class PhotoToFlashcardsUseCase {
       (outputTokens / 1_000_000) * OUTPUT_COST_PER_MILLION;
 
     const deckName = input.deckName || (decks[0]?.deck ?? 'Photo deck');
+
+    track(VISION_PHOTO_EVENT, {
+      userId,
+      anonymousId: userId == null ? input.owner : null,
+      props: {
+        card_count: cardCount,
+        tile_count: tiles,
+        source_mode: mode,
+        card_style: input.cardStyle ?? DEFAULT_PHOTO_CARD_STYLE,
+        density: input.density ?? DEFAULT_PHOTO_DENSITY,
+      },
+    });
+
+    return {
+      decks,
+      cards: flattenDecksToCards(decks),
+      cardCount,
+      deckName,
+      estimatedCostUsd,
+      tileCount: tiles,
+      inputTokens,
+      outputTokens,
+    };
+  }
+
+  async execute(
+    input: PhotoToFlashcardsInput
+  ): Promise<PhotoToFlashcardsResult> {
+    const {
+      decks,
+      deckName,
+      cardCount,
+      estimatedCostUsd,
+      tileCount,
+      inputTokens,
+      outputTokens,
+    } = await this.generateCards(input);
+
+    const mcqEnabled = (input.mcqEnabled ?? false) && input.isPaying;
+    const mode = input.mode ?? DEFAULT_PHOTO_MODE;
+
     const embedSourceImage = input.includeSourceImage ?? true;
     const sourceFilename = embedSourceImage
       ? `source-${randomUUID()}.${mediaTypeToExt(input.mediaType)}`
@@ -603,7 +671,7 @@ export class PhotoToFlashcardsUseCase {
       JSON.stringify({
         event: 'vision_call_success',
         estimated_cost_usd: estimatedCostUsd,
-        tile_count: tiles,
+        tile_count: tileCount,
         media_type: input.mediaType,
         card_count: cardCount,
         input_tokens: inputTokens,
@@ -614,23 +682,11 @@ export class PhotoToFlashcardsUseCase {
       })
     );
 
-    track(VISION_PHOTO_EVENT, {
-      userId: ownerToUserId(input.owner),
-      anonymousId: ownerToUserId(input.owner) == null ? input.owner : null,
-      props: {
-        card_count: cardCount,
-        tile_count: tiles,
-        source_mode: mode,
-        card_style: input.cardStyle ?? DEFAULT_PHOTO_CARD_STYLE,
-        density: input.density ?? DEFAULT_PHOTO_DENSITY,
-      },
-    });
-
     return {
       apkgPath,
       cardCount,
       estimatedCostUsd,
-      tileCount: tiles,
+      tileCount,
       mcqCount,
       mcqSkippedCount,
     };
