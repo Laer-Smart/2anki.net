@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-19-ruby-furigana",
+  "date": "2026-07-19",
+  "type": "fix",
+  "title": "Ruby furigana and toggle markup in card text now render instead of showing as raw tags"
+}

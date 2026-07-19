@@ -4,7 +4,7 @@ export interface McpCard {
 }
 
 function escapeDetailsTags(text: string): string {
-  return text.replace(/<(\/?)(details|summary)\b/gi, '&lt;$1$2');
+  return text.replace(/<(\/?)(details|summary)\b([^>]*)>/gi, '&lt;$1$2$3&gt;');
 }
 
 function escapeLeadingHeadings(text: string): string {
