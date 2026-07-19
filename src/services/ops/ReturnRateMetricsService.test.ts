@@ -1,210 +1,187 @@
 import knex, { Knex } from 'knex';
 
-import { ReturnRateMetricsService } from './ReturnRateMetricsService';
+import {
+  CohortMember,
+  ReturnRecord,
+  ReturnRateMetricsService,
+  computeReturnRates,
+} from './ReturnRateMetricsService';
 
-async function makeDb(): Promise<Knex> {
-  const db = knex({
-    client: 'better-sqlite3',
-    connection: { filename: ':memory:' },
-    useNullAsDefault: true,
-  });
-  await db.schema.createTable('jobs', (t) => {
-    t.increments('id');
-    t.string('owner').notNullable();
-    t.string('object_id').notNullable();
-    t.string('title');
-    t.string('type');
-    t.string('status');
-    t.timestamp('created_at').defaultTo(db.fn.now());
-    t.timestamp('last_edited_time');
-    t.string('job_reason_failure');
-    t.integer('card_count');
-  });
-  return db;
+const NOW = new Date('2026-07-19T00:00:00.000Z');
+const CUTOFF = new Date('2026-04-20T00:00:00.000Z');
+
+function daysBefore(anchor: Date, n: number): Date {
+  return new Date(anchor.getTime() - n * 24 * 60 * 60 * 1000);
 }
 
-function daysAgo(n: number): Date {
-  const d = new Date();
-  d.setUTCDate(d.getUTCDate() - n);
-  return d;
+function daysAfter(anchor: Date, n: number): Date {
+  return new Date(anchor.getTime() + n * 24 * 60 * 60 * 1000);
 }
 
-async function insertJob(
-  db: Knex,
-  attrs: {
-    owner: string;
-    object_id: string;
-    type: string;
-    status?: string;
-    created_at?: Date;
-  }
-) {
-  await db('jobs').insert({
-    owner: attrs.owner,
-    object_id: attrs.object_id,
-    type: attrs.type,
-    status: attrs.status ?? 'done',
-    created_at: attrs.created_at ?? new Date(),
-    last_edited_time: new Date(),
+describe('ReturnRateMetricsService — generated SQL', () => {
+  const pg = knex({ client: 'pg' });
+  const service = new ReturnRateMetricsService(pg);
+
+  afterAll(async () => {
+    await pg.destroy();
   });
-}
 
-describe('ReturnRateMetricsService — graceful failure', () => {
-  it('returns null for all windows when the db throws', async () => {
-    const failing = { raw: jest.fn() } as unknown as Knex;
-    const service = new ReturnRateMetricsService(failing);
-    const result = await service.getMetrics();
-    expect(result.by_source_type).toBeNull();
-    expect(result.overall['7d']).toBeNull();
-    expect(result.overall['14d']).toBeNull();
-    expect(result.overall['30d']).toBeNull();
+  it('builds the cohort over conversion_succeeded keyed by identity and source', () => {
+    const { sql, bindings } = service.buildCohortQuery(NOW).toSQL();
+
+    expect(sql).toBe(
+      "select COALESCE(user_id::text, anonymous_id) as owner, COALESCE(props->>'source', ?) as source_type, " +
+        'MAX(created_at) as last_success_at from "events" ' +
+        'where "name" = ? and "created_at" >= ? ' +
+        'and COALESCE(user_id::text, anonymous_id) IS NOT NULL ' +
+        "group by COALESCE(user_id::text, anonymous_id), COALESCE(props->>'source', ?)"
+    );
+    expect(bindings).toEqual([
+      'unknown',
+      'conversion_succeeded',
+      CUTOFF,
+      'unknown',
+    ]);
+  });
+
+  it('builds the returns query finding each identity/source next conversion', () => {
+    const { sql, bindings } = service.buildReturnsQuery(NOW).toSQL();
+
+    expect(sql).toBe(
+      "select COALESCE(e1.user_id::text, e1.anonymous_id) as owner, COALESCE(e1.props->>'source', ?) as source_type, " +
+        '"e1"."created_at" as "anchor_at", ' +
+        '(SELECT MIN(e2.created_at) FROM events e2 ' +
+        'WHERE COALESCE(e2.user_id::text, e2.anonymous_id) = COALESCE(e1.user_id::text, e1.anonymous_id) ' +
+        "AND COALESCE(e2.props->>'source', ?) = COALESCE(e1.props->>'source', ?) " +
+        'AND e2.name = ? AND e2.created_at > e1.created_at) as first_return_at ' +
+        'from "events" as "e1" ' +
+        'where "e1"."name" = ? and "e1"."created_at" >= ? ' +
+        'and COALESCE(e1.user_id::text, e1.anonymous_id) IS NOT NULL'
+    );
+    expect(bindings).toEqual([
+      'unknown',
+      'unknown',
+      'unknown',
+      'conversion_succeeded',
+      'conversion_succeeded',
+      CUTOFF,
+    ]);
   });
 });
 
-describe('ReturnRateMetricsService — return-rate windows', () => {
-  let db: Knex;
-  let service: ReturnRateMetricsService;
+describe('computeReturnRates — return-rate windows', () => {
+  const asOf = NOW.toISOString();
 
-  beforeEach(async () => {
-    db = await makeDb();
-    service = new ReturnRateMetricsService(db);
-  });
+  function cohortMember(
+    owner: string,
+    source_type: string,
+    last_success_at: Date
+  ): CohortMember {
+    return {
+      owner,
+      source_type,
+      last_success_at: last_success_at.toISOString(),
+    };
+  }
 
-  afterEach(async () => {
-    await db.destroy();
-  });
+  function returnRecord(
+    owner: string,
+    source_type: string,
+    anchor: Date,
+    firstReturn: Date
+  ): ReturnRecord {
+    return {
+      owner,
+      source_type,
+      anchor_at: anchor.toISOString(),
+      first_return_at: firstReturn.toISOString(),
+    };
+  }
 
-  it('counts a user who returned within 7 days as retained in all windows', async () => {
-    await insertJob(db, {
-      owner: 'u1',
-      object_id: 'j-first',
-      type: 'page',
-      status: 'done',
-      created_at: daysAgo(20),
-    });
-    await insertJob(db, {
-      owner: 'u1',
-      object_id: 'j-second',
-      type: 'page',
-      status: 'done',
-      created_at: daysAgo(15),
-    });
-
-    const result = await service.getMetrics();
+  it('counts an identity that returned within 7 days as retained in all windows', () => {
+    const anchor = daysBefore(NOW, 20);
+    const result = computeReturnRates(
+      [cohortMember('u1', 'notion', anchor)],
+      [returnRecord('u1', 'notion', anchor, daysAfter(anchor, 5))],
+      asOf
+    );
 
     expect(result.overall['7d']).toBeCloseTo(100, 5);
     expect(result.overall['14d']).toBeCloseTo(100, 5);
     expect(result.overall['30d']).toBeCloseTo(100, 5);
   });
 
-  it('counts a user who only returned after 8 days as NOT in 7d window but in 14d', async () => {
-    await insertJob(db, {
-      owner: 'u2',
-      object_id: 'j-a',
-      type: 'page',
-      status: 'done',
-      created_at: daysAgo(40),
-    });
-    await insertJob(db, {
-      owner: 'u2',
-      object_id: 'j-b',
-      type: 'page',
-      status: 'done',
-      created_at: new Date(daysAgo(40).getTime() + 8 * 24 * 60 * 60 * 1000),
-    });
-
-    const result = await service.getMetrics();
+  it('counts an identity that returned after 8 days as NOT in 7d but in 14d', () => {
+    const anchor = daysBefore(NOW, 40);
+    const result = computeReturnRates(
+      [cohortMember('u2', 'upload', anchor)],
+      [returnRecord('u2', 'upload', anchor, daysAfter(anchor, 8))],
+      asOf
+    );
 
     expect(result.overall['7d']).toBeCloseTo(0, 5);
     expect(result.overall['14d']).toBeCloseTo(100, 5);
     expect(result.overall['30d']).toBeCloseTo(100, 5);
   });
 
-  it('excludes non-conversion job types from the cohort', async () => {
-    await insertJob(db, {
-      owner: 'u3',
-      object_id: 'j-c',
-      type: 'claude',
-      status: 'done',
-      created_at: daysAgo(10),
-    });
-    await insertJob(db, {
-      owner: 'u3',
-      object_id: 'j-d',
-      type: 'claude',
-      status: 'done',
-      created_at: daysAgo(5),
-    });
+  it('breaks down return rates for every source, not just Notion', () => {
+    const anchor = daysBefore(NOW, 15);
+    const result = computeReturnRates(
+      [
+        cohortMember('u4', 'notion', anchor),
+        cohortMember('u5', 'upload', anchor),
+        cohortMember('u6', 'google_drive', anchor),
+      ],
+      [returnRecord('u4', 'notion', anchor, daysAfter(anchor, 3))],
+      asOf
+    );
 
-    const result = await service.getMetrics();
+    const bySource = new Map(
+      (result.by_source_type ?? []).map((r) => [r.source_type, r])
+    );
+    expect(bySource.get('notion')?.cohort_size).toBe(1);
+    expect(bySource.get('notion')?.returned_7d).toBe(1);
+    expect(bySource.get('upload')?.cohort_size).toBe(1);
+    expect(bySource.get('upload')?.returned_7d).toBe(0);
+    expect(bySource.get('google_drive')?.cohort_size).toBe(1);
+    expect(bySource.get('google_drive')?.returned_7d).toBe(0);
+  });
+
+  it('uses the smallest gap between conversions for an identity', () => {
+    const anchor = daysBefore(NOW, 50);
+    const result = computeReturnRates(
+      [cohortMember('u7', 'notion', anchor)],
+      [
+        returnRecord('u7', 'notion', anchor, daysAfter(anchor, 40)),
+        returnRecord('u7', 'notion', anchor, daysAfter(anchor, 4)),
+      ],
+      asOf
+    );
+
+    expect(result.overall['7d']).toBeCloseTo(100, 5);
+  });
+
+  it('returns null windows and no source breakdown for an empty cohort', () => {
+    const result = computeReturnRates([], [], asOf);
 
     expect(result.overall['7d']).toBeNull();
     expect(result.overall['14d']).toBeNull();
     expect(result.overall['30d']).toBeNull();
+    expect(result.by_source_type).toBeNull();
+    expect(result.as_of).toBe(asOf);
   });
+});
 
-  it('breaks down return rates by source_type', async () => {
-    await insertJob(db, {
-      owner: 'u4',
-      object_id: 'j-e',
-      type: 'page',
-      status: 'done',
-      created_at: daysAgo(15),
-    });
-    await insertJob(db, {
-      owner: 'u4',
-      object_id: 'j-f',
-      type: 'page',
-      status: 'done',
-      created_at: daysAgo(10),
-    });
-    await insertJob(db, {
-      owner: 'u5',
-      object_id: 'j-g',
-      type: 'conversion',
-      status: 'done',
-      created_at: daysAgo(15),
-    });
+describe('ReturnRateMetricsService — graceful failure', () => {
+  it('returns null windows when the query throws', async () => {
+    const failing = { raw: jest.fn() } as unknown as Knex;
+    const service = new ReturnRateMetricsService(failing);
 
     const result = await service.getMetrics();
 
-    const pageRow = result.by_source_type?.find(
-      (r) => r.source_type === 'page'
-    );
-    const convRow = result.by_source_type?.find(
-      (r) => r.source_type === 'conversion'
-    );
-    expect(pageRow?.cohort_size).toBe(1);
-    expect(pageRow?.returned_7d).toBe(1);
-    expect(convRow?.cohort_size).toBe(1);
-    expect(convRow?.returned_7d).toBe(0);
-  });
-
-  it('uses the last successful job as the cohort anchor, not the first', async () => {
-    await insertJob(db, {
-      owner: 'u6',
-      object_id: 'j-x1',
-      type: 'page',
-      status: 'done',
-      created_at: daysAgo(50),
-    });
-    await insertJob(db, {
-      owner: 'u6',
-      object_id: 'j-x2',
-      type: 'page',
-      status: 'done',
-      created_at: daysAgo(10),
-    });
-    await insertJob(db, {
-      owner: 'u6',
-      object_id: 'j-x3',
-      type: 'page',
-      status: 'done',
-      created_at: daysAgo(5),
-    });
-
-    const result = await service.getMetrics();
-
-    expect(result.overall['7d']).toBeCloseTo(100, 5);
+    expect(result.by_source_type).toBeNull();
+    expect(result.overall['7d']).toBeNull();
+    expect(result.overall['14d']).toBeNull();
+    expect(result.overall['30d']).toBeNull();
   });
 });
