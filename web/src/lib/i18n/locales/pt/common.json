@@ -350,8 +350,8 @@
     "unlimited": {
       "mostPopular": "Mais popular",
       "perMonth": "/ mês",
-      "yearlyHint": "{{annualTotal}}/ano na cobrança anual · economize {{savings}}%",
-      "monthlyHint": "cobrança mensal",
+      "yearlyHint": "{{annualTotal}} cobrado hoje, depois anualmente · economize {{savings}}%",
+      "monthlyHint": "{{monthlyTotal}} cobrado hoje, depois mensalmente",
       "billingCycle": "Ciclo de cobrança",
       "yearlyOption": "Anual · economize {{savings}}%",
       "monthlyOption": "Mensal",
@@ -366,9 +366,10 @@
       "benefitCancel": "Cancele quando quiser",
       "tryAgain": "Tentar de novo",
       "startingCheckout": "Iniciando o checkout",
-      "getUnlimited": "Obter Unlimited",
-      "termsYearly": "{{annualTotal}}/ano, renova anualmente. Cancele quando quiser — o acesso continua até o fim do ano pago.",
-      "termsMonthly": "{{monthlyTotal}}/mês, renova mensalmente. Cancele quando quiser.",
+      "getUnlimitedYearly": "Obter Unlimited — cobrança anual",
+      "getUnlimitedMonthly": "Obter Unlimited — cobrança mensal",
+      "termsYearly": "{{annualTotal}} cobrado hoje, renova anualmente. Cancele quando quiser — o acesso continua até o fim do ano pago.",
+      "termsMonthly": "{{monthlyTotal}} cobrado hoje, renova mensalmente. Cancele quando quiser.",
       "checkoutError": "Não foi possível iniciar o checkout. Tente de novo, ou envie um e-mail para support@2anki.net."
     },
     "card": {

@@ -350,8 +350,8 @@
     "unlimited": {
       "mostPopular": "Più scelto",
       "perMonth": "/ mese",
-      "yearlyHint": "{{annualTotal}}/anno con fatturazione annuale · risparmi {{savings}}%",
-      "monthlyHint": "fatturazione mensile",
+      "yearlyHint": "{{annualTotal}} addebitato oggi, poi ogni anno · risparmi {{savings}}%",
+      "monthlyHint": "{{monthlyTotal}} addebitato oggi, poi ogni mese",
       "billingCycle": "Ciclo di fatturazione",
       "yearlyOption": "Annuale · risparmi {{savings}}%",
       "monthlyOption": "Mensile",
@@ -366,9 +366,10 @@
       "benefitCancel": "Disdici quando vuoi",
       "tryAgain": "Riprova",
       "startingCheckout": "Avvio del pagamento",
-      "getUnlimited": "Ottieni Unlimited",
-      "termsYearly": "{{annualTotal}}/anno, si rinnova ogni anno. Disdici quando vuoi — mantieni l'accesso per l'anno che hai pagato.",
-      "termsMonthly": "{{monthlyTotal}}/mese, si rinnova ogni mese. Disdici quando vuoi.",
+      "getUnlimitedYearly": "Ottieni Unlimited — fatturazione annuale",
+      "getUnlimitedMonthly": "Ottieni Unlimited — fatturazione mensile",
+      "termsYearly": "{{annualTotal}} addebitato oggi, si rinnova ogni anno. Disdici quando vuoi — mantieni l'accesso per l'anno che hai pagato.",
+      "termsMonthly": "{{monthlyTotal}} addebitato oggi, si rinnova ogni mese. Disdici quando vuoi.",
       "checkoutError": "Non siamo riusciti ad avviare il pagamento. Riprova, oppure scrivi a support@2anki.net."
     },
     "card": {

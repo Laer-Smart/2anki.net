@@ -348,8 +348,8 @@
     "unlimited": {
       "mostPopular": "一番人気",
       "perMonth": "/ 月",
-      "yearlyHint": "年払いで {{annualTotal}}/年 · {{savings}}% お得",
-      "monthlyHint": "月払い",
+      "yearlyHint": "本日 {{annualTotal}} を請求、以降は年払い · {{savings}}% お得",
+      "monthlyHint": "本日 {{monthlyTotal}} を請求、以降は月払い",
       "billingCycle": "請求サイクル",
       "yearlyOption": "年払い · {{savings}}% お得",
       "monthlyOption": "月払い",
@@ -364,9 +364,10 @@
       "benefitCancel": "いつでも解約",
       "tryAgain": "再試行",
       "startingCheckout": "チェックアウトを開始しています",
-      "getUnlimited": "Get Unlimited",
-      "termsYearly": "{{annualTotal}}/年、毎年更新。いつでも解約可能 — お支払い済みの 1 年間はご利用いただけます。",
-      "termsMonthly": "{{monthlyTotal}}/月、毎月更新。いつでも解約可能。",
+      "getUnlimitedYearly": "Get Unlimited — 年払い",
+      "getUnlimitedMonthly": "Get Unlimited — 月払い",
+      "termsYearly": "本日 {{annualTotal}} を請求、毎年更新。いつでも解約可能 — お支払い済みの 1 年間はご利用いただけます。",
+      "termsMonthly": "本日 {{monthlyTotal}} を請求、毎月更新。いつでも解約可能。",
       "checkoutError": "チェックアウトを開始できませんでした。もう一度お試しいただくか、support@2anki.net までご連絡ください。"
     },
     "card": {

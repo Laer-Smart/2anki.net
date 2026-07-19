@@ -400,7 +400,9 @@ describe('PricingPage internal event tracking', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Get Unlimited — billed yearly' })
+    );
 
     await waitFor(() => {
       expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
@@ -494,7 +496,9 @@ describe('PricingPage anonymous upgrade-click tracking', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: false });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Get Unlimited — billed yearly' })
+    );
 
     expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
       surface: 'pricing_page',
@@ -602,7 +606,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     ).toHaveAttribute('aria-checked', 'true');
     expect(screen.getByText('$5.00')).toBeInTheDocument();
     expect(
-      screen.getByText('$60/year billed yearly · save 17%')
+      screen.getByText('$60 billed today, then yearly · save 17%')
     ).toBeInTheDocument();
   });
 
@@ -610,9 +614,11 @@ describe('PricingPage Unlimited billing toggle', () => {
     renderAt('/pricing');
     fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }));
     expect(screen.getByText('$6')).toBeInTheDocument();
-    expect(screen.getByText('billed monthly')).toBeInTheDocument();
     expect(
-      screen.getByText('$6/month, renews monthly. Cancel anytime.')
+      screen.getByText('$6 billed today, then monthly')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('$6 billed today, renews monthly. Cancel anytime.')
     ).toBeInTheDocument();
   });
 
@@ -627,7 +633,9 @@ describe('PricingPage Unlimited billing toggle', () => {
 
     renderAt('/pricing', { isLoggedIn: true });
     fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Get Unlimited — billed monthly' })
+    );
 
     await waitFor(() => {
       expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith(
@@ -648,7 +656,9 @@ describe('PricingPage Unlimited billing toggle', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Get Unlimited — billed yearly' })
+    );
 
     await waitFor(() => {
       expect(mockStartUnlimitedCheckout).toHaveBeenCalledWith(
@@ -665,7 +675,9 @@ describe('PricingPage Unlimited billing toggle', () => {
       value: { href: '' },
     });
     renderAt('/pricing', { isLoggedIn: false });
-    fireEvent.click(screen.getByRole('button', { name: 'Get Unlimited' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Get Unlimited — billed yearly' })
+    );
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
   });
 
