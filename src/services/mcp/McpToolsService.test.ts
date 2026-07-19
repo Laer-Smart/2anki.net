@@ -230,6 +230,45 @@ describe('McpToolsService.convertToDeck', () => {
     expect((result as { decks?: unknown }).decks).toBeUndefined();
   });
 
+  it('threads curated options into the upload request body', async () => {
+    let capturedBody: Record<string, string> | undefined;
+    const uploadEntry: UploadEntrypoint = (req, res) => {
+      capturedBody = (req as unknown as { body: Record<string, string> }).body;
+      res.status(202).json({ jobId: 'job-async' });
+    };
+    const { service } = makeService({ uploadEntry });
+    await service.convertToDeck(
+      {
+        text: '# hi',
+        options: {
+          noteType: 'cloze',
+          tags: ['bio'],
+          deckName: 'Bio',
+          styleTemplate: 'nostyle',
+        },
+      },
+      'owner',
+      {}
+    );
+    expect(capturedBody).toEqual({
+      cloze: 'true',
+      'global-tags': 'bio',
+      deckName: 'Bio',
+      template: 'nostyle',
+    });
+  });
+
+  it('sends an empty body when no options are given', async () => {
+    let capturedBody: Record<string, string> | undefined;
+    const uploadEntry: UploadEntrypoint = (req, res) => {
+      capturedBody = (req as unknown as { body: Record<string, string> }).body;
+      res.status(202).json({ jobId: 'job-async' });
+    };
+    const { service } = makeService({ uploadEntry });
+    await service.convertToDeck({ text: '# hi' }, 'owner', {});
+    expect(capturedBody).toEqual({});
+  });
+
   it('returns an error result when neither url nor text is given', async () => {
     const { service, persist } = makeService({});
     const result = await service.convertToDeck({}, 'owner', {});

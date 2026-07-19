@@ -44,6 +44,8 @@ class CardOption {
 
   readonly useSectionTags: boolean;
 
+  readonly globalTags: string[];
+
   readonly basicReversed: boolean;
 
   readonly reversed: boolean;
@@ -155,6 +157,7 @@ class CardOption {
     this.groupClozePerToggle = input['group-cloze-per-toggle'] === 'true';
     this.useTags = input.tags !== 'false';
     this.useSectionTags = input['section-tags'] === 'true';
+    this.globalTags = parseGlobalTags(input['global-tags']);
     this.basicReversed = input['basic-reversed'] === 'true';
     this.reversed = input.reversed === 'true';
     this.removeMP3Links = input['remove-mp3-links'] === 'true' || false;
@@ -230,6 +233,16 @@ function validateOverlappingCloze(raw: string | undefined): string {
 
 function validateTtsSide(raw: string | undefined): 'front' | 'back' | 'both' {
   return raw === 'back' || raw === 'both' ? raw : 'front';
+}
+
+function parseGlobalTags(raw: string | undefined): string[] {
+  if (raw == null) {
+    return [];
+  }
+  return raw
+    .split(',')
+    .map((tag) => tag.trim().replace(/\s+/g, '-'))
+    .filter((tag) => tag.length > 0);
 }
 
 const CODE_THEME_VALUES = ['github', 'one-dark', 'solarized', 'dracula'];

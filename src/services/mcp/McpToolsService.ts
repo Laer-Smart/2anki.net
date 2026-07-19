@@ -9,6 +9,10 @@ import instrumentedAxios from '../observability/instrumentedAxios';
 import { getSafeFilename } from '../../lib/getSafeFilename';
 import { DeckPersistence } from './McpDeckPersistence';
 import { McpCard, serializeCardsToMarkdown } from './serializeCardsToMarkdown';
+import {
+  McpConvertOptions,
+  mcpOptionsToCardSettings,
+} from './mcpOptionsToCardSettings';
 
 const APKG_KEY_PATTERN = /\.apkg$/i;
 const MAX_TEXT_BYTES = 5 * 1024 * 1024;
@@ -57,6 +61,7 @@ export interface ConvertInput {
   url?: string;
   text?: string;
   filename?: string;
+  options?: McpConvertOptions;
 }
 
 export interface JobLister {
@@ -216,7 +221,11 @@ export class McpToolsService {
         message: 'Provide either a url or text to convert.',
       };
     }
-    const res = await this.runUpload(file, locals);
+    const res = await this.runUpload(
+      file,
+      locals,
+      mcpOptionsToCardSettings(input.options)
+    );
     return this.mapUploadResult(res, owner, file.originalname);
   }
 
@@ -268,11 +277,12 @@ export class McpToolsService {
 
   private async runUpload(
     file: UploadedFile,
-    locals: Record<string, unknown>
+    locals: Record<string, unknown>,
+    body: Record<string, unknown> = {}
   ): Promise<CapturingResponse> {
     const req = {
       files: [file],
-      body: {},
+      body,
       headers: {},
       cookies: {},
     } as unknown as express.Request;

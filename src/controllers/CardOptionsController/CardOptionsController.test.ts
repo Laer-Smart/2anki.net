@@ -282,6 +282,7 @@ describe('SettingsController', () => {
 
   test('returns default settings for server', () => {
     testDefaultSettings('server', {
+      'global-tags': '',
       'add-notion-link': 'false',
       'use-notion-id': 'true',
       all: 'true',

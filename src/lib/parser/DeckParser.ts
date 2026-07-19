@@ -616,6 +616,22 @@ export class DeckParser {
     return card;
   }
 
+  applyGlobalTags(cards: Note[]) {
+    if (this.settings.globalTags.length === 0) {
+      return;
+    }
+    for (const card of cards) {
+      if (!card.tags) {
+        card.tags = [];
+      }
+      for (const tag of this.settings.globalTags) {
+        if (!card.tags.includes(tag)) {
+          card.tags.push(tag);
+        }
+      }
+    }
+  }
+
   private embedLocalOrZipImage(
     dom: cheerio.CheerioAPI,
     elem: Element,
@@ -1063,6 +1079,7 @@ export class DeckParser {
           !card.isValidInputNote()
       );
       deck.cards = Deck.CleanCards(produced);
+      this.applyGlobalTags(deck.cards);
     }
 
     this.payload[0].settings = this.settings;
