@@ -106,6 +106,7 @@ Any DB field, support theme, or GA4 check that was skipped this run goes here so
 
 ## Output rules
 
+- **Do not write retro output into the repo.** `Documentation/retros/` is retired (deleted 2026-07-19) — committed retro files published business metrics in a public repo. The retro's artifacts are the chat output and the CLAUDE.md baseline block; historical numbers are re-queried from prod DB when needed.
 - Two screens max.
 - Numbers in tables.
 - "Numbers" section (DB), "Funnel by origin" table (section 1a), and "Traffic Sources" section (GA4) all required.
