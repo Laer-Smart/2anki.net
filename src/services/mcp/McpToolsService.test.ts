@@ -385,6 +385,24 @@ describe('McpToolsService.createDeck', () => {
     expect(getPresignedUrl).toHaveBeenCalled();
   });
 
+  it('passes the deck name to the pipeline settings so it wins over the first heading', async () => {
+    let capturedBody: Record<string, unknown> | undefined;
+    const entry: UploadEntrypoint = (req, res) => {
+      capturedBody = (req as unknown as { body: Record<string, unknown> }).body;
+      res.set('X-Card-Count', '1');
+      res.set('File-Name', 'deck.apkg');
+      res.status(200).send(Buffer.from('APKG-BYTES'));
+    };
+    const { service } = makeService({ uploadEntry: entry });
+    await service.createDeck(
+      [{ front: 'morning', back: '朝' }],
+      'Japanese — Greetings',
+      'owner-9',
+      {}
+    );
+    expect(capturedBody).toEqual({ deckName: 'Japanese — Greetings' });
+  });
+
   it('falls back to the card count when the pipeline reports none', async () => {
     const entry: UploadEntrypoint = (_req, res) => {
       res.set('File-Name', 'deck.apkg');
