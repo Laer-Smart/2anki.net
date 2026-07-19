@@ -78,5 +78,15 @@
   },
   "jobs": {
     "deleteInProgress": "To zadanie wciąż trwa. Poczekaj, aż się zakończy."
+  },
+  "emptyBack": {
+    "uploadSingleDeck_one": "{{count}} karta bez odpowiedzi została pominięta, więc nie ma jej w tej talii. Dodaj tył w pliku i przekonwertuj ponownie.",
+    "uploadSingleDeck_few": "{{count}} karty bez odpowiedzi zostały pominięte, więc nie ma ich w tej talii. Dodaj tył do każdej w pliku i przekonwertuj ponownie.",
+    "uploadSingleDeck_many": "{{count}} kart bez odpowiedzi zostało pominiętych, więc nie ma ich w tej talii. Dodaj tył do każdej w pliku i przekonwertuj ponownie.",
+    "uploadSingleDeck_other": "{{count}} kart bez odpowiedzi zostało pominiętych, więc nie ma ich w tej talii. Dodaj tył do każdej w pliku i przekonwertuj ponownie.",
+    "uploadMultiDeck_one": "{{count}} karta bez odpowiedzi została pominięta, więc nie ma jej w Twoich taliach. Dodaj tył w pliku i przekonwertuj ponownie.",
+    "uploadMultiDeck_few": "{{count}} karty bez odpowiedzi zostały pominięte, więc nie ma ich w Twoich taliach. Dodaj tył do każdej w pliku i przekonwertuj ponownie.",
+    "uploadMultiDeck_many": "{{count}} kart bez odpowiedzi zostało pominiętych, więc nie ma ich w Twoich taliach. Dodaj tył do każdej w pliku i przekonwertuj ponownie.",
+    "uploadMultiDeck_other": "{{count}} kart bez odpowiedzi zostało pominiętych, więc nie ma ich w Twoich taliach. Dodaj tył do każdej w pliku i przekonwertuj ponownie."
   }
 }

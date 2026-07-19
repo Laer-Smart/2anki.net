@@ -17,6 +17,7 @@ import {
 } from './uploadResponse';
 import { getDownloadFileName } from '../../../DownloadsPage/helpers/getDownloadFileName';
 import { ImageDropNotice } from '../../../DownloadsPage/components/ImageDropNotice';
+import { EmptyBackNotice } from '../../../DownloadsPage/components/EmptyBackNotice';
 import { ConversionResult } from '../../../DownloadsPage/components/ConversionResult/ConversionResult';
 import { OverSplitNotice } from './OverSplitNotice';
 import { getEmptyDeckChatPrompt } from '../../helpers/getEmptyDeckChatPrompt';
@@ -281,6 +282,8 @@ function UploadForm({
     droppedImageCount,
     overSplit,
     setDroppedImageCount,
+    emptyBackCount,
+    setEmptyBackCount,
     setOverSplit,
     mcqDrawerOpen,
     setMcqDrawerOpen,
@@ -358,6 +361,7 @@ function UploadForm({
     setMcqCount,
     setMcqSkippedCount,
     setDroppedImageCount,
+    setEmptyBackCount,
     setOverSplit,
     setDownloadLink,
     setProgressWidth,
@@ -937,6 +941,11 @@ function UploadForm({
           <ImageDropNotice count={droppedImageCount} source="upload" />
         </div>
       )}
+      {emptyBackCount > 0 && (
+        <div className={formStyles.warningInline}>
+          <EmptyBackNotice count={emptyBackCount} />
+        </div>
+      )}
       {overSplit && (
         <div className={formStyles.warningInline}>
           <OverSplitNotice cardCount={cardCount} />
@@ -997,6 +1006,11 @@ function UploadForm({
               source="upload"
               multipleDecks
             />
+          </div>
+        )}
+        {emptyBackCount > 0 && (
+          <div className={formStyles.warningInline}>
+            <EmptyBackNotice count={emptyBackCount} multipleDecks />
           </div>
         )}
         <ul className={formStyles.deckList}>

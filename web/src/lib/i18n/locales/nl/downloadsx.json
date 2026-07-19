@@ -68,5 +68,11 @@
   },
   "jobs": {
     "deleteInProgress": "Deze taak wordt nog uitgevoerd. Wacht tot deze klaar is."
+  },
+  "emptyBack": {
+    "uploadSingleDeck_one": "{{count}} kaart had geen antwoord en is overgeslagen, dus zit niet in dit pakket. Voeg een achterkant toe in je bestand en converteer opnieuw.",
+    "uploadSingleDeck_other": "{{count}} kaarten hadden geen antwoord en zijn overgeslagen, dus zitten niet in dit pakket. Voeg aan elke kaart een achterkant toe in je bestand en converteer opnieuw.",
+    "uploadMultiDeck_one": "{{count}} kaart had geen antwoord en is overgeslagen, dus zit niet in je pakketten. Voeg een achterkant toe in je bestand en converteer opnieuw.",
+    "uploadMultiDeck_other": "{{count}} kaarten hadden geen antwoord en zijn overgeslagen, dus zitten niet in je pakketten. Voeg aan elke kaart een achterkant toe in je bestand en converteer opnieuw."
   }
 }

@@ -61,6 +61,7 @@ export const KNOWN_EVENTS = new Set([
   'ankify_review_session_exited',
   'ankify_decklist_sorted',
   'image_drop_notice_shown',
+  'empty_back_notice_shown',
   'image_only_photo_deck_shown',
   'image_only_photo_deck_clicked',
   'columns_guessed_notice_shown',

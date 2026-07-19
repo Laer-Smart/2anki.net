@@ -17,6 +17,7 @@ function buildHandlers(): ConversionSuccessHandlers {
     setMcqCount: vi.fn(),
     setMcqSkippedCount: vi.fn(),
     setDroppedImageCount: vi.fn(),
+    setEmptyBackCount: vi.fn(),
     setOverSplit: vi.fn(),
     setDownloadLink: vi.fn(),
     setProgressWidth: vi.fn(),
@@ -108,6 +109,51 @@ describe('applyConversionSuccess', () => {
     await applyConversionSuccess(singleDeckResponse(), handlers);
 
     expect(handlers.setDroppedImageCount).toHaveBeenCalledWith(0);
+  });
+
+  it('reads the empty-back count from the X-Empty-Back-Count header on a single deck', async () => {
+    const handlers = buildHandlers();
+
+    await applyConversionSuccess(
+      singleDeckResponse({ 'X-Empty-Back-Count': '2' }),
+      handlers
+    );
+
+    expect(handlers.setEmptyBackCount).toHaveBeenCalledWith(2);
+  });
+
+  it('sets the empty-back count to 0 when the X-Empty-Back-Count header is absent', async () => {
+    const handlers = buildHandlers();
+
+    await applyConversionSuccess(singleDeckResponse(), handlers);
+
+    expect(handlers.setEmptyBackCount).toHaveBeenCalledWith(0);
+  });
+
+  it('reads emptyBackCount from the batch JSON body', async () => {
+    const handlers = buildHandlers();
+    const response = {
+      headers: new Headers({ 'Content-Type': 'application/json' }),
+      json: () =>
+        Promise.resolve({
+          kind: 'batch',
+          workspaceId: 'ws-1',
+          deckCount: 1,
+          decks: [
+            {
+              name: 'A',
+              filename: 'A.apkg',
+              downloadUrl: '/download/ws-1/A.apkg',
+            },
+          ],
+          bulkUrl: '/download/ws-1/bulk',
+          emptyBackCount: 5,
+        }),
+    } as unknown as Response;
+
+    await applyConversionSuccess(response, handlers);
+
+    expect(handlers.setEmptyBackCount).toHaveBeenCalledWith(5);
   });
 
   it('flags over-split output from the X-Over-Split header', async () => {
