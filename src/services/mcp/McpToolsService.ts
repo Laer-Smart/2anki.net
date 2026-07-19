@@ -268,16 +268,11 @@ export class McpToolsService {
     }));
   }
 
-  async getDeckPreview(owner: string, jobId: string): Promise<DeckPreview> {
-    const jobs = await this.jobLister.getJobsByOwner(owner);
-    const job = jobs.find((entry) => entry.object_id === jobId);
-    if (!job) {
-      throw new Error('Deck not found.');
-    }
-    const key = job.download_key;
-    if (key == null || !APKG_KEY_PATTERN.test(key)) {
-      throw new Error('This deck has no .apkg to preview yet.');
-    }
+  async getDeckPreview(
+    owner: string,
+    identifier: string
+  ): Promise<DeckPreview> {
+    const key = await this.resolveDeckKey(owner, identifier);
     const body = await this.downloadService.getFileBody(
       owner,
       key,
@@ -311,6 +306,25 @@ export class McpToolsService {
         back: card.back,
       })),
     };
+  }
+
+  private async resolveDeckKey(
+    owner: string,
+    identifier: string
+  ): Promise<string> {
+    const jobs = await this.jobLister.getJobsByOwner(owner);
+    const job = jobs.find((entry) => entry.object_id === identifier);
+    if (job) {
+      const key = job.download_key;
+      if (key == null || !APKG_KEY_PATTERN.test(key)) {
+        throw new Error('This deck has no .apkg to preview yet.');
+      }
+      return key;
+    }
+    if (APKG_KEY_PATTERN.test(identifier)) {
+      return identifier;
+    }
+    throw new Error('Deck not found.');
   }
 
   async convertToDeck(

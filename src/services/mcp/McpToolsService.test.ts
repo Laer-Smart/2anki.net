@@ -162,6 +162,31 @@ describe('McpToolsService.getDeckPreview', () => {
     expect(preview.sampleCards).toEqual([{ front: 'Q', back: 'A' }]);
   });
 
+  it('resolves a raw .apkg key directly when no job matches, owner-scoped', async () => {
+    const getFileBody = jest.fn(async () => Buffer.from('apkg'));
+    const { service } = makeService({
+      jobs: [jobFixture({ object_id: 'job-1' })],
+      getFileBody,
+    });
+    const preview = await service.getDeckPreview('owner', 'legacy-deck.apkg');
+    expect(getFileBody).toHaveBeenCalledWith(
+      'owner',
+      'legacy-deck.apkg',
+      expect.anything()
+    );
+    expect(preview.cardCount).toBe(3);
+  });
+
+  it('rejects an unknown identifier that is not an .apkg key', async () => {
+    const { service, downloadService } = makeService({
+      jobs: [jobFixture({ object_id: 'job-1' })],
+    });
+    await expect(service.getDeckPreview('owner', 'not-a-key')).rejects.toThrow(
+      /Deck not found/
+    );
+    expect(downloadService.getFileBody).not.toHaveBeenCalled();
+  });
+
   it('reports when the resolved file is missing from storage', async () => {
     const { service } = makeService({
       jobs: [jobFixture({ object_id: 'job-1', download_key: 'deck.apkg' })],
