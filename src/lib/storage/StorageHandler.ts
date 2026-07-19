@@ -11,6 +11,8 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 import { normalizeS3Endpoint } from './normalizeS3Endpoint';
+import { buildContentDisposition } from '../buildContentDisposition';
+import { getSafeFilename } from '../getSafeFilename';
 
 export interface StoredObject {
   Body: Buffer | undefined;
@@ -125,15 +127,26 @@ class StorageHandler {
     }
   }
 
-  getPresignedUrl(key: string, expiresSeconds = 3600): Promise<string> {
-    return getSignedUrl(
-      this.s3,
-      new GetObjectCommand({
-        Bucket: StorageHandler.DefaultBucketName(),
-        Key: key,
-      }),
-      { expiresIn: expiresSeconds }
-    );
+  getPresignedUrl(
+    key: string,
+    expiresSeconds = 3600,
+    filename?: string
+  ): Promise<string> {
+    const command =
+      filename != null
+        ? new GetObjectCommand({
+            Bucket: StorageHandler.DefaultBucketName(),
+            Key: key,
+            ResponseContentDisposition: buildContentDisposition(
+              getSafeFilename(filename)
+            ),
+            ResponseContentType: 'application/octet-stream',
+          })
+        : new GetObjectCommand({
+            Bucket: StorageHandler.DefaultBucketName(),
+            Key: key,
+          });
+    return getSignedUrl(this.s3, command, { expiresIn: expiresSeconds });
   }
 
   async objectExists(key: string): Promise<boolean> {

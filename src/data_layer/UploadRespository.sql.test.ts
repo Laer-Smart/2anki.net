@@ -33,6 +33,25 @@ describe('UploadRepository.update generated SQL', () => {
   });
 });
 
+describe('UploadRepository.findByObjectId generated SQL', () => {
+  it('scopes the lookup to the object_id and rows with a non-null key', () => {
+    const pg = knex({ client: 'pg' });
+
+    const sql = pg('uploads')
+      .select('*')
+      .where({ object_id: 'abc-123' })
+      .whereNotNull('object_id')
+      .whereNotNull('key')
+      .first()
+      .toString();
+
+    expect(sql).toBe(
+      'select * from "uploads" where "object_id" = \'abc-123\' ' +
+        'and "object_id" is not null and "key" is not null limit 1'
+    );
+  });
+});
+
 describe('UploadRepository.getLastReconvertibleUpload generated SQL', () => {
   it('filters apkg keys with a bound parameter and orders by created_at desc', () => {
     const pg = knex({ client: 'pg' });

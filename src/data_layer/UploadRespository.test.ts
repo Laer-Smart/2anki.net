@@ -40,3 +40,17 @@ describe('UploadRepository owner guards', () => {
     expect(warn).toHaveBeenCalled();
   });
 });
+
+describe('UploadRepository.findByObjectId', () => {
+  it('returns null and skips the query when the object id is null', async () => {
+    let queried = false;
+    const db = () => {
+      queried = true;
+      return {} as never;
+    };
+    const repo = new UploadRepository(db as unknown as never);
+    const result = await repo.findByObjectId(null as unknown as string);
+    expect(result).toBeNull();
+    expect(queried).toBe(false);
+  });
+});

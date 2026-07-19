@@ -1,3 +1,6 @@
+import { GetObjectCommand } from '@aws-sdk/client-s3';
+import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
+
 import StorageHandler from './StorageHandler';
 
 const mockSend = jest.fn();
@@ -45,5 +48,54 @@ describe('StorageHandler.getFileContents', () => {
     const result = await handler.getFileContents('some/key.apkg');
 
     expect(result.Body).toBeUndefined();
+  });
+});
+
+describe('StorageHandler.getPresignedUrl', () => {
+  const signedUrlMock = getSignedUrl as jest.MockedFunction<
+    typeof getSignedUrl
+  >;
+
+  beforeEach(() => {
+    signedUrlMock.mockClear();
+    process.env.SPACES_DEFAULT_BUCKET_NAME = 'test-bucket';
+    process.env.SPACES_ENDPOINT = 'https://test.spaces.example.com';
+  });
+
+  function lastCall() {
+    const { calls } = signedUrlMock.mock;
+    return calls[calls.length - 1];
+  }
+
+  function lastCommandInput(): GetObjectCommand['input'] {
+    const command = lastCall()[1] as GetObjectCommand;
+    return command.input;
+  }
+
+  it('sets a download disposition and octet-stream type when a filename is given', async () => {
+    const handler = new StorageHandler();
+    await handler.getPresignedUrl(
+      'owner-1-deck.apkg',
+      300,
+      'Biochemistry.apkg'
+    );
+
+    const input = lastCommandInput();
+    expect(input.ResponseContentDisposition).toBe(
+      'attachment; filename="Biochemistry.apkg"; ' +
+        "filename*=UTF-8''Biochemistry.apkg"
+    );
+    expect(input.ResponseContentType).toBe('application/octet-stream');
+    expect(lastCall()[2]).toEqual({ expiresIn: 300 });
+  });
+
+  it('omits the disposition and type headers when no filename is given', async () => {
+    const handler = new StorageHandler();
+    await handler.getPresignedUrl('owner-1-deck.apkg');
+
+    const input = lastCommandInput();
+    expect(input.ResponseContentDisposition).toBeUndefined();
+    expect(input.ResponseContentType).toBeUndefined();
+    expect(lastCall()[2]).toEqual({ expiresIn: 3600 });
   });
 });

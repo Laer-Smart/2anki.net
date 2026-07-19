@@ -68,6 +68,7 @@ import mindmapRouter from './routes/MindmapRouter';
 import pitchRouter from './routes/PitchRouter';
 import iapRouter from './routes/IapRouter';
 import mcpRouter from './routes/McpRouter';
+import mcpDeckDownloadRouter from './routes/McpDeckDownloadRouter';
 import wellKnownRouter from './routes/WellKnownRouter';
 import healthRouter from './routes/HealthRouter';
 import requestLoggingMiddleware from './routes/middleware/requestLoggingMiddleware';
@@ -200,6 +201,7 @@ const serve = async () => {
   app.use(pitchRouter());
   app.use(iapRouter());
   app.use(mcpRouter());
+  app.use(mcpDeckDownloadRouter());
 
   const database = getDatabase();
   app.use(healthRouter(database));

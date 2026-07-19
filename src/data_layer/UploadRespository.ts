@@ -33,6 +33,7 @@ export interface IUploadRepository {
   deleteUpload(owner: number, key: string): Promise<number>;
   getUploadsByOwner(owner: number): Promise<Uploads[]>;
   findByIdAndOwner(id: number, owner: number): Promise<Uploads | null>;
+  findByObjectId(objectId: string): Promise<Uploads | null>;
   findByKey(owner: number, key: string): Promise<Uploads | null>;
   findAllByObjectIdAndOwner(
     objectId: string,
@@ -88,6 +89,19 @@ class UploadRepository implements IUploadRepository {
       .select('*')
       .where('id', id)
       .andWhere('owner', owner)
+      .first();
+    return row ?? null;
+  }
+
+  async findByObjectId(objectId: string): Promise<Uploads | null> {
+    if (objectId == null) {
+      return null;
+    }
+    const row = await this.database<Uploads>(this.table)
+      .select('*')
+      .where({ object_id: objectId })
+      .whereNotNull('object_id')
+      .whereNotNull('key')
       .first();
     return row ?? null;
   }

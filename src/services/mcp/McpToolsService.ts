@@ -15,6 +15,7 @@ import {
   mcpOptionsToCardSettings,
 } from './mcpOptionsToCardSettings';
 import { detectFileMime } from '../../lib/detectFileMime';
+import { mcpBaseUrl } from './mcpBaseUrl';
 import { isPaying } from '../../lib/isPaying';
 import type { VisionMediaType } from '../../lib/claude/countVisionTokens';
 import {
@@ -226,7 +227,8 @@ export class McpToolsService {
     private readonly uploadEntry: UploadEntrypoint,
     private readonly storage: StorageHandler,
     private readonly deckPersistence: DeckPersistence,
-    private readonly photoToFlashcards: PhotoToFlashcardsUseCase
+    private readonly photoToFlashcards: PhotoToFlashcardsUseCase,
+    private readonly baseUrl: string = mcpBaseUrl()
   ) {}
 
   async photoToDeck(
@@ -521,13 +523,8 @@ export class McpToolsService {
     const filename = res.get('File-Name') ?? null;
     const title = filename ?? fallbackTitle;
     const objectId = randomUUID();
-    const key = await this.deckPersistence.persist(
-      owner,
-      objectId,
-      title,
-      bytes
-    );
-    const downloadUrl = await this.storage.getPresignedUrl(key);
+    await this.deckPersistence.persist(owner, objectId, title, bytes);
+    const downloadUrl = `${this.baseUrl}/api/mcp/decks/${objectId}/download`;
     const preview = await this.previewFromBytes(bytes, filename);
     const summary =
       cardCount != null

@@ -93,6 +93,7 @@ function buildRepository(): IUploadRepository {
     deleteUpload: (_owner: number, _key: string) => Promise.resolve(1),
     getUploadsByOwner: (_owner: number) => Promise.resolve([] as Uploads[]),
     findByIdAndOwner: (_id: number, _owner: number) => Promise.resolve(null),
+    findByObjectId: (_objectId: string) => Promise.resolve(null),
     findByKey: (_owner: number, _key: string) => Promise.resolve(null),
     findAllByObjectIdAndOwner: (_objectId: string, _owner: number) =>
       Promise.resolve([] as Uploads[]),
