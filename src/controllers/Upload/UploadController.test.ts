@@ -51,6 +51,9 @@ describe('Upload file', () => {
       ): Promise<Uploads | null> {
         return Promise.resolve(null);
       },
+      findByObjectId: function (_objectId: string): Promise<Uploads | null> {
+        return Promise.resolve(null);
+      },
       findByKey: function (
         _owner: number,
         _key: string
@@ -169,6 +172,7 @@ describe('Upload file — multer error handling', () => {
       deleteUpload: jest.fn(),
       getUploadsByOwner: jest.fn().mockResolvedValue([]),
       findByIdAndOwner: jest.fn().mockResolvedValue(null),
+      findByObjectId: jest.fn().mockResolvedValue(null),
       findByKey: jest.fn().mockResolvedValue(null),
       findAllByObjectIdAndOwner: jest.fn().mockResolvedValue([]),
       update: jest.fn().mockResolvedValue([]),
@@ -229,6 +233,7 @@ describe('UploadController.retryPdfWithCredential rate limit', () => {
       deleteUpload: jest.fn(),
       getUploadsByOwner: jest.fn().mockResolvedValue([]),
       findByIdAndOwner: jest.fn().mockResolvedValue(null),
+      findByObjectId: jest.fn().mockResolvedValue(null),
       findByKey: jest.fn().mockResolvedValue(null),
       findAllByObjectIdAndOwner: jest.fn().mockResolvedValue([]),
       update: jest.fn().mockResolvedValue([]),
@@ -310,6 +315,7 @@ describe('UploadController.retryPdfWithCredential rate limit', () => {
       deleteUpload: jest.fn(),
       getUploadsByOwner: jest.fn().mockResolvedValue([]),
       findByIdAndOwner: jest.fn().mockResolvedValue(null),
+      findByObjectId: jest.fn().mockResolvedValue(null),
       findByKey: jest.fn().mockResolvedValue(null),
       findAllByObjectIdAndOwner: jest.fn().mockResolvedValue([]),
       update: jest.fn().mockResolvedValue([]),

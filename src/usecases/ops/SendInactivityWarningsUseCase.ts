@@ -18,6 +18,9 @@ class NoOpUploadRepository implements IUploadRepository {
   findByIdAndOwner(): Promise<null> {
     return Promise.resolve(null);
   }
+  findByObjectId(): Promise<null> {
+    return Promise.resolve(null);
+  }
   findByKey(): Promise<null> {
     return Promise.resolve(null);
   }

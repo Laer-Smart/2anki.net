@@ -40,6 +40,7 @@ function makeUploadRepo(
     deleteUpload: jest.fn(),
     getUploadsByOwner: jest.fn(),
     findByIdAndOwner: jest.fn(),
+    findByObjectId: jest.fn(),
     findByKey: jest.fn(),
     findAllByObjectIdAndOwner: jest.fn().mockResolvedValue([]),
     update: jest.fn(),

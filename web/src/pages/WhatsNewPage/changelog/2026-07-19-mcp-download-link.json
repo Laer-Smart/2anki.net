@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-19-mcp-download-link",
+  "date": "2026-07-19",
+  "type": "fix",
+  "title": "Deck downloads from the Claude connector open as a clean 2anki.net link"
+}

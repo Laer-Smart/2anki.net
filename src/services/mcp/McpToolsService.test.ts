@@ -23,6 +23,7 @@ function makeService(overrides: {
   persist?: DeckPersistence['persist'];
   getPresignedUrl?: StorageHandler['getPresignedUrl'];
   generateCards?: jest.Mock;
+  baseUrl?: string;
 }) {
   const jobLister = {
     getJobsByOwner: jest.fn(async () => overrides.jobs ?? []),
@@ -67,7 +68,8 @@ function makeService(overrides: {
     uploadEntry,
     storage,
     deckPersistence,
-    photoToFlashcards
+    photoToFlashcards,
+    overrides.baseUrl ?? 'https://mcp.test'
   );
   return {
     service,
@@ -236,25 +238,25 @@ describe('McpToolsService.convertToDeck', () => {
       res.set('File-Name', 'deck.apkg');
       res.status(200).send(Buffer.from('APKG-BYTES'));
     };
-    const { service, persist, getPresignedUrl } = makeService({ uploadEntry });
+    const { service, persist } = makeService({ uploadEntry });
     const result = await service.convertToDeck({ text: 'x' }, 'owner-9', {});
+    const jobId = (result as { jobId?: string }).jobId;
     expect(result).toMatchObject({
       kind: 'deck',
       cardCount: 42,
       filename: 'deck.apkg',
-      downloadUrl: 'https://s3.example/presigned',
+      downloadUrl: `https://mcp.test/api/mcp/decks/${jobId}/download`,
       deckCount: 1,
       decks: [{ id: 1, name: 'Bio', cardCount: 3 }],
       sampleCards: [{ front: 'Q', back: 'A' }],
     });
-    expect((result as { jobId?: string }).jobId).toEqual(expect.any(String));
+    expect(jobId).toEqual(expect.any(String));
     expect(persist).toHaveBeenCalledWith(
       'owner-9',
       expect.any(String),
       'deck.apkg',
       Buffer.from('APKG-BYTES')
     );
-    expect(getPresignedUrl).toHaveBeenCalledWith('owner-9-123-deck.apkg');
   });
 
   it('still returns the deck when inline preview parsing fails', async () => {
@@ -354,7 +356,7 @@ describe('McpToolsService.createDeck', () => {
 
   it('serializes cards to heading markdown, persists, and returns a download URL', async () => {
     const { entry, markdown } = captureUpload();
-    const { service, persist, getPresignedUrl } = makeService({
+    const { service, persist } = makeService({
       uploadEntry: entry,
     });
     const result = await service.createDeck(
@@ -370,19 +372,19 @@ describe('McpToolsService.createDeck', () => {
       '## What is ATP?\n\nEnergy currency.\n\n' +
         '## What is DNA?\n\nHeredity molecule.\n\n'
     );
+    const jobId = (result as { jobId?: string }).jobId;
     expect(result).toMatchObject({
       kind: 'deck',
       cardCount: 2,
-      downloadUrl: 'https://s3.example/presigned',
+      downloadUrl: `https://mcp.test/api/mcp/decks/${jobId}/download`,
     });
-    expect((result as { jobId?: string }).jobId).toEqual(expect.any(String));
+    expect(jobId).toEqual(expect.any(String));
     expect(persist).toHaveBeenCalledWith(
       'owner-9',
       expect.any(String),
       'deck.apkg',
       Buffer.from('APKG-BYTES')
     );
-    expect(getPresignedUrl).toHaveBeenCalled();
   });
 
   it('passes the deck name to the pipeline settings so it wins over the first heading', async () => {

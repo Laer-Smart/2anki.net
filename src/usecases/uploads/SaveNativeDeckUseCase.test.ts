@@ -8,6 +8,7 @@ function makeRepository(): jest.Mocked<IUploadRepository> {
     deleteUpload: jest.fn(),
     getUploadsByOwner: jest.fn(),
     findByIdAndOwner: jest.fn(),
+    findByObjectId: jest.fn(),
     findByKey: jest.fn(),
     findAllByObjectIdAndOwner: jest.fn(),
     update: jest.fn(),
