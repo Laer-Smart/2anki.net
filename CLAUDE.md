@@ -280,6 +280,10 @@ Good vs bad:
 
 **The `/changelog` slash command** is the batch tool for backfilling a window of merged PRs into blog/SEO content. It is not a substitute for the per-PR entry — by the time `/changelog` runs, the entry should already be in the file.
 
+## Support email
+
+Support replies go to `~/Downloads/reply-<name>.txt` for review before sending. Follow VOICE.md guidelines — direct, specific, no hedging. Additional rule: **never use dashes (em-dash or hyphen) in support emails.** Dashes split focus and make complex ideas feel fragmented. Use periods and new sentences instead. Example: "Notion changed their export format. Page emoji now lives in a `data-emoji` attribute." not "Notion changed their export format — page emoji now lives in a `data-emoji` attribute."
+
 ## Slash commands (`.claude/commands/` and `.claude/skills/`)
 
 - `/trio` — force a trio review on any task.
