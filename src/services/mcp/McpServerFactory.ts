@@ -139,6 +139,49 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
       context.recordToolCall('convert_to_deck');
       const result = await context.toolsService.convertToDeck(
         { url, text, filename },
+        context.owner,
+        context.locals
+      );
+      if (result.kind === 'error') {
+        return errorResult(result.message);
+      }
+      return textResult(result);
+    }
+  );
+
+  registerTool<{ cards: { front: string; back: string }[]; deckName?: string }>(
+    server,
+    'create_deck',
+    {
+      title: 'Create an Anki deck from cards',
+      description:
+        'Build an Anki deck from structured front/back cards. Returns a deck preview and a no-login download link for the .apkg, plus a job id you can find later with list_my_decks.',
+      inputSchema: {
+        cards: z
+          .array(
+            z.object({
+              front: z
+                .string()
+                .min(1)
+                .describe('The question or prompt shown first.'),
+              back: z.string().describe('The answer shown after.'),
+            })
+          )
+          .min(1)
+          .max(500)
+          .describe('The Basic front/back cards to put in the deck.'),
+        deckName: z
+          .string()
+          .optional()
+          .describe('Optional deck name, e.g. Pharmacology.'),
+      },
+    },
+    async ({ cards, deckName }) => {
+      context.recordToolCall('create_deck');
+      const result = await context.toolsService.createDeck(
+        cards,
+        deckName,
+        context.owner,
         context.locals
       );
       if (result.kind === 'error') {

@@ -38,6 +38,7 @@ function makeController(
     getLastReconvertibleUpload: jest.fn().mockResolvedValue(null),
     findByOwnerAndDedupeKey: jest.fn().mockResolvedValue(null),
     insertNativeDeck: jest.fn(),
+    insertConvertedDeck: jest.fn(),
   };
   const notionRepository: INotionRepository = {
     getNotionData: jest

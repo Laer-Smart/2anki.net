@@ -109,6 +109,8 @@ function buildRepository(): IUploadRepository {
       Promise.resolve(null),
     insertNativeDeck: () =>
       Promise.reject(new Error('not implemented')) as Promise<Uploads>,
+    insertConvertedDeck: () =>
+      Promise.reject(new Error('not implemented')) as Promise<Uploads>,
   };
 }
 

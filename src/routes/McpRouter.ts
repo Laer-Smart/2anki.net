@@ -20,6 +20,7 @@ import ApkgPreviewService from '../services/ApkgPreviewService/ApkgPreviewServic
 import AuthenticationService from '../services/AuthenticationService';
 import { KnexOAuthProvider } from '../services/mcp/oauth/KnexOAuthProvider';
 import { McpToolsService } from '../services/mcp/McpToolsService';
+import { McpDeckPersistence } from '../services/mcp/McpDeckPersistence';
 import { buildMcpServer } from '../services/mcp/McpServerFactory';
 import { applyUserLocals } from './middleware/configureUserLocal';
 import { getEventsSink } from '../services/events/eventsSinkInstance';
@@ -62,12 +63,18 @@ const McpRouter = () => {
     new ConversionOutputStatsRepository(database),
     new ParsePathSignatureRepository(database)
   );
+  const storage = new StorageHandler();
   const toolsService = new McpToolsService(
     new JobRepository(database),
     new DownloadService(new DownloadRepository(database)),
     new ApkgPreviewService(),
     (req, res) => uploadService.handleUpload(req, res),
-    new StorageHandler()
+    storage,
+    new McpDeckPersistence(
+      new JobRepository(database),
+      new UploadRepository(database),
+      storage
+    )
   );
 
   const onAuthenticatedPost: RequestHandler = async (req, res) => {
