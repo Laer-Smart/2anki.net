@@ -429,7 +429,8 @@
       "upload": "Upload",
       "app": "From the app",
       "dropbox": "Dropbox",
-      "drive": "Drive"
+      "drive": "Drive",
+      "mcp": "Made with Claude"
     },
     "badge": {
       "writtenWithClaude": "Written with Claude",

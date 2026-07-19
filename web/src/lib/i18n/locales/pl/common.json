@@ -433,7 +433,8 @@
       "upload": "Przesłane",
       "app": "Z aplikacji",
       "dropbox": "Dropbox",
-      "drive": "Drive"
+      "drive": "Drive",
+      "mcp": "Utworzono w Claude"
     },
     "badge": {
       "writtenWithClaude": "Napisane z Claude",

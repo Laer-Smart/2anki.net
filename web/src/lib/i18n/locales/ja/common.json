@@ -427,7 +427,8 @@
       "upload": "アップロード",
       "app": "アプリから",
       "dropbox": "Dropbox",
-      "drive": "Drive"
+      "drive": "Drive",
+      "mcp": "Claudeで作成"
     },
     "badge": {
       "writtenWithClaude": "Claude で作成",

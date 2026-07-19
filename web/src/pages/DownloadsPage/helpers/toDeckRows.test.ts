@@ -78,6 +78,11 @@ describe('toDeckRows — source mapping', () => {
     expect(rows[0].source).toBe('upload');
   });
 
+  it('maps job.type === "mcp" to source: mcp', () => {
+    const rows = toDeckRows([makeJob({ type: 'mcp' })], [], [], []);
+    expect(rows[0].source).toBe('mcp');
+  });
+
   it('maps unknown job.type to source: upload', () => {
     const rows = toDeckRows([makeJob({ type: 'apkg_import' })], [], [], []);
     expect(rows[0].source).toBe('upload');
@@ -230,6 +235,41 @@ describe('toDeckRows — Notion job dedupe', () => {
       key: 'other-deck.apkg',
     });
     const rows = toDeckRows([notionJob], [unrelatedUpload], [], []);
+    expect(rows).toHaveLength(2);
+  });
+});
+
+describe('toDeckRows — MCP job dedupe', () => {
+  it('suppresses the upload row so a done MCP deck with a download_key appears once', () => {
+    const mcpJob = makeJob({
+      id: 1 as JobsId,
+      type: 'mcp',
+      status: 'done',
+      object_id: 'mcp-deck-uuid',
+      download_key: 'deck-mcp123.apkg',
+      upload_id: 77,
+    });
+    const matchingUpload = makeUpload({
+      object_id: 'mcp-deck-uuid',
+      key: 'deck-mcp123.apkg',
+    });
+    const rows = toDeckRows([mcpJob], [matchingUpload], [], []);
+    expect(rows).toHaveLength(1);
+    expect(rows[0].kind).toBe('job');
+    expect(rows[0].source).toBe('mcp');
+  });
+
+  it('keeps the upload row when the MCP job has no download_key', () => {
+    const mcpJob = makeJob({
+      id: 1 as JobsId,
+      type: 'mcp',
+      status: 'done',
+      object_id: 'mcp-deck-uuid',
+      download_key: null,
+      upload_id: null,
+    });
+    const upload = makeUpload({ object_id: 'mcp-deck-uuid' });
+    const rows = toDeckRows([mcpJob], [upload], [], []);
     expect(rows).toHaveLength(2);
   });
 });

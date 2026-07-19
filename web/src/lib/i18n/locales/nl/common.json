@@ -429,7 +429,8 @@
       "upload": "Upload",
       "app": "Uit de app",
       "dropbox": "Dropbox",
-      "drive": "Drive"
+      "drive": "Drive",
+      "mcp": "Gemaakt met Claude"
     },
     "badge": {
       "writtenWithClaude": "Geschreven met Claude",

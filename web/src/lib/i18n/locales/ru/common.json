@@ -433,7 +433,8 @@
       "upload": "Загрузка",
       "app": "Из приложения",
       "dropbox": "Dropbox",
-      "drive": "Drive"
+      "drive": "Drive",
+      "mcp": "Создано с помощью Claude"
     },
     "badge": {
       "writtenWithClaude": "Написано с Claude",

@@ -429,7 +429,8 @@
       "upload": "Téléversement",
       "app": "Depuis l'application",
       "dropbox": "Dropbox",
-      "drive": "Drive"
+      "drive": "Drive",
+      "mcp": "Créé avec Claude"
     },
     "badge": {
       "writtenWithClaude": "Rédigé avec Claude",

@@ -346,6 +346,34 @@ describe('DownloadsPage source labels', () => {
     renderAt('/downloads');
     expect(screen.getByText('From the app')).toBeInTheDocument();
   });
+
+  it('shows a done MCP deck once, labeled "Made with Claude"', () => {
+    mockJobs = [
+      buildJob({
+        type: 'mcp',
+        status: 'done',
+        object_id: 'mcp-deck-uuid',
+        title: 'Claude connector deck',
+        download_key: 'mcp-deck.apkg',
+        upload_id: 55,
+      }),
+    ];
+    mockUploads = [
+      {
+        id: 'u-mcp',
+        size_mb: 2,
+        owner: 1,
+        key: 'mcp-deck.apkg',
+        filename: 'Claude connector deck',
+        object_id: 'mcp-deck-uuid',
+        created_at: '2026-05-18T10:00:00Z',
+        source: null,
+      },
+    ];
+    renderAt('/downloads');
+    expect(screen.getByText('Made with Claude')).toBeInTheDocument();
+    expect(screen.getAllByText('Claude connector deck')).toHaveLength(1);
+  });
 });
 
 describe('DownloadsPage preview button on done job rows', () => {
