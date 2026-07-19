@@ -12,6 +12,30 @@ export function createMcpDeckDownloadRouter(
   controller: McpDeckDownloadController
 ): express.Router {
   const router = express.Router();
+  /**
+   * @swagger
+   * /api/mcp/decks/{objectId}/download:
+   *   get:
+   *     summary: Download an MCP-generated deck
+   *     description: >
+   *       Public capability URL for a deck created via the hosted MCP server.
+   *       The objectId is an unguessable UUID that acts as the bearer token;
+   *       resolves the deck, presigns the stored file, and 302-redirects to it.
+   *       Returns 404 for unknown, malformed, or keyless ids.
+   *     tags: [MCP]
+   *     parameters:
+   *       - in: path
+   *         name: objectId
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The deck's capability UUID
+   *     responses:
+   *       302:
+   *         description: Redirect to the presigned deck file
+   *       404:
+   *         description: Deck not found
+   */
   router.get('/api/mcp/decks/:objectId/download', (req, res) => {
     if (!OBJECT_ID_PATTERN.test(req.params.objectId ?? '')) {
       res.status(404).send();
