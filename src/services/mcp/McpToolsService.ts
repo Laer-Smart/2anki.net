@@ -100,6 +100,17 @@ function decodePhotoInput(image: string): DecodedPhoto {
   };
 }
 
+function decodeFileNameHeader(raw: string | null): string | null {
+  if (raw == null) {
+    return null;
+  }
+  try {
+    return decodeURIComponent(raw);
+  } catch {
+    return raw;
+  }
+}
+
 export interface DeckSummary {
   jobId: string;
   title: string;
@@ -517,7 +528,7 @@ export class McpToolsService {
   ): Promise<ConvertResult> {
     const cardCountHeader = res.get('X-Card-Count');
     const cardCount = cardCountHeader != null ? Number(cardCountHeader) : null;
-    const filename = res.get('File-Name') ?? null;
+    const filename = decodeFileNameHeader(res.get('File-Name') ?? null);
     const title = filename ?? fallbackTitle;
     const objectId = randomUUID();
     await this.deckPersistence.persist(owner, objectId, title, bytes);
