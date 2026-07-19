@@ -5,6 +5,7 @@ import { DropboxUpload, GoogleDriveUpload } from '../../../lib/backend';
 export type DeckRow =
   | { source: 'notion'; kind: 'job'; job: JobResponse; sortKey: Date }
   | { source: 'upload'; kind: 'job'; job: JobResponse; sortKey: Date }
+  | { source: 'mcp'; kind: 'job'; job: JobResponse; sortKey: Date }
   | {
       source: 'upload' | 'app';
       kind: 'file';
@@ -22,7 +23,10 @@ export type DeckRow =
 const NOTION_TYPES = new Set(['page', 'database', 'conversion']);
 const EPOCH = new Date(0);
 
-function jobSource(type: string | null | undefined): 'notion' | 'upload' {
+function jobSource(
+  type: string | null | undefined
+): 'notion' | 'upload' | 'mcp' {
+  if (type === 'mcp') return 'mcp';
   if (type != null && NOTION_TYPES.has(type)) return 'notion';
   return 'upload';
 }
@@ -40,11 +44,12 @@ function toSortKey(value: string | Date | null | undefined): Date {
 function buildSuppressedObjectIds(jobs: JobResponse[]): Set<string> {
   const ids = new Set<string>();
   for (const job of jobs) {
-    const isNotionDoneWithKey =
-      jobSource(job.type) === 'notion' &&
+    const source = jobSource(job.type);
+    const isGeneratedDoneWithKey =
+      (source === 'notion' || source === 'mcp') &&
       job.status === 'done' &&
       job.download_key != null;
-    if (isNotionDoneWithKey) ids.add(job.object_id);
+    if (isGeneratedDoneWithKey) ids.add(job.object_id);
   }
   return ids;
 }

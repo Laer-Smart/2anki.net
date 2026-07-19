@@ -104,6 +104,8 @@ function getSourceLabel(source: DeckRow['source'], t: TFunction): string {
       return t('downloads.source.notion');
     case 'upload':
       return t('downloads.source.upload');
+    case 'mcp':
+      return t('downloads.source.mcp');
     case 'app':
       return t('downloads.source.app');
     case 'dropbox':
@@ -721,7 +723,8 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                             <EyeIcon width={16} height={16} />
                                           </Link>
                                         )}
-                                      {row.source === 'notion' &&
+                                      {(row.source === 'notion' ||
+                                        row.source === 'mcp') &&
                                         isDoneJob(row.job.status) &&
                                         row.job.upload_id != null && (
                                           <SendToAnkifyButton
