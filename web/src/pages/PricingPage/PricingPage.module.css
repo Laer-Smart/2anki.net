@@ -666,8 +666,8 @@
    BILLING TOGGLE — in-card cycle selector on Unlimited card
    ===================================================================== */
 .billingToggle {
-  display: inline-flex;
-  align-self: flex-start;
+  display: flex;
+  align-self: stretch;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   overflow: hidden;
@@ -680,7 +680,7 @@
   flex: 1;
   padding: 0.3rem 0.85rem;
   font-family: var(--font-sans);
-  font-size: var(--text-xs);
+  font-size: var(--text-sm);
   font-weight: var(--font-medium);
   border: none;
   background: transparent;
@@ -688,13 +688,14 @@
   transition:
     background var(--transition-fast),
     color var(--transition-fast);
-  color: var(--color-text-secondary);
+  color: var(--color-text-tertiary);
   white-space: nowrap;
 }
 
 .billingToggleOptionActive {
   background: var(--color-primary);
   color: var(--color-bg-primary);
+  font-weight: var(--font-semibold);
 }
 
 .billingToggleOption:hover {

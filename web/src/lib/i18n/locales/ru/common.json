@@ -354,8 +354,8 @@
     "unlimited": {
       "mostPopular": "Самый популярный",
       "perMonth": "/ мес",
-      "yearlyHint": "{{annualTotal}}/год при годовой оплате · экономия {{savings}}%",
-      "monthlyHint": "оплата помесячно",
+      "yearlyHint": "{{annualTotal}} спишется сегодня, далее ежегодно · экономия {{savings}}%",
+      "monthlyHint": "{{monthlyTotal}} спишется сегодня, далее ежемесячно",
       "billingCycle": "Цикл оплаты",
       "yearlyOption": "Годовой · экономия {{savings}}%",
       "monthlyOption": "Помесячно",
@@ -370,9 +370,10 @@
       "benefitCancel": "Отмена в любой момент",
       "tryAgain": "Попробовать снова",
       "startingCheckout": "Открываем оплату",
-      "getUnlimited": "Купить Unlimited",
-      "termsYearly": "{{annualTotal}}/год, продлевается ежегодно. Отмена в любой момент — доступ сохраняется до конца оплаченного года.",
-      "termsMonthly": "{{monthlyTotal}}/месяц, продлевается ежемесячно. Отмена в любой момент.",
+      "getUnlimitedYearly": "Купить Unlimited — годовая оплата",
+      "getUnlimitedMonthly": "Купить Unlimited — помесячная оплата",
+      "termsYearly": "{{annualTotal}} спишется сегодня, продлевается ежегодно. Отмена в любой момент — доступ сохраняется до конца оплаченного года.",
+      "termsMonthly": "{{monthlyTotal}} спишется сегодня, продлевается ежемесячно. Отмена в любой момент.",
       "checkoutError": "Не удалось открыть оплату. Попробуй ещё раз или напиши на support@2anki.net."
     },
     "card": {

@@ -354,8 +354,8 @@
     "unlimited": {
       "mostPopular": "Najpopularniejszy",
       "perMonth": "/ mies.",
-      "yearlyHint": "{{annualTotal}}/rok przy płatności rocznej · oszczędzasz {{savings}}%",
-      "monthlyHint": "rozliczane miesięcznie",
+      "yearlyHint": "{{annualTotal}} pobierane dziś, potem co roku · oszczędzasz {{savings}}%",
+      "monthlyHint": "{{monthlyTotal}} pobierane dziś, potem co miesiąc",
       "billingCycle": "Cykl rozliczeniowy",
       "yearlyOption": "Rocznie · oszczędzasz {{savings}}%",
       "monthlyOption": "Miesięcznie",
@@ -370,9 +370,10 @@
       "benefitCancel": "Anuluj w każdej chwili",
       "tryAgain": "Spróbuj ponownie",
       "startingCheckout": "Rozpoczynanie płatności",
-      "getUnlimited": "Kup Unlimited",
-      "termsYearly": "{{annualTotal}}/rok, odnawia się co roku. Anuluj w każdej chwili — zachowujesz dostęp przez opłacony rok.",
-      "termsMonthly": "{{monthlyTotal}}/miesiąc, odnawia się co miesiąc. Anuluj w każdej chwili.",
+      "getUnlimitedYearly": "Kup Unlimited — płatność roczna",
+      "getUnlimitedMonthly": "Kup Unlimited — płatność miesięczna",
+      "termsYearly": "{{annualTotal}} pobierane dziś, odnawia się co roku. Anuluj w każdej chwili — zachowujesz dostęp przez opłacony rok.",
+      "termsMonthly": "{{monthlyTotal}} pobierane dziś, odnawia się co miesiąc. Anuluj w każdej chwili.",
       "checkoutError": "Nie udało się rozpocząć płatności. Spróbuj ponownie albo napisz na support@2anki.net."
     },
     "card": {

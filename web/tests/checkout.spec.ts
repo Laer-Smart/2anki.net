@@ -60,7 +60,7 @@ test.describe('Unlimited checkout', () => {
 
     await expect(page.getByText('$5.00').first()).toBeVisible();
     await expect(
-      page.getByText('$60/year billed yearly · save 17%')
+      page.getByText('$60 billed today, then yearly · save 17%')
     ).toBeVisible();
     await expect(page.getByText('$5.33')).toBeHidden();
   });
@@ -73,7 +73,7 @@ test.describe('Unlimited checkout', () => {
 
     await expect(page.getByText('$5.33')).toBeVisible();
     await expect(
-      page.getByText('$64/year billed yearly · save 33%')
+      page.getByText('$64 billed today, then yearly · save 33%')
     ).toBeVisible();
   });
 
@@ -92,7 +92,9 @@ test.describe('Unlimited checkout', () => {
     });
 
     await page.goto('/pricing');
-    await page.getByRole('button', { name: 'Get Unlimited' }).click();
+    await page
+      .getByRole('button', { name: 'Get Unlimited — billed yearly' })
+      .click();
 
     await expect.poll(() => checkoutBody.interval).toBe('year');
   });

@@ -76,7 +76,9 @@ export function UnlimitedCard({
   function getButtonLabel(): string {
     if (error) return t('pricing.unlimited.tryAgain');
     if (pending) return t('pricing.unlimited.startingCheckout');
-    return t('pricing.unlimited.getUnlimited');
+    return isYearly
+      ? t('pricing.unlimited.getUnlimitedYearly')
+      : t('pricing.unlimited.getUnlimitedMonthly');
   }
 
   return (
@@ -98,7 +100,7 @@ export function UnlimitedCard({
           </p>
         ) : (
           <p className={styles.yearlyHint}>
-            {t('pricing.unlimited.monthlyHint')}
+            {t('pricing.unlimited.monthlyHint', { monthlyTotal })}
           </p>
         )}
         {yearlyAvailable && (

@@ -350,8 +350,8 @@
     "unlimited": {
       "mostPopular": "Meest gekozen",
       "perMonth": "/ mnd",
-      "yearlyHint": "{{annualTotal}}/jaar jaarlijks gefactureerd · bespaar {{savings}}%",
-      "monthlyHint": "maandelijks gefactureerd",
+      "yearlyHint": "{{annualTotal}} vandaag afgeschreven, daarna jaarlijks · bespaar {{savings}}%",
+      "monthlyHint": "{{monthlyTotal}} vandaag afgeschreven, daarna maandelijks",
       "billingCycle": "Facturatiecyclus",
       "yearlyOption": "Jaarlijks · bespaar {{savings}}%",
       "monthlyOption": "Maandelijks",
@@ -366,9 +366,10 @@
       "benefitCancel": "Altijd opzegbaar",
       "tryAgain": "Opnieuw proberen",
       "startingCheckout": "Afrekenen starten",
-      "getUnlimited": "Unlimited kopen",
-      "termsYearly": "{{annualTotal}}/jaar, wordt jaarlijks verlengd. Altijd opzegbaar — je houdt toegang gedurende het jaar waarvoor je betaalde.",
-      "termsMonthly": "{{monthlyTotal}}/maand, wordt maandelijks verlengd. Altijd opzegbaar.",
+      "getUnlimitedYearly": "Unlimited kopen — jaarlijkse facturering",
+      "getUnlimitedMonthly": "Unlimited kopen — maandelijkse facturering",
+      "termsYearly": "{{annualTotal}} vandaag afgeschreven, wordt jaarlijks verlengd. Altijd opzegbaar — je houdt toegang gedurende het jaar waarvoor je betaalde.",
+      "termsMonthly": "{{monthlyTotal}} vandaag afgeschreven, wordt maandelijks verlengd. Altijd opzegbaar.",
       "checkoutError": "Kon het afrekenen niet starten. Probeer het opnieuw, of mail support@2anki.net."
     },
     "card": {

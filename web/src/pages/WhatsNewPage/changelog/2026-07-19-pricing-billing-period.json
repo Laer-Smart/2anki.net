@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-19-pricing-billing-period",
+  "date": "2026-07-19",
+  "type": "fix",
+  "title": "Pricing shows the full amount billed today and the billing period on the button before checkout"
+}
