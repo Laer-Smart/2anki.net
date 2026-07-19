@@ -13,7 +13,8 @@ const md = new MarkdownIt({
 
 const ASIDE_TAG_RE = /^<\/?aside[^>]*>\s*$/gim;
 
-const CARD_SAFE_TAGS = 'ruby|rt|rp|rb|details|summary';
+const CARD_SAFE_TAGS =
+  'ruby|rt|rp|rb|details|summary|br|b|strong|i|em|u|s|code|sub|sup|mark|small';
 const ESCAPED_CARD_SAFE_TAG_RE = new RegExp(
   `&lt;(/?(?:${CARD_SAFE_TAGS}))&gt;`,
   'gi'

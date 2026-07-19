@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-19-inline-html-cards",
+  "date": "2026-07-19",
+  "type": "fix",
+  "title": "Cards keep inline formatting like bold, line breaks, and highlights when your notes use HTML tags"
+}
