@@ -63,4 +63,57 @@ describe('renderConsentPage', () => {
     expect(html).not.toContain('<script>alert(1)</script>');
     expect(html).toContain('&lt;script&gt;');
   });
+
+  it('renders human-readable scope lines instead of the raw scope token', () => {
+    const html = renderConsentPage({
+      actionPath: '/authorize',
+      clientName: 'Claude',
+      scopes: ['mcp'],
+      csrf: 'x',
+      fields: {},
+    });
+    expect(html).toContain('List your decks');
+    expect(html).toContain('Preview a deck&#39;s cards');
+    expect(html).toContain('Create decks from your content');
+    expect(html).not.toContain(
+      '<li><span class="consent-check" aria-hidden="true">✓</span><span>mcp</span></li>'
+    );
+  });
+
+  it('falls back to a generic scope line for an unknown scope', () => {
+    const html = renderConsentPage({
+      actionPath: '/authorize',
+      clientName: 'Claude',
+      scopes: ['unknown-scope'],
+      csrf: 'x',
+      fields: {},
+    });
+    expect(html).toContain('Access your 2anki decks and conversions');
+  });
+
+  it('includes the mascot image and an inline style block', () => {
+    const html = renderConsentPage({
+      actionPath: '/authorize',
+      clientName: 'Claude',
+      scopes: ['mcp'],
+      csrf: 'x',
+      fields: {},
+    });
+    expect(html).toContain('src="https://2anki.net/mascot/navbar-logo.png"');
+    expect(html).toContain('<style>');
+  });
+
+  it('renders both buttons with the new labels while keeping approve/deny values', () => {
+    const html = renderConsentPage({
+      actionPath: '/authorize',
+      clientName: 'Claude',
+      scopes: ['mcp'],
+      csrf: 'x',
+      fields: {},
+    });
+    expect(html).toContain('name="consent" value="approve"');
+    expect(html).toContain('name="consent" value="deny"');
+    expect(html).toContain('>Allow access</button>');
+    expect(html).toContain('>Cancel</button>');
+  });
 });
