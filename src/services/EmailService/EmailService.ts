@@ -28,6 +28,7 @@ import { ClientResponse } from '@sendgrid/mail';
 import { SUPPORT_EMAIL_ADDRESS } from '../../lib/constants';
 import { emailHash } from '../../lib/emailHash';
 import { getDatabase } from '../../data_layer';
+import { sendWithRetry } from './sendWithRetry';
 import SuppressionEventsRepository from '../../data_layer/SuppressionEventsRepository';
 import UsersRepository from '../../data_layer/UsersRepository';
 import { DeckReadyStrings, getEmailStrings } from './i18n';
@@ -336,7 +337,7 @@ export class EmailService implements IEmailService {
       })),
     };
     try {
-      await sgMail.send(msg);
+      await sendWithRetry(() => sgMail.send(msg));
       return { didSend: true };
     } catch (e) {
       console.error('Error sending email', e);

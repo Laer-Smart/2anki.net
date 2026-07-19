@@ -18,18 +18,33 @@ class IndexController {
     const attachments = Array.isArray(req.files) ? req.files : [];
     const database = getDatabase();
 
-    await database('feedback').insert({
-      name,
-      email,
-      message,
-      attachments: JSON.stringify(attachments.map((a) => a.originalname)),
-    });
+    const inserted = await database('feedback')
+      .insert({
+        name,
+        email,
+        message,
+        attachments: JSON.stringify(attachments.map((a) => a.originalname)),
+      })
+      .returning('id');
+    const feedbackId =
+      typeof inserted?.[0] === 'object' ? inserted[0]?.id : inserted?.[0];
 
     const emailService = getDefaultEmailService();
-    emailService
+    void emailService
       .sendContactEmail(name, email, message, attachments)
+      .then((result) => {
+        if (!result.didSend) {
+          console.error(
+            `Contact email notification failed for feedback row ${feedbackId}; the message is saved in the ops inbox`,
+            result.error
+          );
+        }
+      })
       .catch((err) => {
-        console.error('Failed to send contact email notification', err);
+        console.error(
+          `Contact email notification threw for feedback row ${feedbackId}; the message is saved in the ops inbox`,
+          err
+        );
       });
 
     return res.status(200).send();
