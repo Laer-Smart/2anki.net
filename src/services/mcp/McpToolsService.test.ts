@@ -78,6 +78,7 @@ function makeService(overrides: {
     persist,
     getPresignedUrl,
     generateCards,
+    previewService,
   };
 }
 
@@ -384,6 +385,39 @@ describe('McpToolsService.createDeck', () => {
       expect.any(String),
       'deck.apkg',
       Buffer.from('APKG-BYTES')
+    );
+  });
+
+  it('keys the preview cache by the jobId, not the deck name, so a reused name does not return stale cards (regression: #3744)', async () => {
+    const { entry } = captureUpload();
+    const { service, previewService } = makeService({ uploadEntry: entry });
+    const parseMock = previewService.parse as jest.Mock;
+
+    const first = await service.createDeck(
+      [{ front: 'A-front', back: 'A-back' }],
+      'Same Name',
+      'owner-9',
+      {}
+    );
+    const second = await service.createDeck(
+      [{ front: 'B-front', back: 'B-back' }],
+      'Same Name',
+      'owner-9',
+      {}
+    );
+
+    const firstJobId = (first as { jobId?: string }).jobId;
+    const secondJobId = (second as { jobId?: string }).jobId;
+    expect(firstJobId).not.toBe(secondJobId);
+    expect(parseMock).toHaveBeenNthCalledWith(
+      1,
+      `mcp:${firstJobId}`,
+      expect.any(Buffer)
+    );
+    expect(parseMock).toHaveBeenNthCalledWith(
+      2,
+      `mcp:${secondJobId}`,
+      expect.any(Buffer)
     );
   });
 

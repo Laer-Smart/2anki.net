@@ -414,13 +414,10 @@ export class McpToolsService {
 
   private async previewFromBytes(
     buffer: Buffer,
-    filename: string | null
+    cacheKey: string
   ): Promise<Pick<DeckPreview, 'deckCount' | 'decks' | 'sampleCards'> | null> {
     try {
-      const parsed = await this.previewService.parse(
-        filename ?? 'deck.apkg',
-        buffer
-      );
+      const parsed = await this.previewService.parse(cacheKey, buffer);
       const meta = this.previewService.getMeta(parsed);
       const page = this.previewService.getCardsPage(
         parsed,
@@ -525,7 +522,7 @@ export class McpToolsService {
     const objectId = randomUUID();
     await this.deckPersistence.persist(owner, objectId, title, bytes);
     const downloadUrl = `${this.baseUrl}/api/mcp/decks/${objectId}/download`;
-    const preview = await this.previewFromBytes(bytes, filename);
+    const preview = await this.previewFromBytes(bytes, `mcp:${objectId}`);
     const summary =
       cardCount != null
         ? `${cardCount} cards. Ready to download.`
