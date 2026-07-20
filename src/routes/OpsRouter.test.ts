@@ -232,6 +232,9 @@ jest.mock('../data_layer/EventsRepository', () => {
       groupPaywallClicksByVariant() {
         return Promise.resolve([]);
       }
+      groupConversionFailedByReason() {
+        return Promise.resolve({ paywall: 8, empty: 5, technical: 7 });
+      }
     },
   };
 });
@@ -406,6 +409,11 @@ describe('OpsRouter /api/ops/upload-funnel', () => {
             deck_downloaded: 60,
           }),
           upload_to_download_rate_pct: 60,
+          conversion_failed_by_reason: {
+            paywall: 8,
+            empty: 5,
+            technical: 7,
+          },
           by_origin: [
             expect.objectContaining({
               origin: '/nclex',
