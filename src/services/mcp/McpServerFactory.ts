@@ -17,6 +17,11 @@ export interface McpRequestContext {
   locals: Record<string, unknown>;
   toolsService: McpToolsService;
   recordToolCall: (toolName: string) => void;
+  recordToolResult: (
+    toolName: string,
+    success: boolean,
+    errorCode?: string
+  ) => void;
 }
 
 type ToolShape = Record<string, z.ZodTypeAny>;
@@ -215,8 +220,10 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
         context.locals
       );
       if (result.kind === 'error') {
+        context.recordToolResult('convert_to_deck', false, result.code);
         return errorResult(result.message);
       }
+      context.recordToolResult('convert_to_deck', true);
       return textResult(result);
     }
   );
@@ -257,8 +264,10 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
         context.locals
       );
       if (result.kind === 'error') {
+        context.recordToolResult('create_deck', false, result.code);
         return errorResult(result.message);
       }
+      context.recordToolResult('create_deck', true);
       return textResult(result);
     }
   );

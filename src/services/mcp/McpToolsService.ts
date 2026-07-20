@@ -14,6 +14,14 @@ import {
   McpConvertOptions,
   mcpOptionsToCardSettings,
 } from './mcpOptionsToCardSettings';
+import {
+  AppliedOptions,
+  IgnoredOption,
+  buildAppliedOptions,
+  hasClozeMarkup,
+} from './buildAppliedOptions';
+import type { ParsedApkg } from '../ApkgPreviewService/ApkgPreviewService';
+import type { RenderedCard } from '../ApkgPreviewService/types';
 import { detectFileMime } from '../../lib/detectFileMime';
 import { mcpBaseUrl } from './mcpBaseUrl';
 import { isPaying } from '../../lib/isPaying';
@@ -33,6 +41,11 @@ const PREVIEW_CARD_LIMIT = 20;
 const MAX_CARDS = 500;
 const DEFAULT_DECK_NAME = 'MCP deck';
 const DATA_URL_PREFIX = /^data:[^,]*,/;
+const NO_CARDS_FOUND_MESSAGE =
+  'No cards found in this text. If you already have front/back pairs, call create_deck with them — it needs no special formatting. Otherwise mark up the text with one of these structures and call convert_to_deck again: `front :: back` on its own line, `<details><summary>front</summary>back</details>`, or a `## front` heading with the answer on the line below. Full grammar: deck_capabilities → inputFormats.';
+const EMPTY_BACK_MESSAGE =
+  'Some cards have an empty back. Every card needs both a front and a back.';
+const NO_CARD_CODES = new Set(['markdown_likely_lossy', 'empty_export']);
 const ALLOWED_PHOTO_MEDIA_TYPES: VisionMediaType[] = [
   'image/jpeg',
   'image/png',
@@ -119,11 +132,17 @@ export interface DeckSummary {
   downloadUrl: string | null;
 }
 
+export interface SampleCard {
+  front: string;
+  back: string;
+  direction?: 'forward' | 'reverse';
+}
+
 export interface DeckPreview {
   cardCount: number;
   deckCount: number;
   decks: { id: number; name: string; cardCount: number }[];
-  sampleCards: { front: string; back: string }[];
+  sampleCards: SampleCard[];
 }
 
 export type ConvertResult =
@@ -142,10 +161,12 @@ export type ConvertResult =
       downloadUrl?: string;
       deckCount?: number;
       decks?: { id: number; name: string; cardCount: number }[];
-      sampleCards?: { front: string; back: string }[];
+      sampleCards?: SampleCard[];
+      applied?: AppliedOptions;
+      ignored?: IgnoredOption[];
       summary: string;
     }
-  | { kind: 'error'; message: string };
+  | { kind: 'error'; message: string; code?: string };
 
 export interface ConvertInput {
   url?: string;
@@ -314,10 +335,10 @@ export class McpToolsService {
         name: deck.fullName,
         cardCount: deck.cardCount,
       })),
-      sampleCards: page.cards.map((card) => ({
-        front: card.front,
-        back: card.back,
-      })),
+      sampleCards: this.toSampleCards(
+        page.cards,
+        this.deckIsReversible(parsed)
+      ),
     };
   }
 
@@ -357,7 +378,26 @@ export class McpToolsService {
       locals,
       mcpOptionsToCardSettings(input.options)
     );
-    return this.mapUploadResult(res, owner, file.originalname);
+    const result = await this.mapUploadResult(res, owner, file.originalname);
+    if (result.kind !== 'deck') {
+      return result;
+    }
+    const clozePresent =
+      input.options?.noteType === 'cloze'
+        ? hasClozeMarkup(this.clozeCheckText(input, file))
+        : false;
+    const { applied, ignored } = buildAppliedOptions(
+      input.options,
+      clozePresent
+    );
+    return { ...result, applied, ...(ignored ? { ignored } : {}) };
+  }
+
+  private clozeCheckText(input: ConvertInput, file: UploadedFile): string {
+    if (typeof input.text === 'string' && input.text.length > 0) {
+      return input.text;
+    }
+    return file.buffer.subarray(0, MAX_TEXT_BYTES).toString('utf-8');
   }
 
   async createDeck(
@@ -403,7 +443,14 @@ export class McpToolsService {
     if (result.kind === 'deck' && result.cardCount == null) {
       return { ...result, cardCount: cards.length };
     }
+    if (result.kind === 'error' && this.everyBackEmpty(cards)) {
+      return { ...result, message: EMPTY_BACK_MESSAGE };
+    }
     return result;
+  }
+
+  private everyBackEmpty(cards: McpCard[]): boolean {
+    return cards.every((card) => card.back == null || card.back.trim() === '');
   }
 
   private async runUpload(
@@ -436,6 +483,9 @@ export class McpToolsService {
         PREVIEW_CARD_LIMIT,
         ''
       );
+      const reversible = this.deckIsReversible(parsed);
+      const sampleCards = this.toSampleCards(page.cards, reversible);
+      this.ensureReverseSample(parsed, reversible, sampleCards);
       return {
         deckCount: meta.decks.length,
         decks: meta.decks.map((deck) => ({
@@ -443,13 +493,67 @@ export class McpToolsService {
           name: deck.fullName,
           cardCount: deck.cardCount,
         })),
-        sampleCards: page.cards.map((card) => ({
-          front: card.front,
-          back: card.back,
-        })),
+        sampleCards,
       };
     } catch {
       return null;
+    }
+  }
+
+  private deckIsReversible(parsed: ParsedApkg): boolean {
+    const noteTypes = parsed.collection?.noteTypes;
+    if (!(noteTypes instanceof Map)) {
+      return false;
+    }
+    for (const noteType of noteTypes.values()) {
+      if (
+        noteType.type === 0 &&
+        Array.isArray(noteType.templates) &&
+        noteType.templates.length >= 2
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private toSampleCards(
+    cards: RenderedCard[],
+    reversible: boolean
+  ): SampleCard[] {
+    return cards.map((card) => this.toSampleCard(card, reversible));
+  }
+
+  private toSampleCard(card: RenderedCard, reversible: boolean): SampleCard {
+    if (!reversible) {
+      return { front: card.front, back: card.back };
+    }
+    const direction: 'forward' | 'reverse' =
+      card.ord === 0 ? 'forward' : 'reverse';
+    return { front: card.front, back: card.back, direction };
+  }
+
+  private ensureReverseSample(
+    parsed: ParsedApkg,
+    reversible: boolean,
+    sampleCards: SampleCard[]
+  ): void {
+    if (!reversible) {
+      return;
+    }
+    if (sampleCards.some((card) => card.direction === 'reverse')) {
+      return;
+    }
+    const reverseIndex = parsed.collection.cards.findIndex(
+      (card) => card.ord >= 1
+    );
+    if (reverseIndex < 0) {
+      return;
+    }
+    const extra = this.previewService.getCardsPage(parsed, reverseIndex, 1, '');
+    const card = extra.cards[0];
+    if (card) {
+      sampleCards.push(this.toSampleCard(card, true));
     }
   }
 
@@ -514,9 +618,11 @@ export class McpToolsService {
     if (res.statusCode === 200 && res.bodyBuffer != null) {
       return this.persistDeckResult(res.bodyBuffer, res, owner, fallbackTitle);
     }
+    const code = this.errorCode(res.body);
     return {
       kind: 'error',
-      message: this.errorMessage(res.body),
+      message: this.errorMessage(res.body, code),
+      ...(code != null ? { code } : {}),
     };
   }
 
@@ -568,7 +674,21 @@ export class McpToolsService {
     );
   }
 
-  private errorMessage(body: unknown): string {
+  private errorCode(body: unknown): string | undefined {
+    if (
+      typeof body === 'object' &&
+      body != null &&
+      typeof (body as { code?: unknown }).code === 'string'
+    ) {
+      return (body as { code: string }).code;
+    }
+    return undefined;
+  }
+
+  private errorMessage(body: unknown, code: string | undefined): string {
+    if (code != null && NO_CARD_CODES.has(code)) {
+      return NO_CARDS_FOUND_MESSAGE;
+    }
     if (
       typeof body === 'object' &&
       body != null &&
