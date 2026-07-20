@@ -11,12 +11,16 @@ function makeEventsSink(): jest.Mocked<Pick<EventsSink, 'record'>> {
 
 function makeRepo(
   claimed = true,
-  optedOut = false
+  optedOut = false,
+  alreadyPaying = false,
+  recentlySent = false
 ): jest.Mocked<IAbandonedCheckoutRecoveryRepository> {
   return {
     claimSession: jest.fn().mockResolvedValue(claimed),
     recordEmailSend: jest.fn().mockResolvedValue(undefined),
     isMarketingOptedOut: jest.fn().mockResolvedValue(optedOut),
+    hasLifetimeOrActiveSubscription: jest.fn().mockResolvedValue(alreadyPaying),
+    hasSendSince: jest.fn().mockResolvedValue(recentlySent),
     getRecoveryByToken: jest.fn().mockResolvedValue(null),
   };
 }
@@ -206,6 +210,72 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
     ).not.toHaveBeenCalled();
   });
 
+  it('does not send when the recipient has lifetime or an active subscription', async () => {
+    const repo = makeRepo(true, false, true);
+    const emailService = makeEmailService();
+    const eventsSink = makeEventsSink();
+    const infoSpy = jest.spyOn(console, 'info').mockImplementation(() => {});
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService,
+      eventsSink
+    );
+
+    await useCase.execute('cs_lifetime', 'lifetime@example.com');
+
+    expect(repo.hasLifetimeOrActiveSubscription).toHaveBeenCalledWith(
+      'lifetime@example.com'
+    );
+    expect(repo.claimSession).not.toHaveBeenCalled();
+    expect(
+      emailService.sendAbandonedCheckoutRecoveryEmail
+    ).not.toHaveBeenCalled();
+    expect(eventsSink.record).not.toHaveBeenCalled();
+    expect(infoSpy).toHaveBeenCalledWith(
+      'checkout.session.expired.already_paying',
+      { session_id_hash: 'hashed:cs_lifetime' }
+    );
+    infoSpy.mockRestore();
+  });
+
+  it('does not send when a recovery email already went to the address recently', async () => {
+    const repo = makeRepo(true, false, false, true);
+    const emailService = makeEmailService();
+    const eventsSink = makeEventsSink();
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService,
+      eventsSink
+    );
+
+    await useCase.execute('cs_second_session', 'alice@example.com');
+
+    expect(repo.claimSession).not.toHaveBeenCalled();
+    expect(
+      emailService.sendAbandonedCheckoutRecoveryEmail
+    ).not.toHaveBeenCalled();
+    expect(eventsSink.record).not.toHaveBeenCalled();
+  });
+
+  it('checks recent sends against a cutoff 7 days back', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2026-07-20T12:00:00Z'));
+    const repo = makeRepo(true);
+    const emailService = makeEmailService();
+    const useCase = new SendAbandonedCheckoutRecoveryOnExpiryUseCase(
+      repo,
+      emailService
+    );
+
+    await useCase.execute('cs_window', 'alice@example.com');
+
+    expect(repo.hasSendSince).toHaveBeenCalledWith(
+      'alice@example.com',
+      new Date('2026-07-13T12:00:00Z')
+    );
+    jest.useRealTimers();
+  });
+
   it('skips with warn log when email is missing', async () => {
     const repo = makeRepo(true);
     const emailService = makeEmailService();
@@ -236,6 +306,8 @@ describe('SendAbandonedCheckoutRecoveryOnExpiryUseCase', () => {
       }),
       recordEmailSend: jest.fn().mockResolvedValue(undefined),
       isMarketingOptedOut: jest.fn().mockResolvedValue(false),
+      hasLifetimeOrActiveSubscription: jest.fn().mockResolvedValue(false),
+      hasSendSince: jest.fn().mockResolvedValue(false),
       getRecoveryByToken: jest.fn().mockResolvedValue(null),
     };
     const emailService = makeEmailService();

@@ -34,11 +34,15 @@ jest.mock('../data_layer', () => ({ getDatabase: jest.fn() }));
 
 const mockClaimSession = jest.fn().mockResolvedValue(true);
 const mockIsMarketingOptedOut = jest.fn().mockResolvedValue(false);
+const mockHasLifetimeOrActiveSubscription = jest.fn().mockResolvedValue(false);
+const mockHasSendSince = jest.fn().mockResolvedValue(false);
 jest.mock('../data_layer/AbandonedCheckoutRecoveryRepository', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
     claimSession: mockClaimSession,
     isMarketingOptedOut: mockIsMarketingOptedOut,
+    hasLifetimeOrActiveSubscription: mockHasLifetimeOrActiveSubscription,
+    hasSendSince: mockHasSendSince,
   })),
 }));
 

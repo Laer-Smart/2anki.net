@@ -19,6 +19,8 @@ export interface IAbandonedCheckoutRecoveryRepository {
   ): Promise<boolean>;
   recordEmailSend(userEmail: string, token: string): Promise<void>;
   isMarketingOptedOut(userEmail: string): Promise<boolean>;
+  hasLifetimeOrActiveSubscription(userEmail: string): Promise<boolean>;
+  hasSendSince(userEmail: string, since: Date): Promise<boolean>;
   getRecoveryByToken(token: string): Promise<CheckoutRecoveryLookup | null>;
 }
 
@@ -72,6 +74,31 @@ export class AbandonedCheckoutRecoveryRepository implements IAbandonedCheckoutRe
     return row != null;
   }
 
+  async hasLifetimeOrActiveSubscription(userEmail: string): Promise<boolean> {
+    const lifetimeUser = await this.database('users')
+      .where('email', userEmail)
+      .where('patreon', true)
+      .first();
+    if (lifetimeUser != null) {
+      return true;
+    }
+    const activeSubscription = await this.database('subscriptions')
+      .where('active', true)
+      .where(function () {
+        this.where('email', userEmail).orWhere('linked_email', userEmail);
+      })
+      .first();
+    return activeSubscription != null;
+  }
+
+  async hasSendSince(userEmail: string, since: Date): Promise<boolean> {
+    const row = await this.database<AbandonedCheckoutRecoveryRow>(this.table)
+      .where('user_email', userEmail)
+      .where('sent_at', '>', since)
+      .first();
+    return row != null;
+  }
+
   async getRecoveryByToken(
     token: string
   ): Promise<CheckoutRecoveryLookup | null> {
@@ -94,6 +121,8 @@ export class AbandonedCheckoutRecoveryRepository implements IAbandonedCheckoutRe
 export class InMemoryAbandonedCheckoutRecoveryRepository implements IAbandonedCheckoutRecoveryRepository {
   private readonly claimed = new Set<string>();
   private readonly optedOut = new Set<string>();
+  private readonly payingEmails = new Set<string>();
+  private readonly lastSendByEmail = new Map<string, Date>();
   private readonly tokensByEmail = new Map<string, string>();
   private readonly tokensBySessionId = new Map<string, string>();
   private readonly recoveryByToken = new Map<string, CheckoutRecoveryLookup>();
@@ -128,6 +157,15 @@ export class InMemoryAbandonedCheckoutRecoveryRepository implements IAbandonedCh
     return this.optedOut.has(userEmail);
   }
 
+  async hasLifetimeOrActiveSubscription(userEmail: string): Promise<boolean> {
+    return this.payingEmails.has(userEmail);
+  }
+
+  async hasSendSince(userEmail: string, since: Date): Promise<boolean> {
+    const lastSend = this.lastSendByEmail.get(userEmail);
+    return lastSend != null && lastSend > since;
+  }
+
   async getRecoveryByToken(
     token: string
   ): Promise<CheckoutRecoveryLookup | null> {
@@ -136,6 +174,14 @@ export class InMemoryAbandonedCheckoutRecoveryRepository implements IAbandonedCh
 
   seedOptedOut(userEmail: string): void {
     this.optedOut.add(userEmail);
+  }
+
+  seedPaying(userEmail: string): void {
+    this.payingEmails.add(userEmail);
+  }
+
+  seedSendAt(userEmail: string, sentAt: Date): void {
+    this.lastSendByEmail.set(userEmail, sentAt);
   }
 
   getClaimedSessions(): ReadonlySet<string> {
@@ -153,6 +199,8 @@ export class InMemoryAbandonedCheckoutRecoveryRepository implements IAbandonedCh
   clear(): void {
     this.claimed.clear();
     this.optedOut.clear();
+    this.payingEmails.clear();
+    this.lastSendByEmail.clear();
     this.tokensByEmail.clear();
     this.tokensBySessionId.clear();
     this.recoveryByToken.clear();
