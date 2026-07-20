@@ -417,6 +417,113 @@ describe('performConversion — heavy pipeline', () => {
   });
 });
 
+describe('performConversion — signup_origin attribution', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    jest.spyOn(console, 'info').mockImplementation(() => undefined);
+    (SetJobFailedUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (NotionRepository as jest.Mock).mockImplementation(() => ({
+      markTokenInvalid: jest.fn().mockResolvedValue(undefined),
+      setReconnectEmailSent: jest.fn().mockResolvedValue(false),
+    }));
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  function mockSuccessfulPipeline(): void {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: {},
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
+    }));
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest
+        .fn()
+        .mockResolvedValue({ size: 1, key: 'k', apkg: Buffer.from('') }),
+    }));
+    (NotifyUserUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (CompleteJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+  }
+
+  it('stamps signup_origin on conversion_succeeded from the job payload', async () => {
+    mockSuccessfulPipeline();
+
+    await performConversion(mockDatabase, {
+      ...baseRequest,
+      signupOrigin: '/pricing',
+    });
+
+    expect(track).toHaveBeenCalledWith(
+      'conversion_succeeded',
+      expect.objectContaining({
+        props: expect.objectContaining({ signup_origin: '/pricing' }),
+      })
+    );
+  });
+
+  it('stamps signup_origin on conversion_failed from the job payload', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: {},
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [] }]),
+    }));
+
+    await performConversion(mockDatabase, {
+      ...baseRequest,
+      signupOrigin: '/photo-to-deck',
+    });
+
+    expect(track).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        props: expect.objectContaining({
+          reason: 'empty_deck',
+          signup_origin: '/photo-to-deck',
+        }),
+      })
+    );
+  });
+
+  it('emits signup_origin=null when the job payload carries no origin', async () => {
+    mockSuccessfulPipeline();
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(track).toHaveBeenCalledWith(
+      'conversion_succeeded',
+      expect.objectContaining({
+        props: expect.objectContaining({ signup_origin: null }),
+      })
+    );
+  });
+});
+
 describe('performConversion — workspace cleanup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
