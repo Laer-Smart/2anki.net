@@ -3,13 +3,23 @@ import { randomUUID } from 'node:crypto';
 import imageSize from 'image-size';
 
 import { JobWithDownloadKey } from '../../data_layer/JobRepository';
+import UsersRepository from '../../data_layer/UsersRepository';
 import ApkgPreviewService from '../ApkgPreviewService/ApkgPreviewService';
 import DownloadService from '../DownloadService';
 import StorageHandler from '../../lib/storage/StorageHandler';
 import instrumentedAxios from '../observability/instrumentedAxios';
 import { getSafeFilename } from '../../lib/getSafeFilename';
+import getDeckFilename from '../../lib/anki/getDeckFilename';
+import Workspace from '../../lib/parser/WorkSpace';
+import CustomExporter from '../../lib/parser/exporters/CustomExporter';
+import {
+  CheckMonthlyCardLimitUseCase,
+  MonthlyLimitError,
+} from '../../usecases/users/CheckMonthlyCardLimitUseCase';
 import { DeckPersistence } from './McpDeckPersistence';
 import { McpCard, serializeCardsToMarkdown } from './serializeCardsToMarkdown';
+import { groupCardsBySubdeck, hasSubdecks } from './composeSubdecks';
+import { buildSubdeckDecks } from './buildSubdeckDecks';
 import {
   McpConvertOptions,
   mcpOptionsToCardSettings,
@@ -45,6 +55,9 @@ const NO_CARDS_FOUND_MESSAGE =
   'No cards found in this text. If you already have front/back pairs, call create_deck with them — it needs no special formatting. Otherwise mark up the text with one of these structures and call convert_to_deck again: `front :: back` on its own line, `<details><summary>front</summary>back</details>`, or a `## front` heading with the answer on the line below. Full grammar: deck_capabilities → inputFormats.';
 const EMPTY_BACK_MESSAGE =
   'Some cards have an empty back. Every card needs both a front and a back.';
+const GENERIC_CONVERT_ERROR = 'Could not convert this input.';
+const OVER_SIZE_MESSAGE =
+  'These cards are over the 5 MB limit. Split into smaller decks.';
 const NO_CARD_CODES = new Set(['markdown_likely_lossy', 'empty_export']);
 const ALLOWED_PHOTO_MEDIA_TYPES: VisionMediaType[] = [
   'image/jpeg',
@@ -122,6 +135,16 @@ function decodeFileNameHeader(raw: string | null): string | null {
   } catch {
     return raw;
   }
+}
+
+function subdeckSummary(
+  title: string,
+  cardCount: number,
+  deckCount: number
+): string {
+  const cardLabel = cardCount === 1 ? 'card' : 'cards';
+  const deckLabel = deckCount === 1 ? 'subdeck' : 'subdecks';
+  return `Deck ready: ${title} — ${cardCount} ${cardLabel} across ${deckCount} ${deckLabel}.`;
 }
 
 export interface DeckSummary {
@@ -260,6 +283,7 @@ export class McpToolsService {
     private readonly storage: StorageHandler,
     private readonly deckPersistence: DeckPersistence,
     private readonly photoToFlashcards: PhotoToFlashcardsUseCase,
+    private readonly usersRepository: UsersRepository,
     private readonly baseUrl: string = mcpBaseUrl()
   ) {}
 
@@ -423,14 +447,15 @@ export class McpToolsService {
       deckName != null && deckName.trim().length > 0
         ? deckName.trim()
         : DEFAULT_DECK_NAME;
+
+    if (hasSubdecks(cards)) {
+      return this.createSubdeckDeck(cards, title, owner, locals);
+    }
+
     const markdown = serializeCardsToMarkdown(cards);
     const buffer = Buffer.from(markdown, 'utf-8');
     if (buffer.byteLength > MAX_TEXT_BYTES) {
-      return {
-        kind: 'error',
-        message:
-          'These cards are over the 5 MB limit. Split into smaller decks.',
-      };
+      return { kind: 'error', message: OVER_SIZE_MESSAGE };
     }
 
     const file: UploadedFile = {
@@ -447,6 +472,65 @@ export class McpToolsService {
       return { ...result, message: EMPTY_BACK_MESSAGE };
     }
     return result;
+  }
+
+  private async createSubdeckDeck(
+    cards: McpCard[],
+    title: string,
+    owner: string,
+    locals: Record<string, unknown>
+  ): Promise<ConvertResult> {
+    const combined = serializeCardsToMarkdown(cards);
+    if (Buffer.byteLength(combined, 'utf-8') > MAX_TEXT_BYTES) {
+      return { kind: 'error', message: OVER_SIZE_MESSAGE };
+    }
+
+    const totalCards = cards.length;
+    try {
+      await new CheckMonthlyCardLimitUseCase(this.usersRepository).execute({
+        userId: owner,
+        candidateCardCount: totalCards,
+        isPaying: isPaying(locals),
+      });
+    } catch (error) {
+      if (error instanceof MonthlyLimitError) {
+        return { kind: 'error', message: GENERIC_CONVERT_ERROR };
+      }
+      throw error;
+    }
+
+    const groups = groupCardsBySubdeck(title, cards);
+    const workspace = new Workspace(true, 'fs');
+    const exporter = new CustomExporter(title, workspace.location);
+    exporter.configure(buildSubdeckDecks(groups));
+    const apkg = await exporter.save();
+
+    const filename = getDeckFilename(title);
+    const objectId = randomUUID();
+    await this.deckPersistence.persist(owner, objectId, filename, apkg);
+    await this.usersRepository.incrementCardUsage(owner, totalCards);
+
+    const preview = await this.previewFromBytes(apkg, `mcp:${objectId}`);
+    const subdecks = groups
+      .map((group) => ({ deck: group.deck, cards: group.cards.length }))
+      .sort((a, b) => a.deck.localeCompare(b.deck));
+    const applied: AppliedOptions = {
+      noteType: 'basic',
+      tags: [],
+      splitByHeadings: false,
+      tts: { enabled: false },
+      subdecks,
+    };
+    return {
+      kind: 'deck',
+      jobId: objectId,
+      cardCount: totalCards,
+      filename,
+      downloadUrl: `${this.baseUrl}/api/mcp/decks/${objectId}/download`,
+      ...preview,
+      applied,
+      summary: subdeckSummary(title, totalCards, subdecks.length),
+    };
   }
 
   private everyBackEmpty(cards: McpCard[]): boolean {
@@ -696,6 +780,6 @@ export class McpToolsService {
     ) {
       return (body as { message: string }).message;
     }
-    return 'Could not convert this input.';
+    return GENERIC_CONVERT_ERROR;
   }
 }

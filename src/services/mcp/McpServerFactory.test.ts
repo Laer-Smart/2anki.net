@@ -87,6 +87,61 @@ describe('buildMcpServer', () => {
   });
 });
 
+describe('create_deck handler', () => {
+  it('records the distinct subdeck count on the result event', async () => {
+    const createDeck = jest.fn(async () => ({
+      kind: 'deck' as const,
+      cardCount: 3,
+      filename: 'JLPT N5.apkg',
+      summary: 'Deck ready: JLPT N5 — 3 cards across 2 subdecks.',
+      applied: {
+        noteType: 'basic' as const,
+        tags: [],
+        splitByHeadings: false,
+        tts: { enabled: false },
+        subdecks: [
+          { deck: 'JLPT N5::Grammar', cards: 1 },
+          { deck: 'JLPT N5::Vocabulary', cards: 2 },
+        ],
+      },
+    }));
+    const results: Array<{
+      success: boolean;
+      props?: Record<string, unknown>;
+    }> = [];
+    const handler = getHandler(
+      buildContext({
+        toolsService: { createDeck } as unknown as McpToolsService,
+        recordToolResult: (_name, success, _code, props) =>
+          results.push({ success, props }),
+      }),
+      'create_deck'
+    );
+    await handler({ cards: [{ front: 'a', back: 'b', deck: 'X' }] });
+    expect(results).toEqual([{ success: true, props: { subdeckCount: 2 } }]);
+  });
+
+  it('records a subdeck count of 1 for a flat deck with no applied subdecks', async () => {
+    const createDeck = jest.fn(async () => ({
+      kind: 'deck' as const,
+      cardCount: 2,
+      filename: 'deck.apkg',
+      summary: '2 cards. Ready to download.',
+    }));
+    const results: Array<Record<string, unknown> | undefined> = [];
+    const handler = getHandler(
+      buildContext({
+        toolsService: { createDeck } as unknown as McpToolsService,
+        recordToolResult: (_name, _success, _code, props) =>
+          results.push(props),
+      }),
+      'create_deck'
+    );
+    await handler({ cards: [{ front: 'a', back: 'b' }] });
+    expect(results).toEqual([{ subdeckCount: 1 }]);
+  });
+});
+
 describe('get_deck_preview handler', () => {
   it('passes a jobId through to getDeckPreview and returns the preview', async () => {
     const getDeckPreview = jest.fn(async () => ({

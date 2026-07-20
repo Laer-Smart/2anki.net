@@ -1,5 +1,9 @@
 import express from 'express';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
+import type UsersRepository from '../../data_layer/UsersRepository';
 import { McpToolsService, UploadEntrypoint } from './McpToolsService';
 import { DeckPersistence } from './McpDeckPersistence';
 import { JobWithDownloadKey } from '../../data_layer/JobRepository';
@@ -23,6 +27,8 @@ function makeService(overrides: {
   persist?: DeckPersistence['persist'];
   getPresignedUrl?: StorageHandler['getPresignedUrl'];
   generateCards?: jest.Mock;
+  getCardUsage?: jest.Mock;
+  incrementCardUsage?: jest.Mock;
   baseUrl?: string;
 }) {
   const jobLister = {
@@ -61,6 +67,13 @@ function makeService(overrides: {
   const photoToFlashcards = {
     generateCards,
   } as unknown as PhotoToFlashcardsUseCase;
+  const getCardUsage =
+    overrides.getCardUsage ?? jest.fn(async () => ({ cards_used: 0 }));
+  const incrementCardUsage = overrides.incrementCardUsage ?? jest.fn();
+  const usersRepository = {
+    getCardUsage,
+    incrementCardUsage,
+  } as unknown as UsersRepository;
   const service = new McpToolsService(
     jobLister,
     downloadService,
@@ -69,6 +82,7 @@ function makeService(overrides: {
     storage,
     deckPersistence,
     photoToFlashcards,
+    usersRepository,
     overrides.baseUrl ?? 'https://mcp.test'
   );
   return {
@@ -78,6 +92,8 @@ function makeService(overrides: {
     persist,
     getPresignedUrl,
     generateCards,
+    getCardUsage,
+    incrementCardUsage,
     previewService,
   };
 }
@@ -925,5 +941,166 @@ describe('McpToolsService.photoToDeck', () => {
     await expect(
       service.photoToDeck({ image: ONE_PIXEL_PNG_BASE64 }, 'o', {})
     ).rejects.toThrow(/Free plan is 5 photos per month/);
+  });
+});
+
+describe('McpToolsService.createDeck with subdecks', () => {
+  let workspaceBase: string;
+  let priorWorkspaceBase: string | undefined;
+  let priorSkip: string | undefined;
+
+  beforeAll(() => {
+    priorWorkspaceBase = process.env.WORKSPACE_BASE;
+    priorSkip = process.env.SKIP_CREATE_DECK;
+    workspaceBase = fs.mkdtempSync(path.join(os.tmpdir(), 'mcp-subdeck-'));
+    process.env.WORKSPACE_BASE = workspaceBase;
+    process.env.SKIP_CREATE_DECK = '1';
+  });
+
+  afterAll(() => {
+    if (priorWorkspaceBase == null) {
+      delete process.env.WORKSPACE_BASE;
+    } else {
+      process.env.WORKSPACE_BASE = priorWorkspaceBase;
+    }
+    if (priorSkip == null) {
+      delete process.env.SKIP_CREATE_DECK;
+    } else {
+      process.env.SKIP_CREATE_DECK = priorSkip;
+    }
+    fs.rmSync(workspaceBase, { recursive: true, force: true });
+  });
+
+  const subdeckCards = () => [
+    { front: 'ichi', back: '1', deck: 'Vocabulary' },
+    { front: 'taberu', back: 'to eat', deck: 'Grammar' },
+    { front: 'ni', back: '2', deck: 'Vocabulary' },
+  ];
+
+  it('builds one deck per composed subdeck name with the right per-deck card counts', async () => {
+    const { service, persist } = makeService({});
+    const result = await service.createDeck(
+      subdeckCards(),
+      'JLPT N5',
+      'owner-9',
+      {}
+    );
+
+    expect(persist).toHaveBeenCalledTimes(1);
+    const deckInfoBuffer = persist.mock.calls[0][3] as Buffer;
+    const decks = JSON.parse(deckInfoBuffer.toString('utf-8')) as {
+      name: string;
+      cards: unknown[];
+    }[];
+    const byName = new Map(decks.map((deck) => [deck.name, deck.cards.length]));
+    expect(byName.get('JLPT N5::Vocabulary')).toBe(2);
+    expect(byName.get('JLPT N5::Grammar')).toBe(1);
+    expect(byName.size).toBe(2);
+
+    expect(result).toMatchObject({
+      kind: 'deck',
+      cardCount: 3,
+      filename: 'JLPT N5.apkg',
+      summary: 'Deck ready: JLPT N5 — 3 cards across 2 subdecks.',
+      applied: {
+        subdecks: [
+          { deck: 'JLPT N5::Grammar', cards: 1 },
+          { deck: 'JLPT N5::Vocabulary', cards: 2 },
+        ],
+      },
+    });
+  });
+
+  it('increments card usage by the flat total across all subdecks', async () => {
+    const incrementCardUsage = jest.fn();
+    const { service } = makeService({ incrementCardUsage });
+    await service.createDeck(subdeckCards(), 'JLPT N5', 'owner-9', {});
+    expect(incrementCardUsage).toHaveBeenCalledWith('owner-9', 3);
+  });
+
+  it('blocks an over-limit free user with the limit error and does not package or bill', async () => {
+    const persist = jest.fn(async () => 'k');
+    const incrementCardUsage = jest.fn();
+    const getCardUsage = jest.fn(async () => ({ cards_used: 99 }));
+    const { service } = makeService({
+      persist,
+      incrementCardUsage,
+      getCardUsage,
+    });
+    const result = await service.createDeck(
+      subdeckCards(),
+      'JLPT N5',
+      'owner-9',
+      {}
+    );
+    expect(result).toEqual({
+      kind: 'error',
+      message: 'Could not convert this input.',
+    });
+    expect(persist).not.toHaveBeenCalled();
+    expect(incrementCardUsage).not.toHaveBeenCalled();
+  });
+
+  it('exempts a paying user from the monthly card limit', async () => {
+    const incrementCardUsage = jest.fn();
+    const getCardUsage = jest.fn(async () => ({ cards_used: 9999 }));
+    const { service, persist } = makeService({
+      incrementCardUsage,
+      getCardUsage,
+    });
+    const result = await service.createDeck(
+      subdeckCards(),
+      'JLPT N5',
+      'owner-9',
+      { subscriber: true }
+    );
+    expect(result).toMatchObject({ kind: 'deck', cardCount: 3 });
+    expect(getCardUsage).not.toHaveBeenCalled();
+    expect(persist).toHaveBeenCalledTimes(1);
+    expect(incrementCardUsage).toHaveBeenCalledWith('owner-9', 3);
+  });
+
+  it('keeps deckless cards in the bare parent bucket alongside subdecks', async () => {
+    const { service, persist } = makeService({});
+    await service.createDeck(
+      [
+        { front: 'intro', back: 'welcome' },
+        { front: 'ichi', back: '1', deck: 'Vocabulary' },
+      ],
+      'JLPT N5',
+      'owner-9',
+      {}
+    );
+    const deckInfoBuffer = persist.mock.calls[0][3] as Buffer;
+    const decks = JSON.parse(deckInfoBuffer.toString('utf-8')) as {
+      name: string;
+      cards: unknown[];
+    }[];
+    const byName = new Map(decks.map((deck) => [deck.name, deck.cards.length]));
+    expect(byName.get('JLPT N5')).toBe(1);
+    expect(byName.get('JLPT N5::Vocabulary')).toBe(1);
+  });
+
+  it('takes the flat path untouched when no card carries a deck', async () => {
+    let uploadedBody: Record<string, unknown> | undefined;
+    const entry: UploadEntrypoint = (req, res) => {
+      uploadedBody = (req as unknown as { body: Record<string, unknown> }).body;
+      res.set('X-Card-Count', '2');
+      res.set('File-Name', 'deck.apkg');
+      res.status(200).send(Buffer.from('APKG-BYTES'));
+    };
+    const { service, persist } = makeService({ uploadEntry: entry });
+    const result = await service.createDeck(
+      [
+        { front: 'a', back: 'b' },
+        { front: 'c', back: 'd' },
+      ],
+      'JLPT N5',
+      'owner-9',
+      {}
+    );
+    expect(uploadedBody).toEqual({ deckName: 'JLPT N5' });
+    expect((result as { applied?: unknown }).applied).toBeUndefined();
+    expect(persist).toHaveBeenCalledTimes(1);
   });
 });
