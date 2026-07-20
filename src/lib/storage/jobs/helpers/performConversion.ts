@@ -59,6 +59,7 @@ interface ConversionRequest {
   frontField?: string;
   backField?: string;
   anonId?: string;
+  signupOrigin?: string | null;
 }
 
 function toAnonymousId(anonId?: string): string | null {
@@ -111,12 +112,17 @@ function trackConversionFailed(
   owner: string,
   anonId: string | undefined,
   type: string | undefined,
+  signupOrigin: string | null,
   reasonProps: Record<string, unknown>
 ): void {
   track('conversion_failed', {
     userId: Number.isFinite(Number(owner)) ? Number(owner) : null,
     anonymousId: toAnonymousId(anonId),
-    props: { source: toConversionSource(type), ...reasonProps },
+    props: {
+      source: toConversionSource(type),
+      signup_origin: signupOrigin,
+      ...reasonProps,
+    },
   });
 }
 
@@ -133,9 +139,11 @@ export default async function performConversion(
     frontField,
     backField,
     anonId,
+    signupOrigin,
   }: ConversionRequest
 ) {
   console.info(`Performing conversion for ${id}`);
+  const resolvedSignupOrigin = signupOrigin ?? null;
 
   const storage = new StorageHandler();
   const jobRepository = new JobRepository(database);
@@ -177,7 +185,7 @@ export default async function performConversion(
           '.' +
           String(jobDbId)
       );
-      trackConversionFailed(owner, anonId, type, {
+      trackConversionFailed(owner, anonId, type, resolvedSignupOrigin, {
         reason: 'no_decks_created',
       });
       return;
@@ -187,7 +195,9 @@ export default async function performConversion(
     if (cardCount === 0) {
       const setJobFailed = new SetJobFailedUseCase(jobRepository);
       await setJobFailed.execute(id, owner, EMPTY_DECK_FAILURE_REASON);
-      trackConversionFailed(owner, anonId, type, { reason: 'empty_deck' });
+      trackConversionFailed(owner, anonId, type, resolvedSignupOrigin, {
+        reason: 'empty_deck',
+      });
       return;
     }
 
@@ -208,7 +218,7 @@ export default async function performConversion(
           reset_on: error.reset_on,
         });
         await setJobFailed.execute(id, owner, payload);
-        trackConversionFailed(owner, anonId, type, {
+        trackConversionFailed(owner, anonId, type, resolvedSignupOrigin, {
           reason: 'monthly_limit',
           cards_used: error.cards_used,
           limit: error.limit,
@@ -271,6 +281,7 @@ export default async function performConversion(
       props: {
         source: toConversionSource(type),
         card_count_bucket: toCardCountBucket(cardCount),
+        signup_origin: resolvedSignupOrigin,
       },
     });
   } catch (error) {
@@ -295,7 +306,7 @@ export default async function performConversion(
     }
     const failedJob = new SetJobFailedUseCase(jobRepository);
     await failedJob.execute(id, owner, jobFailureReasonFromError(error, id));
-    trackConversionFailed(owner, anonId, type, {
+    trackConversionFailed(owner, anonId, type, resolvedSignupOrigin, {
       reason: jobFailureReasonCode(error),
     });
     const isExpectedUserState =

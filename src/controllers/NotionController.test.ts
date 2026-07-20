@@ -287,6 +287,29 @@ describe('NotionController', () => {
       expect(res.json).toHaveBeenCalledWith({ jobId: 77, restarted: false });
     });
 
+    it('threads signup_origin from the first_touch cookie into the runConversion payload', async () => {
+      setupConvertMocks();
+      req.cookies = {
+        first_touch: JSON.stringify({ landingPath: '/pricing' }),
+      };
+
+      await controller.convert(req as express.Request, res as express.Response);
+
+      expect(runConversion).toHaveBeenCalledWith(
+        expect.objectContaining({ signupOrigin: '/pricing' })
+      );
+    });
+
+    it('passes signupOrigin=null into the runConversion payload when no first_touch cookie is present', async () => {
+      setupConvertMocks();
+
+      await controller.convert(req as express.Request, res as express.Response);
+
+      expect(runConversion).toHaveBeenCalledWith(
+        expect.objectContaining({ signupOrigin: null })
+      );
+    });
+
     it('emits upload_started so the Notion path enters the upload→download funnel', async () => {
       setupConvertMocks();
 

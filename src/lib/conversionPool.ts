@@ -33,6 +33,7 @@ export interface ConversionWorkerRequest {
   frontField?: string;
   backField?: string;
   anonId?: string;
+  signupOrigin?: string | null;
 }
 
 let pool: Piscina | null = null;
@@ -226,5 +227,6 @@ export async function runConversionInWorker(
     frontField: request.frontField,
     backField: request.backField,
     anonId: request.anonId,
+    signupOrigin: request.signupOrigin,
   });
 }
