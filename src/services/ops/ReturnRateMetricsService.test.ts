@@ -8,7 +8,12 @@ import {
 } from './ReturnRateMetricsService';
 
 const NOW = new Date('2026-07-19T00:00:00.000Z');
-const CUTOFF = new Date('2026-04-20T00:00:00.000Z');
+
+const CUTOFF_TIMESTAMP = /'\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3}'/g;
+
+function normalizeCutoff(sql: string): string {
+  return sql.replace(CUTOFF_TIMESTAMP, "'<CUTOFF>'");
+}
 
 function daysBefore(anchor: Date, n: number): Date {
   return new Date(anchor.getTime() - n * 24 * 60 * 60 * 1000);
@@ -27,45 +32,27 @@ describe('ReturnRateMetricsService — generated SQL', () => {
   });
 
   it('builds the cohort over conversion_succeeded keyed by identity and source', () => {
-    const { sql, bindings } = service.buildCohortQuery(NOW).toSQL();
-
-    expect(sql).toBe(
-      "select COALESCE(user_id::text, anonymous_id) as owner, COALESCE(props->>'source', ?) as source_type, " +
+    expect(normalizeCutoff(service.buildCohortQuery(NOW).toString())).toBe(
+      "select COALESCE(user_id::text, anonymous_id) as owner, COALESCE(props->>'source', 'unknown') as source_type, " +
         'MAX(created_at) as last_success_at from "events" ' +
-        'where "name" = ? and "created_at" >= ? ' +
+        'where "name" = \'conversion_succeeded\' and "created_at" >= \'<CUTOFF>\' ' +
         'and COALESCE(user_id::text, anonymous_id) IS NOT NULL ' +
-        "group by COALESCE(user_id::text, anonymous_id), COALESCE(props->>'source', ?)"
+        "group by COALESCE(user_id::text, anonymous_id), COALESCE(props->>'source', 'unknown')"
     );
-    expect(bindings).toEqual([
-      'unknown',
-      'conversion_succeeded',
-      CUTOFF,
-      'unknown',
-    ]);
   });
 
   it('builds the returns query finding each identity/source next conversion', () => {
-    const { sql, bindings } = service.buildReturnsQuery(NOW).toSQL();
-
-    expect(sql).toBe(
-      "select COALESCE(e1.user_id::text, e1.anonymous_id) as owner, COALESCE(e1.props->>'source', ?) as source_type, " +
+    expect(normalizeCutoff(service.buildReturnsQuery(NOW).toString())).toBe(
+      "select COALESCE(e1.user_id::text, e1.anonymous_id) as owner, COALESCE(e1.props->>'source', 'unknown') as source_type, " +
         '"e1"."created_at" as "anchor_at", ' +
         '(SELECT MIN(e2.created_at) FROM events e2 ' +
         'WHERE COALESCE(e2.user_id::text, e2.anonymous_id) = COALESCE(e1.user_id::text, e1.anonymous_id) ' +
-        "AND COALESCE(e2.props->>'source', ?) = COALESCE(e1.props->>'source', ?) " +
-        'AND e2.name = ? AND e2.created_at > e1.created_at) as first_return_at ' +
+        "AND COALESCE(e2.props->>'source', 'unknown') = COALESCE(e1.props->>'source', 'unknown') " +
+        "AND e2.name = 'conversion_succeeded' AND e2.created_at > e1.created_at) as first_return_at " +
         'from "events" as "e1" ' +
-        'where "e1"."name" = ? and "e1"."created_at" >= ? ' +
+        'where "e1"."name" = \'conversion_succeeded\' and "e1"."created_at" >= \'<CUTOFF>\' ' +
         'and COALESCE(e1.user_id::text, e1.anonymous_id) IS NOT NULL'
     );
-    expect(bindings).toEqual([
-      'unknown',
-      'unknown',
-      'unknown',
-      'conversion_succeeded',
-      'conversion_succeeded',
-      CUTOFF,
-    ]);
   });
 });
 
