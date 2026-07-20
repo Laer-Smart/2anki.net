@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-19-empty-deck-reason-shown",
+  "date": "2026-07-19",
+  "type": "fix",
+  "title": "An empty deck now shows why and how to fix it without an extra click"
+}
