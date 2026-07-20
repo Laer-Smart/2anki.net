@@ -46,6 +46,7 @@ import { INotionRepository } from '../data_layer/NotionRespository';
 import { IEmailService } from '../services/EmailService/EmailService';
 import UsersRepository from '../data_layer/UsersRepository';
 import { track } from '../services/events/track';
+import { parseFirstTouch } from './helpers/parseFirstTouch';
 import { classifyDevice } from '../lib/analytics/classifyDevice';
 
 const DEFAULT_PREVIEW_PAGE_SIZE = 15;
@@ -288,6 +289,7 @@ class NotionController {
       props: {
         source: conversionSourceFromType(type),
         device: classifyDevice(req.headers?.['user-agent']),
+        signup_origin: parseFirstTouch(cookies?.first_touch).signupOrigin,
       },
     });
 

@@ -1927,3 +1927,121 @@ describe('UploadService.restartClaudeJob — card-limit enforcement', () => {
     expect(mockStorageUploadFile).not.toHaveBeenCalled();
   });
 });
+
+describe('UploadService.handleUpload — signup_origin attribution', () => {
+  const originalWorkspaceBase = process.env.WORKSPACE_BASE;
+
+  beforeAll(() => {
+    process.env.WORKSPACE_BASE = path.join(os.tmpdir(), 'upload-service-test');
+  });
+
+  afterAll(() => {
+    process.env.WORKSPACE_BASE = originalWorkspaceBase;
+  });
+
+  beforeEach(() => {
+    MockGeneratePackagesUseCase.mockClear();
+    trackMock.mockClear();
+    mockFirstApkg = Buffer.from('fake-apkg');
+    mockWorkspaceId = 'test-ws-id';
+  });
+
+  function mockSingleDeck(cardCount: number) {
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest
+            .fn()
+            .mockResolvedValue({ packages: [{ name: 'deck', cardCount }] }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+  }
+
+  function firstTouchCookie(landingPath: string) {
+    return JSON.stringify({ landingPath });
+  }
+
+  it('stamps the resolved signup_origin on upload_started and conversion_succeeded from the first_touch cookie', async () => {
+    mockSingleDeck(12);
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest({
+      cookies: { first_touch: firstTouchCookie('/pricing') },
+    } as Partial<express.Request>);
+    const { res, capturedStatus } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(200);
+    expect(trackMock).toHaveBeenCalledWith(
+      'upload_started',
+      expect.objectContaining({
+        props: expect.objectContaining({ signup_origin: '/pricing' }),
+      })
+    );
+    expect(trackMock).toHaveBeenCalledWith(
+      'conversion_succeeded',
+      expect.objectContaining({
+        props: expect.objectContaining({ signup_origin: '/pricing' }),
+      })
+    );
+  });
+
+  it('stamps the resolved signup_origin on conversion_failed for an over-limit upload', async () => {
+    mockSingleDeck(30);
+    const usersRepo = buildUsersRepo({
+      getCardUsage: jest
+        .fn()
+        .mockResolvedValue({ cards_used: 80, month_started_at: new Date() }),
+    });
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      usersRepo
+    );
+    const req = buildRequest({
+      cookies: { first_touch: firstTouchCookie('/photo-to-deck') },
+    } as Partial<express.Request>);
+    const { res } = buildResponse();
+    (res.redirect as unknown as jest.Mock).mockReturnValue(res);
+    (res.locals as Record<string, unknown>).owner = 42;
+
+    await service.handleUpload(req, res);
+
+    expect(trackMock).toHaveBeenCalledWith(
+      'conversion_failed',
+      expect.objectContaining({
+        props: expect.objectContaining({
+          reason: 'monthly_limit',
+          signup_origin: '/photo-to-deck',
+        }),
+      })
+    );
+  });
+
+  it('stamps signup_origin=null when the request carries no first_touch cookie', async () => {
+    mockSingleDeck(12);
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest();
+    const { res } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(trackMock).toHaveBeenCalledWith(
+      'upload_started',
+      expect.objectContaining({
+        props: expect.objectContaining({ signup_origin: null }),
+      })
+    );
+  });
+});

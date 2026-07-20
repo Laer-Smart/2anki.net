@@ -49,6 +49,7 @@ import Deck from '../lib/parser/Deck';
 import { isHTMLFile, isMarkdownFile } from '../lib/storage/checks';
 import { FileSizeInMegaBytes } from '../lib/misc/file';
 import { track } from './events/track';
+import { parseFirstTouch } from '../controllers/helpers/parseFirstTouch';
 import { classifyDevice } from '../lib/analytics/classifyDevice';
 import {
   validateUploadSource,
@@ -433,6 +434,7 @@ class UploadService {
         props: {
           source: this.resolveUploadSource(req),
           device: classifyDevice(req.headers?.['user-agent']),
+          signup_origin: this.resolveSignupOrigin(req),
         },
       });
 
@@ -457,7 +459,11 @@ class UploadService {
         track('conversion_failed', {
           userId,
           anonymousId,
-          props: { source, reason: 'monthly_limit' },
+          props: {
+            source,
+            reason: 'monthly_limit',
+            signup_origin: this.resolveSignupOrigin(req),
+          },
         });
         track('paywall_shown', {
           userId,
@@ -473,7 +479,11 @@ class UploadService {
         track('conversion_failed', {
           userId,
           anonymousId,
-          props: { source, reason: 'anonymous_cap' },
+          props: {
+            source,
+            reason: 'anonymous_cap',
+            signup_origin: this.resolveSignupOrigin(req),
+          },
         });
         track('paywall_shown', {
           userId,
@@ -531,6 +541,7 @@ class UploadService {
           props: {
             source: this.resolveUploadSource(req),
             reason: 'upload_incomplete',
+            signup_origin: this.resolveSignupOrigin(req),
           },
         });
         return res.status(400).json({
@@ -624,6 +635,7 @@ class UploadService {
             props: {
               source: this.resolveUploadSource(req),
               card_count_bucket: this.toCardCountBucket(totalCards),
+              signup_origin: this.resolveSignupOrigin(req),
             },
           });
         } else {
@@ -699,7 +711,11 @@ class UploadService {
       track('conversion_failed', {
         userId: owner != null ? Number(owner) : null,
         anonymousId: this.resolveAnonId(req),
-        props: { source: this.resolveUploadSource(req), reason: 'empty_deck' },
+        props: {
+          source: this.resolveUploadSource(req),
+          reason: 'empty_deck',
+          signup_origin: this.resolveSignupOrigin(req),
+        },
       });
       throw new EmptyDeckError();
     }
@@ -780,7 +796,11 @@ class UploadService {
       track('conversion_succeeded', {
         userId: owner != null ? Number(owner) : null,
         anonymousId: this.resolveAnonId(req),
-        props: { source: uploadSource, card_count_bucket: bucket },
+        props: {
+          source: uploadSource,
+          card_count_bucket: bucket,
+          signup_origin: this.resolveSignupOrigin(req),
+        },
       });
       if (owner != null) {
         await this.usersRepository.incrementCardUsage(owner, totalCards);
@@ -794,6 +814,7 @@ class UploadService {
       props: {
         source: this.resolveUploadSource(req),
         card_count_bucket: this.toCardCountBucket(totalCards),
+        signup_origin: this.resolveSignupOrigin(req),
       },
     });
     if (owner != null) {
@@ -838,6 +859,11 @@ class UploadService {
     const cookies = req.cookies as Record<string, unknown> | undefined;
     const anonId = cookies?.anon_id;
     return typeof anonId === 'string' && anonId.length > 0 ? anonId : null;
+  }
+
+  private resolveSignupOrigin(req: express.Request): string | null {
+    const cookies = req.cookies as Record<string, unknown> | undefined;
+    return parseFirstTouch(cookies?.first_touch).signupOrigin;
   }
 
   private resolvePersistedSource(req: express.Request): UploadSource | null {
