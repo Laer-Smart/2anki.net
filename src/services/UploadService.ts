@@ -742,6 +742,11 @@ class UploadService {
       throw new AnonymousCardCapError(totalCards, ANONYMOUS_CARD_CAP);
     }
 
+    const totalEmptyBackCount = packages.reduce(
+      (sum, p) => sum + (p.emptyBackCount ?? 0),
+      0
+    );
+
     const first = packages[0];
     if (packages.length === 1) {
       const apkg = await ws.getFirstAPKG();
@@ -774,10 +779,6 @@ class UploadService {
         res.set('X-Dropped-Assets', totalDroppedImageCount.toString());
         exposedHeaders.push('X-Dropped-Assets');
       }
-      const totalEmptyBackCount = packages.reduce(
-        (sum, p) => sum + (p.emptyBackCount ?? 0),
-        0
-      );
       if (totalEmptyBackCount > 0) {
         res.set('X-Empty-Back-Count', totalEmptyBackCount.toString());
         exposedHeaders.push('X-Empty-Back-Count');
@@ -829,14 +830,16 @@ class UploadService {
     if (owner != null) {
       await this.usersRepository.incrementCardUsage(owner, totalCards);
     }
-    return res.status(200).json(
-      await this.buildBatchResponse(
-        ws,
-        resolveUploadWarning(warnings),
-        sumDroppedImages(packages),
-        packages.reduce((sum, p) => sum + (p.emptyBackCount ?? 0), 0)
-      )
-    );
+    return res
+      .status(200)
+      .json(
+        await this.buildBatchResponse(
+          ws,
+          resolveUploadWarning(warnings),
+          sumDroppedImages(packages),
+          totalEmptyBackCount
+        )
+      );
   }
 
   private async buildBatchResponse(
