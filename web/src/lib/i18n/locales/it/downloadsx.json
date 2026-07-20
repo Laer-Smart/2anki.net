@@ -68,5 +68,11 @@
   },
   "jobs": {
     "deleteInProgress": "Questo lavoro è ancora in corso. Attendi che finisca."
+  },
+  "emptyBack": {
+    "uploadSingleDeck_one": "{{count}} carta non aveva una risposta ed è stata saltata, quindi non è in questo mazzo. Aggiungi un retro nel tuo file e converti di nuovo.",
+    "uploadSingleDeck_other": "{{count}} carte non avevano una risposta e sono state saltate, quindi non sono in questo mazzo. Aggiungi un retro a ciascuna nel tuo file e converti di nuovo.",
+    "uploadMultiDeck_one": "{{count}} carta non aveva una risposta ed è stata saltata, quindi non è nei tuoi mazzi. Aggiungi un retro nel tuo file e converti di nuovo.",
+    "uploadMultiDeck_other": "{{count}} carte non avevano una risposta e sono state saltate, quindi non sono nei tuoi mazzi. Aggiungi un retro a ciascuna nel tuo file e converti di nuovo."
   }
 }

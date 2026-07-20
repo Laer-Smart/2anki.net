@@ -68,5 +68,11 @@
   },
   "jobs": {
     "deleteInProgress": "Este trabalho ainda está em andamento. Aguarde ele terminar."
+  },
+  "emptyBack": {
+    "uploadSingleDeck_one": "{{count}} cartão não tinha resposta e foi ignorado, então não está neste baralho. Adicione um verso no seu arquivo e converta novamente.",
+    "uploadSingleDeck_other": "{{count}} cartões não tinham resposta e foram ignorados, então não estão neste baralho. Adicione um verso a cada um no seu arquivo e converta novamente.",
+    "uploadMultiDeck_one": "{{count}} cartão não tinha resposta e foi ignorado, então não está nos seus baralhos. Adicione um verso no seu arquivo e converta novamente.",
+    "uploadMultiDeck_other": "{{count}} cartões não tinham resposta e foram ignorados, então não estão nos seus baralhos. Adicione um verso a cada um no seu arquivo e converta novamente."
   }
 }

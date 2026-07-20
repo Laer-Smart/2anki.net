@@ -26,6 +26,7 @@ export interface BatchResult {
   bulkUrl: string;
   warning?: string;
   droppedImageCount?: number;
+  emptyBackCount?: number;
 }
 
 export interface LockedPdfInfo {
@@ -48,6 +49,7 @@ export function useUploadFormState(onReset: () => void) {
   const [mcqCount, setMcqCount] = useState<number>(0);
   const [mcqSkippedCount, setMcqSkippedCount] = useState<number>(0);
   const [droppedImageCount, setDroppedImageCount] = useState<number>(0);
+  const [emptyBackCount, setEmptyBackCount] = useState<number>(0);
   const [overSplit, setOverSplit] = useState(false);
   const [mcqDrawerOpen, setMcqDrawerOpen] = useState(false);
   const [mcqShowAnswer, setMcqShowAnswer] = useState(false);
@@ -83,6 +85,7 @@ export function useUploadFormState(onReset: () => void) {
     setMcqCount(0);
     setMcqSkippedCount(0);
     setDroppedImageCount(0);
+    setEmptyBackCount(0);
     setOverSplit(false);
     setMcqDrawerOpen(false);
     setMcqShowAnswer(false);
@@ -124,6 +127,8 @@ export function useUploadFormState(onReset: () => void) {
     setMcqSkippedCount,
     droppedImageCount,
     setDroppedImageCount,
+    emptyBackCount,
+    setEmptyBackCount,
     overSplit,
     setOverSplit,
     mcqDrawerOpen,

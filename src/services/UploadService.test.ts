@@ -902,6 +902,59 @@ describe('UploadService.handleSyncUpload — card-limit enforcement', () => {
     );
   });
 
+  it('sets X-Empty-Back-Count to the summed empty-back count on a partial single-deck upload', async () => {
+    MockGeneratePackagesUseCase.mockImplementation(
+      () =>
+        ({
+          execute: jest.fn().mockResolvedValue({
+            packages: [
+              {
+                name: 'deck',
+                cardCount: 9,
+                mcqCount: 0,
+                mcqSkippedCount: 0,
+                emptyBackCount: 3,
+              },
+            ],
+            warnings: [],
+          }),
+        }) as unknown as InstanceType<typeof GeneratePackagesUseCase>
+    );
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest();
+    const { res, capturedStatus, capturedSend } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(capturedStatus()).toBe(200);
+    expect(capturedSend()).not.toBeNull();
+    expect(res.set).toHaveBeenCalledWith('X-Empty-Back-Count', '3');
+  });
+
+  it('does not set X-Empty-Back-Count when no cards were empty-back', async () => {
+    mockPackages([{ name: 'deck', cardCount: 12 }]);
+
+    const service = new UploadService(
+      buildRepository(),
+      {} as JobRepository,
+      buildUsersRepo()
+    );
+    const req = buildRequest();
+    const { res } = buildResponse();
+
+    await service.handleUpload(req, res);
+
+    expect(res.set).not.toHaveBeenCalledWith(
+      'X-Empty-Back-Count',
+      expect.anything()
+    );
+  });
+
   it('surfaces a skipped-locked-PDF note on X-Warning when a ZIP entry stays locked', async () => {
     const lockedWarning =
       '2 password-protected PDFs were skipped: Ch1.pdf, Ch2.pdf. Unlock each in Preview or Adobe Reader, save a copy, and upload them on their own.';

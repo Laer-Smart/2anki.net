@@ -101,6 +101,7 @@ interface BatchUploadResponse {
   bulkUrl: string;
   warning?: string;
   droppedImageCount?: number;
+  emptyBackCount?: number;
 }
 
 const MARKDOWN_HEURISTIC_WARNING =
@@ -773,6 +774,14 @@ class UploadService {
         res.set('X-Dropped-Assets', totalDroppedImageCount.toString());
         exposedHeaders.push('X-Dropped-Assets');
       }
+      const totalEmptyBackCount = packages.reduce(
+        (sum, p) => sum + (p.emptyBackCount ?? 0),
+        0
+      );
+      if (totalEmptyBackCount > 0) {
+        res.set('X-Empty-Back-Count', totalEmptyBackCount.toString());
+        exposedHeaders.push('X-Empty-Back-Count');
+      }
       if (packages.some((p) => p.overSplit)) {
         res.set('X-Over-Split', '1');
         exposedHeaders.push('X-Over-Split');
@@ -820,21 +829,21 @@ class UploadService {
     if (owner != null) {
       await this.usersRepository.incrementCardUsage(owner, totalCards);
     }
-    return res
-      .status(200)
-      .json(
-        await this.buildBatchResponse(
-          ws,
-          resolveUploadWarning(warnings),
-          sumDroppedImages(packages)
-        )
-      );
+    return res.status(200).json(
+      await this.buildBatchResponse(
+        ws,
+        resolveUploadWarning(warnings),
+        sumDroppedImages(packages),
+        packages.reduce((sum, p) => sum + (p.emptyBackCount ?? 0), 0)
+      )
+    );
   }
 
   private async buildBatchResponse(
     ws: Workspace,
     warning: string | null = null,
-    droppedImageCount = 0
+    droppedImageCount = 0,
+    emptyBackCount = 0
   ): Promise<BatchUploadResponse> {
     const apkgFilenames = (await fs.promises.readdir(ws.location)).filter(
       (filename) => filename.endsWith('.apkg')
@@ -852,6 +861,7 @@ class UploadService {
       bulkUrl: `/download/${ws.id}/bulk`,
       ...(warning ? { warning } : {}),
       ...(droppedImageCount > 0 ? { droppedImageCount } : {}),
+      ...(emptyBackCount > 0 ? { emptyBackCount } : {}),
     };
   }
 

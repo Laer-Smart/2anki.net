@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-19-empty-back-cards-flagged",
+  "date": "2026-07-19",
+  "type": "fix",
+  "title": "Cards with no answer are flagged and counted instead of disappearing silently"
+}

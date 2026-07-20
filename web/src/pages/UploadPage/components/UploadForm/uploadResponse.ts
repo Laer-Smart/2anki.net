@@ -34,6 +34,7 @@ export interface ConversionSuccessHandlers {
   setMcqCount: (value: number) => void;
   setMcqSkippedCount: (value: number) => void;
   setDroppedImageCount: (value: number) => void;
+  setEmptyBackCount: (value: number) => void;
   setOverSplit: (value: boolean) => void;
   setDownloadLink: (value: string | null) => void;
   setProgressWidth: (value: number) => void;
@@ -60,6 +61,7 @@ export async function applyConversionSuccess(
     if (isBatchResult(body)) {
       handlers.setBatchResult(body);
       handlers.setDroppedImageCount(body.droppedImageCount ?? 0);
+      handlers.setEmptyBackCount(body.emptyBackCount ?? 0);
       handlers.setProgressWidth(100);
       handlers.setZoneState('multiDeck');
       return;
@@ -78,6 +80,9 @@ export async function applyConversionSuccess(
   );
   handlers.setDroppedImageCount(
     parseNonNegativeIntHeader(response.headers, 'X-Dropped-Assets')
+  );
+  handlers.setEmptyBackCount(
+    parseNonNegativeIntHeader(response.headers, 'X-Empty-Back-Count')
   );
   handlers.setOverSplit(response.headers.get('X-Over-Split') === '1');
   const blob = await response.blob();
