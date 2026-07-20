@@ -77,7 +77,8 @@ const McpRouter = () => {
       new UploadRepository(database),
       storage
     ),
-    new PhotoToFlashcardsUseCase(new EventsRepository(database))
+    new PhotoToFlashcardsUseCase(new EventsRepository(database)),
+    usersRepository
   );
 
   const onAuthenticatedPost: RequestHandler = async (req, res) => {
@@ -118,7 +119,7 @@ const McpRouter = () => {
           props: { tool: toolName },
           created_at: new Date(),
         }),
-      recordToolResult: (toolName, success, errorCode) =>
+      recordToolResult: (toolName, success, errorCode, extraProps) =>
         getEventsSink().record({
           name: 'mcp_tool_result',
           user_id: Number(user.id),
@@ -127,6 +128,7 @@ const McpRouter = () => {
             tool: toolName,
             success,
             ...(errorCode != null ? { error_code: errorCode } : {}),
+            ...extraProps,
           },
           created_at: new Date(),
         }),

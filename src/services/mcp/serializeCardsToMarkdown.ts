@@ -1,6 +1,7 @@
 export interface McpCard {
   front: string;
   back: string;
+  deck?: string;
 }
 
 function escapeDetailsTags(text: string): string {

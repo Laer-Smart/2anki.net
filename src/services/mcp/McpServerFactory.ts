@@ -20,7 +20,8 @@ export interface McpRequestContext {
   recordToolResult: (
     toolName: string,
     success: boolean,
-    errorCode?: string
+    errorCode?: string,
+    extraProps?: Record<string, unknown>
   ) => void;
 }
 
@@ -228,13 +229,16 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     }
   );
 
-  registerTool<{ cards: { front: string; back: string }[]; deckName?: string }>(
+  registerTool<{
+    cards: { front: string; back: string; deck?: string }[];
+    deckName?: string;
+  }>(
     server,
     'create_deck',
     {
       title: 'Create an Anki deck from cards',
       description:
-        'Build an Anki deck from structured front/back cards. Returns a deck preview and a no-login download link for the .apkg, plus a job id you can find later with list_my_decks.',
+        'Build an Anki deck from structured front/back cards. Returns a deck preview and a no-login download link for the .apkg, plus a job id you can find later with list_my_decks. Give a card a deck to sort it into a subdeck under deckName — e.g. deck "Vocabulary" under deckName "JLPT N5" lands in JLPT N5::Vocabulary.',
       inputSchema: {
         cards: z
           .array(
@@ -244,6 +248,12 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
                 .min(1)
                 .describe('The question or prompt shown first.'),
               back: z.string().describe('The answer shown after.'),
+              deck: z
+                .string()
+                .optional()
+                .describe(
+                  'Optional leaf subdeck name under deckName, e.g. Vocabulary under JLPT N5 makes JLPT N5::Vocabulary. Use :: to nest deeper (Verbs::Irregular). Omit to keep the card in deckName.'
+                ),
             })
           )
           .min(1)
@@ -267,7 +277,13 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
         context.recordToolResult('create_deck', false, result.code);
         return errorResult(result.message);
       }
-      context.recordToolResult('create_deck', true);
+      const subdeckCount =
+        result.kind === 'deck' && result.applied?.subdecks != null
+          ? result.applied.subdecks.length
+          : 1;
+      context.recordToolResult('create_deck', true, undefined, {
+        subdeckCount,
+      });
       return textResult(result);
     }
   );

@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-20-mcp-create-deck-subdecks",
+  "date": "2026-07-20",
+  "type": "feature",
+  "title": "MCP create_deck sorts cards into subdecks — give each card a deck under the parent in one call"
+}

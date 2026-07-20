@@ -11,6 +11,11 @@ export interface AppliedTts {
   side?: McpTtsSide;
 }
 
+export interface AppliedSubdeck {
+  deck: string;
+  cards: number;
+}
+
 export interface AppliedOptions {
   noteType: McpNoteType;
   tags: string[];
@@ -18,6 +23,7 @@ export interface AppliedOptions {
   splitByHeadings: boolean;
   styleTemplate?: McpStyleTemplate;
   tts: AppliedTts;
+  subdecks?: AppliedSubdeck[];
 }
 
 export interface IgnoredOption {

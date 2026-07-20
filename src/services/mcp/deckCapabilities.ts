@@ -163,6 +163,7 @@ export const DECK_CAPABILITIES: DeckCapabilities = {
   conventions: [
     'Cloze cards require {{c1::...}} markup in the text; without it, cloze falls back to basic.',
     'Deck names use :: to nest subdecks, e.g. Spanish::Verbs::Irregular.',
+    'create_deck sorts cards into subdecks with a per-card deck field: a leaf name relative to deckName. deck "Vocabulary" under deckName "JLPT N5" lands in JLPT N5::Vocabulary; use :: in deck to nest deeper (Verbs::Irregular); omit deck to keep the card in deckName.',
     'Only these curated options are honored; unknown keys are ignored and never bypass account limits.',
   ],
 };
