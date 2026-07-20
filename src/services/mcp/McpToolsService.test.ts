@@ -82,6 +82,77 @@ function makeService(overrides: {
   };
 }
 
+type SampleInput = { front: string; back: string; ord: number };
+
+function reversibleNoteTypes() {
+  return new Map([
+    [
+      1,
+      {
+        id: 1,
+        name: 'Basic (and reversed card)',
+        type: 0,
+        css: '',
+        fields: [],
+        templates: [
+          { name: 'Card 1', ord: 0, qfmt: '', afmt: '' },
+          { name: 'Card 2', ord: 1, qfmt: '', afmt: '' },
+        ],
+      },
+    ],
+  ]);
+}
+
+function basicNoteTypes() {
+  return new Map([
+    [
+      1,
+      {
+        id: 1,
+        name: 'Basic',
+        type: 0,
+        css: '',
+        fields: [],
+        templates: [{ name: 'Card 1', ord: 0, qfmt: '', afmt: '' }],
+      },
+    ],
+  ]);
+}
+
+function makePreview(
+  noteTypes: unknown,
+  cards: SampleInput[]
+): Partial<ApkgPreviewService> {
+  const parsed = {
+    collection: {
+      noteTypes,
+      cards: cards.map((card, index) => ({
+        id: index + 1,
+        nid: index + 1,
+        did: 1,
+        ord: card.ord,
+      })),
+      notes: new Map(),
+      decks: new Map(),
+    },
+  };
+  return {
+    parse: jest.fn(async () => parsed as never),
+    getMeta: jest.fn(() => ({ totalCards: cards.length, decks: [] })),
+    getCardsPage: jest.fn(
+      () => ({ cards, nextCursor: null, total: cards.length }) as never
+    ),
+  };
+}
+
+function reversiblePreview(cards: SampleInput[]): Partial<ApkgPreviewService> {
+  return makePreview(reversibleNoteTypes(), cards);
+}
+
+function basicPreview(cards: SampleInput[]): Partial<ApkgPreviewService> {
+  return makePreview(basicNoteTypes(), cards);
+}
+
 describe('McpToolsService.listMyDecks', () => {
   it('maps jobs to owner-scoped summaries with download URLs', async () => {
     const { service } = makeService({
@@ -355,6 +426,205 @@ describe('McpToolsService.convertToDeck', () => {
     });
     expect(persist).not.toHaveBeenCalled();
   });
+
+  it('remaps markdown_likely_lossy to the context-neutral no-cards guidance', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.status(400).json({
+        code: 'markdown_likely_lossy',
+        message: 'Notion-flavored lossy reason',
+      });
+    };
+    const { service } = makeService({ uploadEntry });
+    const result = await service.convertToDeck(
+      { text: 'a table' },
+      'owner',
+      {}
+    );
+    expect(result).toMatchObject({
+      kind: 'error',
+      code: 'markdown_likely_lossy',
+    });
+    const message = (result as { message: string }).message;
+    expect(message).toContain('No cards found in this text');
+    expect(message).toContain('create_deck');
+    expect(message).toContain('deck_capabilities');
+    expect(message).not.toContain('Notion-flavored lossy reason');
+  });
+
+  it('remaps empty_export to the same no-cards guidance', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.status(400).json({ code: 'empty_export', message: 'No cards.' });
+    };
+    const { service } = makeService({ uploadEntry });
+    const result = await service.convertToDeck({ text: 'x' }, 'owner', {});
+    expect(result).toMatchObject({ kind: 'error', code: 'empty_export' });
+    expect((result as { message: string }).message).toContain(
+      'No cards found in this text'
+    );
+  });
+
+  it('echoes the applied options back in the public option vocabulary', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.set('X-Card-Count', '3');
+      res.set('File-Name', 'deck.apkg');
+      res.status(200).send(Buffer.from('APKG-BYTES'));
+    };
+    const { service } = makeService({ uploadEntry });
+    const result = await service.convertToDeck(
+      {
+        text: 'Q :: A',
+        options: {
+          noteType: 'basic-reversed',
+          tags: ['bio'],
+          deckName: 'Cells',
+          styleTemplate: 'nostyle',
+        },
+      },
+      'owner-9',
+      {}
+    );
+    expect(result).toMatchObject({
+      kind: 'deck',
+      applied: {
+        noteType: 'basic-reversed',
+        tags: ['bio'],
+        deckName: 'Cells',
+        styleTemplate: 'nostyle',
+        splitByHeadings: false,
+        tts: { enabled: false },
+      },
+    });
+    expect((result as { ignored?: unknown }).ignored).toBeUndefined();
+  });
+
+  it('downgrades cloze to basic and reports it in ignored when the text has no markup', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.set('X-Card-Count', '1');
+      res.set('File-Name', 'deck.apkg');
+      res.status(200).send(Buffer.from('APKG-BYTES'));
+    };
+    const { service } = makeService({ uploadEntry });
+    const result = await service.convertToDeck(
+      { text: 'Front :: Back', options: { noteType: 'cloze' } },
+      'owner-9',
+      {}
+    );
+    expect(result).toMatchObject({
+      kind: 'deck',
+      applied: { noteType: 'basic' },
+      ignored: [
+        {
+          option: 'noteType',
+          requested: 'cloze',
+          reason:
+            'No {{c1::}} markup found in the text; built basic cards instead.',
+        },
+      ],
+    });
+  });
+
+  it('keeps cloze in applied when the text carries {{c1::}} markup', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.set('X-Card-Count', '1');
+      res.set('File-Name', 'deck.apkg');
+      res.status(200).send(Buffer.from('APKG-BYTES'));
+    };
+    const { service } = makeService({ uploadEntry });
+    const result = await service.convertToDeck(
+      {
+        text: 'The {{c1::mitochondrion}} is the powerhouse :: extra',
+        options: { noteType: 'cloze' },
+      },
+      'owner-9',
+      {}
+    );
+    expect(result).toMatchObject({
+      kind: 'deck',
+      applied: { noteType: 'cloze' },
+    });
+    expect((result as { ignored?: unknown }).ignored).toBeUndefined();
+  });
+
+  it('labels reversible sample cards with a forward/reverse direction', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.set('X-Card-Count', '2');
+      res.set('File-Name', 'deck.apkg');
+      res.status(200).send(Buffer.from('APKG-BYTES'));
+    };
+    const { service } = makeService({
+      uploadEntry,
+      preview: reversiblePreview([
+        { front: 'F', back: 'B', ord: 0 },
+        { front: 'B', back: 'F', ord: 1 },
+      ]),
+    });
+    const result = await service.convertToDeck({ text: 'x' }, 'owner-9', {});
+    expect((result as { sampleCards?: unknown }).sampleCards).toEqual([
+      { front: 'F', back: 'B', direction: 'forward' },
+      { front: 'B', back: 'F', direction: 'reverse' },
+    ]);
+  });
+
+  it('omits direction on a non-reversible deck', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.set('X-Card-Count', '1');
+      res.set('File-Name', 'deck.apkg');
+      res.status(200).send(Buffer.from('APKG-BYTES'));
+    };
+    const { service } = makeService({
+      uploadEntry,
+      preview: basicPreview([{ front: 'Q', back: 'A', ord: 0 }]),
+    });
+    const result = await service.convertToDeck({ text: 'x' }, 'owner-9', {});
+    expect((result as { sampleCards?: unknown }).sampleCards).toEqual([
+      { front: 'Q', back: 'A' },
+    ]);
+  });
+
+  it('adds a reverse sample when the first page of a reversible deck is all forward', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.set('X-Card-Count', '2');
+      res.set('File-Name', 'deck.apkg');
+      res.status(200).send(Buffer.from('APKG-BYTES'));
+    };
+    const parsed = {
+      collection: {
+        noteTypes: reversibleNoteTypes(),
+        cards: [
+          { id: 1, nid: 1, did: 1, ord: 0 },
+          { id: 2, nid: 1, did: 1, ord: 1 },
+        ],
+        notes: new Map(),
+        decks: new Map(),
+      },
+    };
+    const getCardsPage = jest.fn((_p: unknown, cursor: number) =>
+      cursor === 0
+        ? {
+            cards: [{ front: 'F', back: 'B', ord: 0 }],
+            nextCursor: null,
+            total: 2,
+          }
+        : {
+            cards: [{ front: 'B', back: 'F', ord: 1 }],
+            nextCursor: null,
+            total: 2,
+          }
+    );
+    const { service } = makeService({
+      uploadEntry,
+      preview: {
+        parse: jest.fn(async () => parsed as never),
+        getMeta: jest.fn(() => ({ totalCards: 2, decks: [] })),
+        getCardsPage,
+      } as unknown as Partial<ApkgPreviewService>,
+    });
+    const result = await service.convertToDeck({ text: 'x' }, 'owner-9', {});
+    expect((result as { sampleCards?: unknown }).sampleCards).toEqual([
+      { front: 'F', back: 'B', direction: 'forward' },
+      { front: 'B', back: 'F', direction: 'reverse' },
+    ]);
+  });
 });
 
 describe('McpToolsService.createDeck', () => {
@@ -522,6 +792,28 @@ describe('McpToolsService.createDeck', () => {
     const result = await service.createDeck(cards, 'Deck', 'owner-9', {});
     expect(result).toMatchObject({ kind: 'error' });
     expect(persist).not.toHaveBeenCalled();
+  });
+
+  it('returns the empty-back guidance instead of the convert-flavored message when every back is empty', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.status(400).json({ code: 'empty_export', message: 'No cards.' });
+    };
+    const { service } = makeService({ uploadEntry });
+    const result = await service.createDeck(
+      [
+        { front: 'Front only', back: '' },
+        { front: 'Another', back: '   ' },
+      ],
+      'Deck',
+      'owner-9',
+      {}
+    );
+    expect(result).toEqual({
+      kind: 'error',
+      code: 'empty_export',
+      message:
+        'Some cards have an empty back. Every card needs both a front and a back.',
+    });
   });
 });
 

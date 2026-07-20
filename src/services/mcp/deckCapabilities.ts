@@ -9,10 +9,32 @@ export interface DeckCapabilityOption {
   description: string;
 }
 
+export interface DeckInputStructure {
+  name: string;
+  pattern: string;
+  example: string;
+}
+
+export interface DeckInputNoteType {
+  noteType: string;
+  options: Record<string, unknown>;
+  text: string;
+  note?: string;
+}
+
+export interface DeckInputFormats {
+  howItWorks: string;
+  shortcut: string;
+  structures: DeckInputStructure[];
+  noteTypes: DeckInputNoteType[];
+  mcq: string;
+}
+
 export interface DeckCapabilities {
   noteTypes: DeckCapabilityNoteType[];
   options: DeckCapabilityOption[];
   inputKinds: string[];
+  inputFormats: DeckInputFormats;
   conventions: string[];
 }
 
@@ -83,6 +105,61 @@ export const DECK_CAPABILITIES: DeckCapabilities = {
     'text — Markdown or HTML passed directly',
     'url — a public URL to an HTML, Markdown, CSV, or other supported file',
   ],
+  inputFormats: {
+    howItWorks:
+      'convert_to_deck scans your text for front and back pairs. Pick one structure below to separate each front from its back — you only need one. The note type (basic, basic-reversed, or input) is set through options.noteType and does not change which structure you use. Cloze is the exception: set options.noteType to cloze and put {{c1::...}} markup inside the front of any structure. Without the markup, cloze falls back to basic.',
+    shortcut:
+      'If you already have discrete front and back pairs, skip the text formatting and call create_deck with a { front, back } array instead. It cannot fail on formatting.',
+    structures: [
+      {
+        name: 'inline',
+        pattern: 'front :: back — one card per line',
+        example: 'What is the powerhouse of the cell? :: Mitochondria',
+      },
+      {
+        name: 'toggle',
+        pattern: '<details><summary>front</summary>back</details>',
+        example:
+          '<details><summary>What is ATP?</summary>The energy currency of the cell</details>',
+      },
+      {
+        name: 'heading',
+        pattern: '## front, then the answer on the lines below it',
+        example: '## What is ATP?\nThe energy currency of the cell',
+      },
+      {
+        name: 'qa',
+        pattern: 'Q: front on one line, A: back on the next',
+        example: 'Q: What is ATP?\nA: The energy currency of the cell',
+      },
+    ],
+    noteTypes: [
+      {
+        noteType: 'basic',
+        options: { noteType: 'basic' },
+        text: 'Mitochondrion :: The powerhouse of the cell',
+      },
+      {
+        noteType: 'basic-reversed',
+        options: { noteType: 'basic-reversed' },
+        text: 'Mitochondrion :: The powerhouse of the cell',
+        note: 'Same text as basic. Builds two cards per line — front to back and back to front.',
+      },
+      {
+        noteType: 'input',
+        options: { noteType: 'input' },
+        text: 'Mitochondrion :: The powerhouse of the cell',
+        note: 'Same text as basic. The learner types the answer during review.',
+      },
+      {
+        noteType: 'cloze',
+        options: { noteType: 'cloze' },
+        text: 'The {{c1::mitochondrion}} is the powerhouse of the cell :: Found in eukaryotic cells',
+        note: 'Cloze needs {{c1::...}} markup in the front of the card. Without the markup, cloze falls back to basic.',
+      },
+    ],
+    mcq: 'Multiple-choice cards are built from Notion toggle-list exports that mark the correct option, not from free-form text. To make them, convert a Notion export with options.noteType set to mcq. create_deck builds basic front and back cards only.',
+  },
   conventions: [
     'Cloze cards require {{c1::...}} markup in the text; without it, cloze falls back to basic.',
     'Deck names use :: to nest subdecks, e.g. Spanish::Verbs::Irregular.',

@@ -118,6 +118,18 @@ const McpRouter = () => {
           props: { tool: toolName },
           created_at: new Date(),
         }),
+      recordToolResult: (toolName, success, errorCode) =>
+        getEventsSink().record({
+          name: 'mcp_tool_result',
+          user_id: Number(user.id),
+          anonymous_id: null,
+          props: {
+            tool: toolName,
+            success,
+            ...(errorCode != null ? { error_code: errorCode } : {}),
+          },
+          created_at: new Date(),
+        }),
     });
     const transport = new StreamableHTTPServerTransport({
       sessionIdGenerator: undefined,

@@ -8,6 +8,7 @@ const buildContext = (
   locals: {},
   toolsService: {} as McpToolsService,
   recordToolCall: () => {},
+  recordToolResult: () => {},
   ...overrides,
 });
 
@@ -158,5 +159,87 @@ describe('get_deck_preview handler', () => {
       '[mcp] get_deck_preview failed for missing: Deck not found.'
     );
     errorSpy.mockRestore();
+  });
+});
+
+describe('tool result metric', () => {
+  type ResultCall = [string, boolean, string?];
+
+  it('records a successful convert_to_deck result', async () => {
+    const calls: ResultCall[] = [];
+    const convertToDeck = jest.fn(async () => ({
+      kind: 'deck' as const,
+      cardCount: 3,
+      filename: 'deck.apkg',
+      summary: 'ready',
+    }));
+    const handler = getHandler(
+      buildContext({
+        toolsService: { convertToDeck } as unknown as McpToolsService,
+        recordToolResult: (tool, success, errorCode) =>
+          calls.push([tool, success, errorCode]),
+      }),
+      'convert_to_deck'
+    );
+    await handler({ text: 'Q :: A' });
+    expect(calls).toEqual([['convert_to_deck', true, undefined]]);
+  });
+
+  it('records a failed convert_to_deck result with its error code', async () => {
+    const calls: ResultCall[] = [];
+    const convertToDeck = jest.fn(async () => ({
+      kind: 'error' as const,
+      message: 'No cards found in this text.',
+      code: 'empty_export',
+    }));
+    const handler = getHandler(
+      buildContext({
+        toolsService: { convertToDeck } as unknown as McpToolsService,
+        recordToolResult: (tool, success, errorCode) =>
+          calls.push([tool, success, errorCode]),
+      }),
+      'convert_to_deck'
+    );
+    await handler({ text: 'a table' });
+    expect(calls).toEqual([['convert_to_deck', false, 'empty_export']]);
+  });
+
+  it('records create_deck success and failure results', async () => {
+    const successCalls: ResultCall[] = [];
+    const successHandler = getHandler(
+      buildContext({
+        toolsService: {
+          createDeck: jest.fn(async () => ({
+            kind: 'deck' as const,
+            cardCount: 2,
+            filename: 'deck.apkg',
+            summary: 'ready',
+          })),
+        } as unknown as McpToolsService,
+        recordToolResult: (tool, success, errorCode) =>
+          successCalls.push([tool, success, errorCode]),
+      }),
+      'create_deck'
+    );
+    await successHandler({ cards: [{ front: 'Q', back: 'A' }] });
+    expect(successCalls).toEqual([['create_deck', true, undefined]]);
+
+    const failCalls: ResultCall[] = [];
+    const failHandler = getHandler(
+      buildContext({
+        toolsService: {
+          createDeck: jest.fn(async () => ({
+            kind: 'error' as const,
+            message: 'Some cards have an empty back.',
+            code: 'empty_export',
+          })),
+        } as unknown as McpToolsService,
+        recordToolResult: (tool, success, errorCode) =>
+          failCalls.push([tool, success, errorCode]),
+      }),
+      'create_deck'
+    );
+    await failHandler({ cards: [{ front: 'Q', back: '' }] });
+    expect(failCalls).toEqual([['create_deck', false, 'empty_export']]);
   });
 });
