@@ -64,7 +64,7 @@ exports[`produces a stable deck for Notion cloze export 1`] = `
     "cards": [
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 					",
         "front": "<div class='toggle'>1️⃣{{c1::Canberra}} was founded in 1️⃣{{c2::1913}}.
 						</div>",
@@ -74,7 +74,7 @@ exports[`produces a stable deck for Notion cloze export 1`] = `
       },
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 					",
         "front": "<div class='toggle'>The {{c1::second}} number is 2️⃣</div>",
         "media": [],
@@ -83,7 +83,7 @@ exports[`produces a stable deck for Notion cloze export 1`] = `
       },
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 					",
         "front": "<div class='toggle'>The {{c1::third}} number is 3️⃣</div>",
         "media": [],
@@ -92,7 +92,7 @@ exports[`produces a stable deck for Notion cloze export 1`] = `
       },
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 					",
         "front": "<div class='toggle'>The {{c1::fourth}} number is 4️⃣</div>",
         "media": [],
@@ -101,7 +101,7 @@ exports[`produces a stable deck for Notion cloze export 1`] = `
       },
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 					",
         "front": "<div class='toggle'>The {{c1::fifth}} number is 5️⃣</div>",
         "media": [],
@@ -110,7 +110,7 @@ exports[`produces a stable deck for Notion cloze export 1`] = `
       },
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 					",
         "front": "<div class='toggle'>The {{c1::sixth}} number is 6️⃣</div>",
         "media": [],
@@ -119,7 +119,7 @@ exports[`produces a stable deck for Notion cloze export 1`] = `
       },
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 					",
         "front": "<div class='toggle'>The {{c1::seventh}} number is 7️⃣</div>",
         "media": [],
@@ -128,7 +128,7 @@ exports[`produces a stable deck for Notion cloze export 1`] = `
       },
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 					",
         "front": "<div class='toggle'>The {{c1::eight}} number is 8️⃣</div>",
         "media": [],
@@ -137,7 +137,7 @@ exports[`produces a stable deck for Notion cloze export 1`] = `
       },
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 					",
         "front": "<div class='toggle'>The {{c1::nineth}} number is 9️⃣</div>",
         "media": [],
@@ -146,7 +146,7 @@ exports[`produces a stable deck for Notion cloze export 1`] = `
       },
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 					",
         "front": "<div class='toggle'>The {{c1::tenth}} number is 🔟</div>",
         "media": [],
@@ -168,7 +168,7 @@ exports[`produces a stable deck for Notion nested toggles 1`] = `
     "cards": [
       {
         "back": "
-						<summary class="toggle"></summary>
+						
 						<ul id="0c61603c-a49f-49fd-87c2-4230f074c27d" class="toggle">
 							<li>
 								<details class="toggle">
@@ -240,8 +240,7 @@ exports[`produces a stable deck for Notion page with a remote image 1`] = `
     "cardCount": 1,
     "cards": [
       {
-        "back": "<html><head></head><body><summary class="toggle"></summary>
-<figure class="image"><img src="c97cfbb92381fe7b4b44188669ef61fd7beff685e1c85810e13e53a21fb0fe3f8ed74901c1db96f90834fbe964e9823f8798.png"></figure>
+        "back": "<html><head></head><body><figure class="image"><img src="c97cfbb92381fe7b4b44188669ef61fd7beff685e1c85810e13e53a21fb0fe3f8ed74901c1db96f90834fbe964e9823f8798.png"></figure>
 <p>The mitochondrion.</p></body></html>",
         "front": "<div class='toggle'>What does the diagram show?</div>",
         "media": [
@@ -264,14 +263,14 @@ exports[`produces a stable deck for Notion page with an image 1`] = `
     "cardCount": 3,
     "cards": [
       {
-        "back": "<summary class="toggle"></summary><p id="2429bda0-3b9f-47af-b7d0-c9f2edfab3f3" class=""><strong>This is the back. In bold font.</strong></p>",
+        "back": "<p id="2429bda0-3b9f-47af-b7d0-c9f2edfab3f3" class=""><strong>This is the back. In bold font.</strong></p>",
         "front": "<div class='toggle'><strong>Front</strong></div>",
         "media": [],
         "tags": [],
         "type": "cloze",
       },
       {
-        "back": "<summary class="toggle"></summary><p id="410dc1a5-1b5d-487b-ae39-ef9f5deea236" class=""></p>",
+        "back": "<p id="410dc1a5-1b5d-487b-ae39-ef9f5deea236" class=""></p>",
         "front": "<div class='toggle'><em>Back </em><a href="https://google.com"><strong><em>https://google.com</em></strong></a></div>",
         "media": [],
         "tags": [
@@ -280,7 +279,7 @@ exports[`produces a stable deck for Notion page with an image 1`] = `
         "type": "cloze",
       },
       {
-        "back": "<html><head></head><body><summary class="toggle"></summary><figure id="202b0d67-c058-4bc6-b1ce-9e35b753128b" class="image"><a href="HTML%20test%20202b0d67c0584bc6b1ce9e35b753128b/Skjermbilde_2020-05-13_kl._19.45.08.png"><img style="width:532px" src="Skjermbilde_2020-05-13_kl._19.45.08.png"></a></figure></body></html>",
+        "back": "<html><head></head><body><figure id="202b0d67-c058-4bc6-b1ce-9e35b753128b" class="image"><a href="HTML%20test%20202b0d67c0584bc6b1ce9e35b753128b/Skjermbilde_2020-05-13_kl._19.45.08.png"><img style="width:532px" src="Skjermbilde_2020-05-13_kl._19.45.08.png"></a></figure></body></html>",
         "front": "<div class='toggle'>With an image</div>",
         "media": [],
         "tags": [],

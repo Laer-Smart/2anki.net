@@ -1448,6 +1448,10 @@ export class DeckParser {
                     ? this.removeNestedTogglesNewFormat(b)
                     : this.removeNestedTogglesLegacy(b);
                 }
+                mangleBackSide = mangleBackSide.replaceAll(
+                  '<summary class="toggle"></summary>',
+                  ''
+                );
                 if (this.settings.perserveNewLines) {
                   mangleBackSide = replaceAll(mangleBackSide, '\n', '<br />');
                 }
