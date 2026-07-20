@@ -224,6 +224,9 @@ export class SyncNotionPageToRacUseCase {
   ): Promise<SyncNotionPageResult | AnkifyClientOfflineSkip> {
     const client = await this.clients.findActiveByOwner(input.owner);
     if (client == null) {
+      if (input.trigger === 'polling') {
+        return this.skipOfflinePoll(input);
+      }
       throw new NoActiveAnkifyClientError();
     }
     await this.clients.touchLastActiveAt(client.id);

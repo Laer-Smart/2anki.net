@@ -5,6 +5,7 @@ import {
   SyncNotionPageResult,
   SyncNotionPageToRacUseCase,
 } from './SyncNotionPageToRacUseCase';
+import { NoActiveAnkifyClientError } from './SendUploadToRacUseCase';
 import { AnkiConnectUnreachableError } from '../../services/ankify/AnkiConnectClient';
 import { AnkifyClient, AnkifyNotionSubscription } from '../../entities/ankify';
 import { AnkifyClientsRepositoryInterface } from '../../data_layer/ankify/AnkifyClientsRepository';
@@ -2655,6 +2656,63 @@ describe('SyncNotionPageToRacUseCase', () => {
       });
 
       expect(walkNotionPageForFlashcards).toHaveBeenCalledTimes(1);
+    });
+
+    test('calmly skips a poll and records a calm last_error when the owner has no active Anki client', async () => {
+      const repos = makeRepos();
+      repos.clients.findActiveByOwner.mockResolvedValue(null);
+      repos.subscriptions.findByOwnerAndPageId.mockResolvedValue(
+        sampleSubscription({ id: 77 })
+      );
+      const ac = makeAnkiConnectStub();
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      const result = await useCase.execute({
+        owner: 42,
+        notionPageId: 'page-id',
+        trigger: 'polling',
+      });
+
+      expect(isAnkifyClientOfflineSkip(result)).toBe(true);
+      expect(walkNotionPageForFlashcards).not.toHaveBeenCalled();
+      expect(repos.subscriptions.upsert).not.toHaveBeenCalled();
+      expect(repos.subscriptions.recordPoll).toHaveBeenCalledWith(77, {
+        error: ANKI_OFFLINE_SKIP_MESSAGE,
+      });
+    });
+
+    test('still throws NoActiveAnkifyClientError on a manual sync when the owner has no active Anki client', async () => {
+      const repos = makeRepos();
+      repos.clients.findActiveByOwner.mockResolvedValue(null);
+      const ac = makeAnkiConnectStub();
+      const useCase = new SyncNotionPageToRacUseCase(
+        repos.clients,
+        repos.mappings,
+        repos.conflicts,
+        repos.subscriptions,
+        repos.logs,
+        repos.notionRepo,
+        () => ac,
+        () => async () => []
+      );
+
+      await expect(
+        useCase.execute({
+          owner: 42,
+          notionPageId: 'page-id',
+          trigger: 'manual',
+        })
+      ).rejects.toBeInstanceOf(NoActiveAnkifyClientError);
+      expect(repos.subscriptions.recordPoll).not.toHaveBeenCalled();
     });
   });
 
