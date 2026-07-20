@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-20-checkout-reminder-skip",
+  "date": "2026-07-20",
+  "type": "fix",
+  "title": "Checkout reminder emails skip lifetime members and active subscribers, and arrive at most once a week"
+}
