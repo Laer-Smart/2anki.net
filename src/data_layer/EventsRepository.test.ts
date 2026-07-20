@@ -1,5 +1,9 @@
 import knexLib, { Knex } from 'knex';
-import { EventsRepository, EventRow } from './EventsRepository';
+import {
+  EventsRepository,
+  EventRow,
+  buildConversionFailedByReasonQuery,
+} from './EventsRepository';
 
 interface FakeStore {
   rows: Record<string, unknown>[];
@@ -80,6 +84,17 @@ function makeFakeKnex() {
 
   const fn = (() => tableHandler()) as never;
   return { db: fn, store };
+}
+
+function makeFakeKnexReturning(row: Record<string, unknown>): { db: Knex } {
+  const builder: Record<string, unknown> = {};
+  const chain = () => builder;
+  builder.where = chain;
+  builder.select = chain;
+  builder.first = () => Promise.resolve(row);
+  const db = (() => builder) as unknown as Knex;
+  (db as unknown as { raw: (s: string) => string }).raw = (s: string) => s;
+  return { db };
 }
 
 const baseEvent: EventRow = {
@@ -234,6 +249,40 @@ describe('EventsRepository SQL generation', () => {
     );
     expect(sql).toContain("group by props->>'signup_origin', name");
     expect(sql).not.toContain('anonymous_id) as distinct_identities)');
+  });
+
+  it('groupConversionFailedByReason buckets reasons with valid PG LIKE classification', () => {
+    const pg = knexLib({ client: 'pg' });
+    const sql = buildConversionFailedByReasonQuery(
+      pg,
+      new Date('2026-05-01')
+    ).toString();
+
+    expect(sql).toContain('"name" = \'conversion_failed\'');
+    expect(sql).toContain(
+      "count(distinct case when (props->>'reason' LIKE 'monthly_limit' OR props->>'reason' LIKE 'anonymous_cap' OR props->>'reason' LIKE '%\"code\":\"monthly_limit\"%') then COALESCE(user_id::text, anonymous_id) end) as paywall"
+    );
+    expect(sql).toContain(
+      "count(distinct case when (props->>'reason' LIKE 'empty_deck' OR props->>'reason' LIKE 'no_decks_created' OR props->>'reason' LIKE 'No cards in this deck yet.%') then COALESCE(user_id::text, anonymous_id) end) as empty"
+    );
+    expect(sql).toContain(
+      "count(distinct case when (props->>'reason' IS NULL OR (NOT (props->>'reason' LIKE 'monthly_limit' OR props->>'reason' LIKE 'anonymous_cap' OR props->>'reason' LIKE '%\"code\":\"monthly_limit\"%') AND NOT (props->>'reason' LIKE 'empty_deck' OR props->>'reason' LIKE 'no_decks_created' OR props->>'reason' LIKE 'No cards in this deck yet.%'))) then COALESCE(user_id::text, anonymous_id) end) as technical"
+    );
+  });
+
+  it('groupConversionFailedByReason resolves counts through the repository', async () => {
+    const { db } = makeFakeKnexReturning({
+      paywall: '25',
+      empty: '12',
+      technical: '5',
+    });
+    const repo = new EventsRepository(db);
+
+    const result = await repo.groupConversionFailedByReason(
+      new Date('2026-05-01')
+    );
+
+    expect(result).toEqual({ paywall: 25, empty: 12, technical: 5 });
   });
 
   it('lastEventAt selects the max created_at filtered by name', async () => {

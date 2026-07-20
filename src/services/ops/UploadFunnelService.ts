@@ -2,6 +2,7 @@ import type {
   IEventsRepository,
   UploadFunnelStageRow,
   UploadFunnelStageByOriginRow,
+  ConversionFailedByReasonRow,
 } from '../../data_layer/EventsRepository';
 
 export interface UploadFunnelStages {
@@ -25,9 +26,16 @@ export interface UploadFunnelOriginBreakdown extends UploadFunnelRates {
   stages: UploadFunnelStages;
 }
 
+export interface ConversionFailedByReason {
+  paywall: number;
+  empty: number;
+  technical: number;
+}
+
 export interface UploadFunnelResponse extends UploadFunnelRates {
   stages: UploadFunnelStages | null;
   by_origin: UploadFunnelOriginBreakdown[];
+  conversion_failed_by_reason: ConversionFailedByReason;
   since: string;
   as_of: string;
   error?: string;
@@ -50,15 +58,18 @@ export class UploadFunnelService {
 
     let rows: UploadFunnelStageRow[];
     let originRows: UploadFunnelStageByOriginRow[];
+    let failedByReason: ConversionFailedByReasonRow;
     try {
-      [rows, originRows] = await Promise.all([
+      [rows, originRows, failedByReason] = await Promise.all([
         this.eventsRepo.groupUploadFunnel(since),
         this.eventsRepo.groupUploadFunnelByOrigin(since),
+        this.eventsRepo.groupConversionFailedByReason(since),
       ]);
     } catch (err) {
       return {
         stages: null,
         by_origin: [],
+        conversion_failed_by_reason: { paywall: 0, empty: 0, technical: 0 },
         upload_to_download_rate_pct: 0,
         download_to_signup_rate_pct: 0,
         download_to_paid_rate_pct: 0,
@@ -73,6 +84,11 @@ export class UploadFunnelService {
     return {
       stages,
       by_origin: this.toOriginBreakdowns(originRows),
+      conversion_failed_by_reason: {
+        paywall: failedByReason.paywall,
+        empty: failedByReason.empty,
+        technical: failedByReason.technical,
+      },
       ...computeRates(stages),
       since: sinceStr,
       as_of,

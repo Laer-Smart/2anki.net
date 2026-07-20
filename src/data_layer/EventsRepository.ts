@@ -1,5 +1,11 @@
 import type { Knex } from 'knex';
 
+import {
+  EMPTY_REASON_PATTERNS,
+  PAYWALL_REASON_PATTERNS,
+  REASON_PROP_EXPRESSION,
+} from './classifyFailureReason';
+
 export interface EventRow {
   name: string;
   user_id?: number | null;
@@ -34,6 +40,12 @@ export interface UploadFunnelStageByOriginRow {
   distinct_identities: number;
 }
 
+export interface ConversionFailedByReasonRow {
+  paywall: number;
+  empty: number;
+  technical: number;
+}
+
 const UPLOAD_FUNNEL_STAGES = [
   'upload_started',
   'conversion_succeeded',
@@ -65,6 +77,9 @@ export interface IEventsRepository {
   groupUploadFunnelByOrigin(
     since: Date
   ): Promise<UploadFunnelStageByOriginRow[]>;
+  groupConversionFailedByReason(
+    since: Date
+  ): Promise<ConversionFailedByReasonRow>;
 }
 
 export class EventsRepository implements IEventsRepository {
@@ -217,6 +232,62 @@ export class EventsRepository implements IEventsRepository {
       distinct_identities: Number(r.distinct_identities),
     }));
   }
+
+  async groupConversionFailedByReason(
+    since: Date
+  ): Promise<ConversionFailedByReasonRow> {
+    const row = (await buildConversionFailedByReasonQuery(
+      this.database,
+      since
+    ).first()) as
+      | {
+          paywall: string | number | null;
+          empty: string | number | null;
+          technical: string | number | null;
+        }
+      | undefined;
+
+    return {
+      paywall: Number(row?.paywall ?? 0),
+      empty: Number(row?.empty ?? 0),
+      technical: Number(row?.technical ?? 0),
+    };
+  }
+}
+
+function likeAnyCondition(patterns: string[]): string {
+  return `(${patterns
+    .map(() => `${REASON_PROP_EXPRESSION} LIKE ?`)
+    .join(' OR ')})`;
+}
+
+function distinctIdentityWhen(condition: string): string {
+  return `count(distinct case when ${condition} then COALESCE(user_id::text, anonymous_id) end)`;
+}
+
+export function buildConversionFailedByReasonQuery(
+  database: Knex,
+  since: Date
+): Knex.QueryBuilder {
+  const paywall = likeAnyCondition(PAYWALL_REASON_PATTERNS);
+  const empty = likeAnyCondition(EMPTY_REASON_PATTERNS);
+  const technical = `(${REASON_PROP_EXPRESSION} IS NULL OR (NOT ${paywall} AND NOT ${empty}))`;
+
+  return database('events')
+    .where('name', 'conversion_failed')
+    .where('created_at', '>=', since)
+    .select(
+      database.raw(`${distinctIdentityWhen(paywall)} as paywall`, [
+        ...PAYWALL_REASON_PATTERNS,
+      ]),
+      database.raw(`${distinctIdentityWhen(empty)} as empty`, [
+        ...EMPTY_REASON_PATTERNS,
+      ]),
+      database.raw(`${distinctIdentityWhen(technical)} as technical`, [
+        ...PAYWALL_REASON_PATTERNS,
+        ...EMPTY_REASON_PATTERNS,
+      ])
+    );
 }
 
 export function buildUploadFunnelByOriginQuery(

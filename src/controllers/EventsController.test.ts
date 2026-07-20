@@ -17,6 +17,11 @@ function makeFakeRepository(): IEventsRepository {
     groupPaywallClicksByVariant: jest.fn(async () => []),
     groupUploadFunnel: jest.fn(async () => []),
     groupUploadFunnelByOrigin: jest.fn(async () => []),
+    groupConversionFailedByReason: jest.fn(async () => ({
+      paywall: 0,
+      empty: 0,
+      technical: 0,
+    })),
   };
 }
 

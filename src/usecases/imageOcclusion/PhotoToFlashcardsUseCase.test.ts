@@ -66,6 +66,9 @@ function makeEventsStub(usedThisMonth = 0): IEventsRepository {
     groupPaywallClicksByVariant: jest.fn().mockResolvedValue([]),
     groupUploadFunnel: jest.fn().mockResolvedValue([]),
     groupUploadFunnelByOrigin: jest.fn().mockResolvedValue([]),
+    groupConversionFailedByReason: jest
+      .fn()
+      .mockResolvedValue({ paywall: 0, empty: 0, technical: 0 }),
   };
 }
 

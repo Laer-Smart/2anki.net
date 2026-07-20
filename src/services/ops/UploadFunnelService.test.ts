@@ -3,11 +3,19 @@ import type {
   IEventsRepository,
   UploadFunnelStageRow,
   UploadFunnelStageByOriginRow,
+  ConversionFailedByReasonRow,
 } from '../../data_layer/EventsRepository';
+
+const NO_FAILURES: ConversionFailedByReasonRow = {
+  paywall: 0,
+  empty: 0,
+  technical: 0,
+};
 
 function makeRepo(
   rows: UploadFunnelStageRow[],
-  originRows: UploadFunnelStageByOriginRow[] = []
+  originRows: UploadFunnelStageByOriginRow[] = [],
+  failedByReason: ConversionFailedByReasonRow = NO_FAILURES
 ): IEventsRepository {
   return {
     insertEvents: jest.fn(),
@@ -19,6 +27,7 @@ function makeRepo(
     groupPaywallClicksByVariant: jest.fn(),
     groupUploadFunnel: jest.fn().mockResolvedValue(rows),
     groupUploadFunnelByOrigin: jest.fn().mockResolvedValue(originRows),
+    groupConversionFailedByReason: jest.fn().mockResolvedValue(failedByReason),
   };
 }
 
@@ -186,6 +195,40 @@ describe('UploadFunnelService', () => {
     const result = await service.getMetrics(since);
 
     expect(result.by_origin).toEqual([]);
+  });
+
+  it('splits conversion_failed into paywall, empty, and technical buckets', async () => {
+    const repo = makeRepo(
+      [{ stage: 'conversion_failed', distinct_identities: 42 }],
+      [],
+      { paywall: 25, empty: 12, technical: 5 }
+    );
+    const service = new UploadFunnelService({ eventsRepo: repo });
+
+    const result = await service.getMetrics(since);
+
+    expect(result.conversion_failed_by_reason).toEqual({
+      paywall: 25,
+      empty: 12,
+      technical: 5,
+    });
+  });
+
+  it('reports zeroed reason buckets on a repository error', async () => {
+    const repo = makeRepo([]);
+    (repo.groupConversionFailedByReason as jest.Mock).mockRejectedValueOnce(
+      new Error('db down')
+    );
+    const service = new UploadFunnelService({ eventsRepo: repo });
+
+    const result = await service.getMetrics(since);
+
+    expect(result.conversion_failed_by_reason).toEqual({
+      paywall: 0,
+      empty: 0,
+      technical: 0,
+    });
+    expect(result.error).toBe('db down');
   });
 
   it('surfaces a repository error without throwing', async () => {
