@@ -95,6 +95,12 @@ const EMPTY_CONTENT_SIGNALS = [
   'no q&a',
   'no q/a',
   'consists only of',
+  'i need to see',
+  'need to see the',
+  'please provide the',
+  'provide the content',
+  'share the content',
+  'no content was provided',
 ];
 
 export function looksLikeEmptyContentExplanation(cleaned: string): boolean {
@@ -499,15 +505,8 @@ function escapeStrayControlChars(text: string): string {
   });
 }
 
-function tryRepairDeckArray(toParse: string): unknown[] | null {
-  let candidate: unknown;
-  try {
-    candidate = JSON.parse(jsonrepair(escapeStrayControlChars(toParse)));
-  } catch {
-    return null;
-  }
-  if (!Array.isArray(candidate) || candidate.length === 0) return null;
-  const hasUsableCard = candidate.some((deck) => {
+function hasUsableCard(candidate: unknown[]): boolean {
+  return candidate.some((deck) => {
     if (!deck || typeof deck !== 'object') return false;
     const cards = (deck as { cards?: unknown }).cards;
     if (!Array.isArray(cards)) return false;
@@ -521,7 +520,38 @@ function tryRepairDeckArray(toParse: string): unknown[] | null {
       return hasQ && (hasA || cloze === true);
     });
   });
-  return hasUsableCard ? candidate : null;
+}
+
+function tryRepairDeckArray(toParse: string): unknown[] | null {
+  let candidate: unknown;
+  try {
+    candidate = JSON.parse(jsonrepair(escapeStrayControlChars(toParse)));
+  } catch {
+    return null;
+  }
+  if (!Array.isArray(candidate) || candidate.length === 0) return null;
+  return hasUsableCard(candidate) ? candidate : null;
+}
+
+export type RepairFailureReason =
+  | 'jsonrepair-threw'
+  | 'not-array'
+  | 'empty-array'
+  | 'no-usable-card'
+  | 'recoverable';
+
+// Classifies why a response could not be salvaged, so the rare unrecoverable
+// case leaves a diagnosable log line instead of an opaque claude_parse_failed.
+export function describeRepairFailure(toParse: string): RepairFailureReason {
+  let candidate: unknown;
+  try {
+    candidate = JSON.parse(jsonrepair(escapeStrayControlChars(toParse)));
+  } catch {
+    return 'jsonrepair-threw';
+  }
+  if (!Array.isArray(candidate)) return 'not-array';
+  if (candidate.length === 0) return 'empty-array';
+  return hasUsableCard(candidate) ? 'recoverable' : 'no-usable-card';
 }
 
 export function parseDeckResponse(
@@ -556,6 +586,8 @@ export function parseDeckResponse(
     } else {
       console.error('[Claude] Failed to parse response as JSON', {
         chunkIndex,
+        repairFailureReason: describeRepairFailure(toParse),
+        rawTail: raw.slice(-400),
         raw: redactClaudePayload(raw),
         cleaned: redactClaudePayload(cleaned),
         toParse: redactClaudePayload(toParse),

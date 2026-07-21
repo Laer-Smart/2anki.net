@@ -10,6 +10,7 @@ import {
   buildUserMessage,
   buildFieldMappingPromptFragment,
   dedupeCardsByFront,
+  describeRepairFailure,
   generateDeckInfo,
   ClaudeParseError,
   ImageOnlyContentError,
@@ -56,6 +57,18 @@ describe('looksLikeEmptyContentExplanation', () => {
       "I couldn't find any question-and-answer pairs to extract.",
       'The page has no extractable flashcard content.',
       'Nothing to convert — the page appears to be a template.',
+    ];
+    for (const sample of samples) {
+      expect(looksLikeEmptyContentExplanation(sample)).toBe(true);
+    }
+  });
+
+  it('detects the model asking to be shown the content (prod refusal)', () => {
+    const samples = [
+      'I need to see the actual HTML content to convert it into Anki flashcards. The content field appears to be empty.',
+      'Please provide the content you want me to turn into flashcards.',
+      'Could you share the content you would like converted?',
+      'No content was provided for me to convert.',
     ];
     for (const sample of samples) {
       expect(looksLikeEmptyContentExplanation(sample)).toBe(true);
@@ -356,6 +369,26 @@ describe('parseDeckResponse', () => {
     } finally {
       errorSpy.mockRestore();
     }
+  });
+});
+
+describe('describeRepairFailure', () => {
+  it('reports prose that repairs to a non-array value', () => {
+    expect(describeRepairFailure('I need to see the actual content')).toBe(
+      'not-array'
+    );
+  });
+
+  it('reports a repaired structure that yields no usable card', () => {
+    expect(describeRepairFailure('[{"deck":"D","cards":[]}]')).toBe(
+      'no-usable-card'
+    );
+  });
+
+  it('reports recoverable input as recoverable', () => {
+    const truncated =
+      '[{"deck":"D","cards":[{"q":"Q1","a":"A1","tags":["x"]},{"q":"Q2","a":"part';
+    expect(describeRepairFailure(truncated)).toBe('recoverable');
   });
 });
 

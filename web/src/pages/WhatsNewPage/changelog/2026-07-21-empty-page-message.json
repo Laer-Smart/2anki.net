@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-21-empty-page-message",
+  "date": "2026-07-21",
+  "type": "fix",
+  "title": "Converting a page with no text now explains it's empty instead of failing with a generic error"
+}
