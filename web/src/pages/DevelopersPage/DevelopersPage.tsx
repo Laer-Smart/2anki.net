@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import {
@@ -30,10 +30,17 @@ function CopyButton({
   label,
 }: Readonly<{ text: string; label: string }>) {
   const [copied, setCopied] = useState(false);
+  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (resetTimer.current != null) clearTimeout(resetTimer.current);
+    },
+    []
+  );
   const copy = () => {
     void navigator.clipboard?.writeText(text);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    resetTimer.current = setTimeout(() => setCopied(false), 2000);
   };
   return (
     <button
@@ -100,8 +107,12 @@ function InstallStrip() {
             Download the CLI
           </a>
           <span className={styles.terminalNote}>
-            macOS, Linux, and Windows binaries. On macOS, clear quarantine once:{' '}
-            <code>xattr -d com.apple.quarantine ./2anki-macos-arm64</code>
+            macOS, Linux, and Windows binaries. On macOS, clear quarantine and
+            make it executable once:{' '}
+            <code>
+              xattr -d com.apple.quarantine ./2anki-macos-arm64 && chmod +x
+              ./2anki-macos-arm64
+            </code>
           </span>
         </div>
       )}
@@ -128,7 +139,7 @@ function GetStarted() {
           <span className={styles.stepLabel}>Convert</span>
           <span className={styles.stepBody}>
             <code className={styles.inlineCode}>2anki convert notes.md</code>{' '}
-            builds an Anki deck from your file and prints the download path.
+            builds an Anki deck from your file and saves the .apkg next to it.
           </span>
         </li>
       </ol>
@@ -210,10 +221,26 @@ function RevealDialog({
     void navigator.clipboard?.writeText(created.secret);
     setCopied(true);
   };
+  const copyRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    copyRef.current?.focus();
+  }, []);
   return (
-    <div className={styles.revealBackdrop}>
-      <div className={styles.revealCard} role="dialog" aria-modal="true">
-        <h3 className={styles.cardTitle}>Copy your API key</h3>
+    <div
+      className={styles.revealBackdrop}
+      onKeyDown={(event) => {
+        if (event.key === 'Escape') onDone();
+      }}
+    >
+      <div
+        className={styles.revealCard}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="reveal-key-title"
+      >
+        <h3 id="reveal-key-title" className={styles.cardTitle}>
+          Copy your API key
+        </h3>
         <p className={styles.noticeDanger}>
           This is the only time you&rsquo;ll see this key. Copy it now and store
           it somewhere safe — you won&rsquo;t be able to see it again.
@@ -221,6 +248,7 @@ function RevealDialog({
         <div className={styles.keyReveal} data-hj-suppress>
           <code className={styles.keyValue}>{created.secret}</code>
           <button
+            ref={copyRef}
             type="button"
             className={sharedStyles.btnSecondary}
             onClick={copy}
@@ -294,7 +322,9 @@ function KeyManager() {
       <h2 className={styles.cardTitle}>API keys</h2>
       <p className={styles.body}>
         Send the key as a bearer token. Keep it secret; anyone with the key can
-        convert on your account.
+        convert on your account. Keys start on the free Sandbox plan — 100 cards
+        a month at 5 requests a minute; <a href="/pricing">paid plans</a> raise
+        both.
       </p>
 
       <div className={styles.createRow}>

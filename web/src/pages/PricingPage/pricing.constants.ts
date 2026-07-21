@@ -6,9 +6,9 @@ export interface UnlimitedPricing {
 }
 
 export const LEGACY_UNLIMITED_PRICING: UnlimitedPricing = {
-  monthlyCents: 600,
-  annualCents: 6000,
-  legacy: true,
+  monthlyCents: 799,
+  annualCents: 6400,
+  legacy: false,
   lockInDeadline: null,
 };
 
