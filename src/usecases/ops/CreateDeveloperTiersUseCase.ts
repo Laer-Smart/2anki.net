@@ -72,7 +72,8 @@ export class CreateDeveloperTiersUseCase {
   ): Promise<ProvisionedTier> {
     let createdProduct = false;
     let product = existingProducts.find(
-      (candidate) => candidate.metadata?.[DEV_TIER_METADATA_KEY] === definition.key
+      (candidate) =>
+        candidate.metadata?.[DEV_TIER_METADATA_KEY] === definition.key
     );
     if (product == null) {
       product = await this.stripe.products.create({

@@ -51,7 +51,9 @@ export interface RequireApiKeyDeps {
   now?: () => Date;
   tierResolver?: TierResolver;
   getActiveProductIds?: (email: string) => Promise<string[]>;
-  rateLimiterForTier?: (tier: ResolvedDeveloperTier) => { check(key: string): boolean };
+  rateLimiterForTier?: (tier: ResolvedDeveloperTier) => {
+    check(key: string): boolean;
+  };
 }
 
 function recordUsage(keyId: number, userId: number, at: number) {

@@ -12,9 +12,7 @@ const STARTER = {
   active: true,
 };
 
-function makeRepo(
-  tiers = [STARTER]
-): jest.Mocked<IDeveloperTiersRepository> {
+function makeRepo(tiers = [STARTER]): jest.Mocked<IDeveloperTiersRepository> {
   return {
     listActive: jest.fn().mockResolvedValue(tiers),
     upsert: jest.fn(),

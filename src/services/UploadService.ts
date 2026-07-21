@@ -235,9 +235,7 @@ class UploadService {
     private readonly apiUsageWarner?: ApiUsageWarner
   ) {}
 
-  private apiTierOf(
-    res: express.Response
-  ): ResolvedDeveloperTier | null {
+  private apiTierOf(res: express.Response): ResolvedDeveloperTier | null {
     if (res.locals.api_key_auth !== true) {
       return null;
     }

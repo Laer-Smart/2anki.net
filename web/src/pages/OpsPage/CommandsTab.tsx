@@ -3,10 +3,7 @@ import { useState } from 'react';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './OpsPage.module.css';
 import { syncStripeSubscriptions } from './syncStripeSubscriptions';
-import {
-  createDeveloperTiers,
-  ProvisionedTier,
-} from './createDeveloperTiers';
+import { createDeveloperTiers, ProvisionedTier } from './createDeveloperTiers';
 import { grantDeveloperAccess } from './grantDeveloperAccess';
 import {
   deleteInactiveUsers,
@@ -123,9 +120,7 @@ export default function CommandsTab() {
       );
     } catch (error) {
       setTiersStatus('error');
-      setTiersMessage(
-        error instanceof Error ? error.message : 'Unknown error'
-      );
+      setTiersMessage(error instanceof Error ? error.message : 'Unknown error');
     }
   };
 
