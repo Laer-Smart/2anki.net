@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-21-lifetime-mcp-access",
+  "date": "2026-07-21",
+  "type": "fix",
+  "title": "Lifetime accounts connect to Claude and ChatGPT without requesting access"
+}

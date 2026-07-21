@@ -154,9 +154,9 @@ describe('PricingPage layout', () => {
     expect(screen.getAllByText('From $345').length).toBeGreaterThan(0);
   });
 
-  it('shows the legacy Unlimited price in the comparison table by default', async () => {
+  it('shows the v2 fallback Unlimited price in the comparison table', async () => {
     renderAt('/pricing');
-    expect(await screen.findByText('$6 / mo')).toBeInTheDocument();
+    expect(await screen.findByText('$7.99 / mo')).toBeInTheDocument();
   });
 
   it('shows the fetched v2 Unlimited price in the comparison table', async () => {
@@ -311,13 +311,13 @@ describe('PricingPage pricing honesty', () => {
     ).not.toBeInTheDocument();
   });
 
-  it('shows the accurate Anki → Notion note caps (1,000 free / 5,000 paid)', () => {
+  it('shows the accurate Anki → Notion note caps (1,000 free / 10,000 paid)', () => {
     renderAt('/pricing');
     expect(
       screen.getByRole('row', { name: /Anki → Notion notes/ })
     ).toBeInTheDocument();
     expect(screen.getAllByText('1,000').length).toBeGreaterThan(0);
-    expect(screen.getAllByText('5,000').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('10,000').length).toBeGreaterThan(0);
   });
 });
 
@@ -595,30 +595,30 @@ describe('PricingPage Unlimited billing toggle', () => {
     expect(group).toBeInTheDocument();
     expect(screen.getByRole('radio', { name: 'Monthly' })).toBeInTheDocument();
     expect(
-      screen.getByRole('radio', { name: 'Yearly · save 17%' })
+      screen.getByRole('radio', { name: 'Yearly · save 33%' })
     ).toBeInTheDocument();
   });
 
   it('selects Yearly by default with the annual per-month hero price', () => {
     renderAt('/pricing');
     expect(
-      screen.getByRole('radio', { name: 'Yearly · save 17%' })
+      screen.getByRole('radio', { name: 'Yearly · save 33%' })
     ).toHaveAttribute('aria-checked', 'true');
-    expect(screen.getByText('$5.00')).toBeInTheDocument();
+    expect(screen.getByText('$5.33')).toBeInTheDocument();
     expect(
-      screen.getByText('$60 billed today, then yearly · save 17%')
+      screen.getByText('$64 billed today, then yearly · save 33%')
     ).toBeInTheDocument();
   });
 
   it('switches the hero to the monthly price and terms after selecting Monthly', () => {
     renderAt('/pricing');
     fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }));
-    expect(screen.getByText('$6')).toBeInTheDocument();
+    expect(screen.getByText('$7.99')).toBeInTheDocument();
     expect(
-      screen.getByText('$6 billed today, then monthly')
+      screen.getByText('$7.99 billed today, then monthly')
     ).toBeInTheDocument();
     expect(
-      screen.getByText('$6 billed today, renews monthly. Cancel anytime.')
+      screen.getByText('$7.99 billed today, renews monthly. Cancel anytime.')
     ).toBeInTheDocument();
   });
 

@@ -29,7 +29,7 @@ export const PRICING_FAQ: PricingFaqItem[] = [
   {
     question: 'What is the Unlimited plan?',
     answer:
-      'Unlimited removes the 100-card limit, adds PDF support, lets you run multiple conversions at once, and includes unlimited Anki to Notion imports. Pricing is on the cards above.',
+      'Unlimited removes the 100-card limit, adds PDF support, lets you run multiple conversions at once, and includes Anki to Notion imports of up to 10,000 notes each. Pricing is on the cards above.',
     questionKey: 'faq.q3.question',
     answerKey: 'faq.q3.answer',
   },
