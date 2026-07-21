@@ -225,10 +225,9 @@ export function Sidebar({
   const logoSrc = getLogoSrc(collapsed, theme);
   const showAnkify =
     locals?.patreon === true || locals?.autoSyncActive === true;
-  const showDevelopers =
-    locals?.patreon === true || locals?.developer_access === true;
-  const showFavorites = email != null && email !== '';
   const isLoggedIn = locals != null;
+  const showDevelopers = isLoggedIn;
+  const showFavorites = email != null && email !== '';
   const paying = isPayingUser(locals);
   const showPricing = !paying;
   const showKi = features?.kiUI === true;

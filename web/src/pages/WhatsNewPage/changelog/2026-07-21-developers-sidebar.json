@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-21-developers-sidebar",
+  "date": "2026-07-21",
+  "type": "fix",
+  "title": "Developers section visible to every signed-in account — request API and connector access from the sidebar"
+}
