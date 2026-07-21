@@ -19,6 +19,7 @@ const KNOWN_APP_PREFIXES = [
   '/card-options',
   '/print',
   '/status',
+  '/developers',
 ];
 
 const LINK_RE = /(?<!!)\[[^\]]*\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g;
