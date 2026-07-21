@@ -46,7 +46,6 @@ const BENEFIT_KEYS = [
   'pricing.unlimited.benefitPdf',
   'pricing.unlimited.benefitImport',
   'pricing.unlimited.benefitPrint',
-  'pricing.unlimited.benefitNoAds',
   'pricing.unlimited.benefitCancel',
 ];
 

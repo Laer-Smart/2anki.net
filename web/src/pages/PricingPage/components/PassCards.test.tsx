@@ -44,7 +44,7 @@ describe('PassCards', () => {
     expect(screen.getAllByText('No subscription').length).toBe(2);
   });
 
-  it('shows the No ads benefit on each card', () => {
+  it('does not list No ads — the whole product is ad-free', () => {
     render(
       <PassCards
         onDayPass={vi.fn()}
@@ -53,7 +53,7 @@ describe('PassCards', () => {
         weekPassPending={false}
       />
     );
-    expect(screen.getAllByText('No ads').length).toBe(2);
+    expect(screen.queryByText('No ads')).not.toBeInTheDocument();
   });
 
   it('calls onDayPass when Get Day Pass is clicked', () => {
