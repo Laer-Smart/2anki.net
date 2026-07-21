@@ -807,6 +807,75 @@ const obsidianToAnki: AnswerConfig = {
   ],
 };
 
+const claudeToAnki: AnswerConfig = {
+  slug: 'claude-to-anki',
+  title: 'How to make Anki flashcards in Claude or ChatGPT | 2anki',
+  description:
+    'Add the 2anki MCP connector in Claude or ChatGPT, ask for flashcards, and get a download link for a ready .apkg deck. Text, notes, and photos become cards.',
+  h1: 'Turn Claude conversations into Anki flashcards',
+  intro:
+    '2anki runs a hosted MCP connector. Add https://2anki.net/mcp in Claude or ChatGPT, ask for flashcards on any topic or paste in your notes, and the assistant hands back a download link for a ready .apkg deck you open in Anki.',
+  sections: [
+    {
+      heading: 'What the MCP connector is',
+      body: '2anki runs a hosted MCP connector at https://2anki.net/mcp. Add it once in Claude — Settings → Connectors — or in ChatGPT with developer mode turned on. From then on you ask the assistant for flashcards the same way you ask it anything else, and it builds the deck through 2anki and returns a download link. Nothing runs on your machine; the connector talks to 2anki directly.',
+    },
+    {
+      heading: 'Add the connector and ask for cards',
+      body: 'In Claude, open Settings → Connectors, add a custom connector, and paste https://2anki.net/mcp. In ChatGPT, turn on developer mode and add the same URL. Sign in when prompted so the deck lands in your account. Then type a normal request — "make 20 cards on the Krebs cycle" or "turn these notes into cloze cards" — and download the .apkg the assistant links back. The full walkthrough, with screenshots, is in the docs guide.',
+    },
+    {
+      heading: 'What you can ask for',
+      body: 'Text and notes become a deck — paste a chapter, a list of terms, or a summary and get question-and-answer cards. A photo becomes cards — attach an image of your notes and the assistant reads the page. You can ask for specific note types, including cloze deletions, and organise a large topic into subdecks. Preview the cards in the chat before you download the .apkg, so nothing lands in Anki that you did not check.',
+    },
+    {
+      heading: 'Connector access and the self-service path',
+      body: 'The hosted connector is in a limited beta — request access from the developers page. API keys and the command-line tool are self-service today, so if you would rather script deck creation without the connector you can start there right away. Both paths build decks through the same 2anki account, so anything you make in the connector shows up alongside your uploads.',
+    },
+    {
+      heading: 'What it costs',
+      body: 'The free plan converts 100 cards a month, whether you build them through the connector or upload files directly. Unlimited removes the cap. It is the same account and the same decks — the connector is another way in, not a separate product or a separate bill.',
+    },
+  ],
+  faqs: [
+    {
+      q: 'Which assistants work with the connector?',
+      a: 'Claude and ChatGPT. In Claude, add it under Settings → Connectors. In ChatGPT, turn on developer mode and add the same https://2anki.net/mcp URL. Ask for flashcards the way you would ask anything else.',
+    },
+    {
+      q: 'Do I need an API key?',
+      a: 'Not for the connector — signing in through it is enough. API keys and the command-line tool are a separate, self-service path if you would rather script deck creation instead of using the chat connector.',
+    },
+    {
+      q: 'Can it read a photo of my notes?',
+      a: 'Yes. Attach an image in the chat and ask for cards. The assistant reads the page and drafts cards you preview before downloading the .apkg.',
+    },
+    {
+      q: 'What do I get back?',
+      a: 'A download link for a standard .apkg deck. Open it in Anki with a double-click — no add-on required. The cards work with FSRS or SM-2, whichever scheduling you have enabled.',
+    },
+  ],
+  relatedLinks: [
+    {
+      label: 'Use 2anki in Claude — full walkthrough',
+      href: '/documentation/start-here/use-in-claude?ref=ai',
+    },
+    {
+      label: 'MCP connector reference',
+      href: '/documentation/reference/mcp?ref=ai',
+    },
+    {
+      label: 'Request beta access — developer tools',
+      href: '/developers?ref=ai',
+    },
+    {
+      label: 'Turn handwritten notes into Anki flashcards',
+      href: '/answers/handwritten-notes-to-anki?ref=ai',
+    },
+    { label: 'Pricing', href: '/pricing?ref=ai' },
+  ],
+};
+
 export const ANSWERS_PAGES: ReadonlyMap<string, AnswerConfig> = new Map([
   ['convert-notion-to-anki', convertNotionToAnki],
   ['notion-to-anki-sync', notionToAnkiSync],
@@ -822,4 +891,5 @@ export const ANSWERS_PAGES: ReadonlyMap<string, AnswerConfig> = new Map([
   ['kindle-highlights-to-anki', kindleHighlightsToAnki],
   ['language-app-to-anki', languageAppToAnki],
   ['obsidian-to-anki', obsidianToAnki],
+  ['claude-to-anki', claudeToAnki],
 ]);

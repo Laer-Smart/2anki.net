@@ -15,6 +15,7 @@ describe('isKnownAppRoute', () => {
     '/answers/fsrs-explained',
     '/answers/pdf-to-anki',
     '/answers/convert-notion-to-anki',
+    '/answers/claude-to-anki',
     '/account',
     '/account/claim',
     '/ankify',
