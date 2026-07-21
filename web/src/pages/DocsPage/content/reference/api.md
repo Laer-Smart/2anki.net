@@ -7,7 +7,7 @@ The 2anki.net HTTP API is in a **limited beta**. Endpoints and payloads can stil
 
 ## Access
 
-Keys are managed on the [Developers page](/developers). Lifetime accounts have access already; everyone else can request it from the same page and accounts are enabled by email.
+Keys are self-service: sign in and create one on the [Developers page](/developers). Every key starts on the free Sandbox plan; paid plans raise the volume (see below).
 
 Send your key as a bearer token on every request:
 

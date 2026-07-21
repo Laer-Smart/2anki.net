@@ -8,7 +8,6 @@ import RevokeApiKeyUseCase from '../usecases/developer/RevokeApiKeyUseCase';
 import RequestDeveloperAccessUseCase from '../usecases/developer/RequestDeveloperAccessUseCase';
 import DeveloperController from '../controllers/DeveloperController';
 import RequireAuthentication from './middleware/RequireAuthentication';
-import RequireDeveloperAccess from './middleware/RequireDeveloperAccess';
 
 const DeveloperRouter = () => {
   const router = express.Router();
@@ -21,25 +20,16 @@ const DeveloperRouter = () => {
     new RequestDeveloperAccessUseCase(getDefaultEmailService())
   );
 
-  router.get(
-    '/api/developer/keys',
-    RequireAuthentication,
-    RequireDeveloperAccess,
-    (req, res) => controller.list(req, res)
+  router.get('/api/developer/keys', RequireAuthentication, (req, res) =>
+    controller.list(req, res)
   );
 
-  router.post(
-    '/api/developer/keys',
-    RequireAuthentication,
-    RequireDeveloperAccess,
-    (req, res) => controller.create(req, res)
+  router.post('/api/developer/keys', RequireAuthentication, (req, res) =>
+    controller.create(req, res)
   );
 
-  router.delete(
-    '/api/developer/keys/:id',
-    RequireAuthentication,
-    RequireDeveloperAccess,
-    (req, res) => controller.revoke(req, res)
+  router.delete('/api/developer/keys/:id', RequireAuthentication, (req, res) =>
+    controller.revoke(req, res)
   );
 
   router.post(
