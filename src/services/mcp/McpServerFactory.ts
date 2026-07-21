@@ -29,6 +29,7 @@ type ToolShape = Record<string, z.ZodTypeAny>;
 
 interface ToolResult {
   content: { type: 'text'; text: string }[];
+  structuredContent?: Record<string, unknown>;
   isError?: boolean;
 }
 
@@ -36,7 +37,12 @@ interface ToolConfig {
   title: string;
   description: string;
   inputSchema: ToolShape;
-  annotations: { readOnlyHint: boolean; destructiveHint: boolean };
+  outputSchema?: ToolShape;
+  annotations: {
+    readOnlyHint: boolean;
+    destructiveHint: boolean;
+    openWorldHint: boolean;
+  };
 }
 
 type ErasedRegisterTool = (
@@ -67,6 +73,28 @@ function textResult(payload: unknown): ToolResult {
   };
 }
 
+function structuredResult(payload: Record<string, unknown>): ToolResult {
+  return {
+    content: [{ type: 'text', text: JSON.stringify(payload, null, 2) }],
+    structuredContent: payload,
+  };
+}
+
+const DECK_RESULT_SHAPE = {
+  kind: z.string().optional(),
+  jobId: z.string().optional(),
+  cardCount: z.number().nullable().optional(),
+  filename: z.string().nullable().optional(),
+  downloadUrl: z.string().optional(),
+  deckCount: z.number().optional(),
+  decks: z.array(z.record(z.unknown())).optional(),
+  sampleCards: z.array(z.record(z.unknown())).optional(),
+  applied: z.record(z.unknown()).optional(),
+  ignored: z.array(z.record(z.unknown())).optional(),
+  summary: z.string().optional(),
+  message: z.string().optional(),
+};
+
 function errorResult(message: string): ToolResult {
   return {
     content: [{ type: 'text', text: message }],
@@ -85,7 +113,12 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'list_my_decks',
     {
       title: 'List my decks',
-      annotations: { readOnlyHint: true, destructiveHint: false },
+      outputSchema: { decks: z.array(z.record(z.unknown())) },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+      },
       description:
         'List the conversion jobs and decks in your 2anki account, newest first.',
       inputSchema: {},
@@ -93,7 +126,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     async () => {
       context.recordToolCall('list_my_decks');
       const decks = await context.toolsService.listMyDecks(context.owner);
-      return textResult({ decks });
+      return structuredResult({ decks });
     }
   );
 
@@ -102,7 +135,16 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'get_deck_preview',
     {
       title: 'Get deck preview',
-      annotations: { readOnlyHint: true, destructiveHint: false },
+      outputSchema: {
+        key: z.string().optional(),
+        cardCount: z.number().nullable().optional(),
+        decks: z.array(z.record(z.unknown())).optional(),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+      },
       description:
         'Preview an .apkg deck you own — total cards, decks, and a sample of cards. Pass a jobId (preferred, from list_my_decks) or an .apkg deck key.',
       inputSchema: {
@@ -129,7 +171,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
           context.owner,
           identifier
         );
-        return textResult(preview);
+        return structuredResult(preview as unknown as Record<string, unknown>);
       } catch (error) {
         const message =
           error instanceof Error ? error.message : 'Could not load the deck.';
@@ -195,7 +237,12 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'convert_to_deck',
     {
       title: 'Convert to Anki deck',
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      outputSchema: DECK_RESULT_SHAPE,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        openWorldHint: true,
+      },
       description:
         'Convert a URL or text into an Anki deck. Pass options to control the output: request a note type (basic, basic-reversed, cloze, input, or mcq), add tags, name and nest the deck with ::, split sections into subdecks, pick a style, or add text-to-speech. Call deck_capabilities first to learn every option. Returns the deck preview (card count and a sample of cards) for an immediate conversion, or a job id to check with list_my_decks for a queued one — never raw file bytes.',
       inputSchema: {
@@ -229,7 +276,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
         return errorResult(result.message);
       }
       context.recordToolResult('convert_to_deck', true);
-      return textResult(result);
+      return structuredResult(result as unknown as Record<string, unknown>);
     }
   );
 
@@ -241,7 +288,12 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'create_deck',
     {
       title: 'Create an Anki deck from cards',
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      outputSchema: DECK_RESULT_SHAPE,
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        openWorldHint: false,
+      },
       description:
         'Build an Anki deck from structured front/back cards. Returns a deck preview and a no-login download link for the .apkg, plus a job id you can find later with list_my_decks. Give a card a deck to sort it into a subdeck under deckName — e.g. deck "Vocabulary" under deckName "JLPT N5" lands in JLPT N5::Vocabulary.',
       inputSchema: {
@@ -289,7 +341,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
       context.recordToolResult('create_deck', true, undefined, {
         subdeckCount,
       });
-      return textResult(result);
+      return structuredResult(result as unknown as Record<string, unknown>);
     }
   );
 
@@ -298,14 +350,24 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'deck_capabilities',
     {
       title: 'Deck capabilities',
-      annotations: { readOnlyHint: true, destructiveHint: false },
+      outputSchema: {
+        noteTypes: z.array(z.record(z.unknown())),
+        options: z.array(z.record(z.unknown())),
+      },
+      annotations: {
+        readOnlyHint: true,
+        destructiveHint: false,
+        openWorldHint: false,
+      },
       description:
         'Discover what convert_to_deck can produce — the note types with when to use each, the curated card options, the supported input kinds, and the cloze and :: subdeck conventions. Call this once to learn the surface before converting.',
       inputSchema: {},
     },
     async () => {
       context.recordToolCall('deck_capabilities');
-      return textResult(DECK_CAPABILITIES);
+      return structuredResult(
+        DECK_CAPABILITIES as unknown as Record<string, unknown>
+      );
     }
   );
 
@@ -319,7 +381,16 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'photo_to_deck',
     {
       title: 'Photo to flashcards',
-      annotations: { readOnlyHint: false, destructiveHint: false },
+      outputSchema: {
+        cards: z.array(z.record(z.unknown())),
+        count: z.number(),
+        summary: z.string(),
+      },
+      annotations: {
+        readOnlyHint: false,
+        destructiveHint: false,
+        openWorldHint: false,
+      },
       description:
         'Turn a photo of handwritten notes, a textbook page, or a slide into flashcards using 2anki vision. Returns the generated cards (front/back), not a file. Two-step flow: call photo_to_deck to get the cards, review them, then call create_deck to build and download the .apkg. Counts against your monthly AI photo quota.',
       inputSchema: {
@@ -354,7 +425,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
           context.owner,
           context.locals
         );
-        return textResult(result);
+        return structuredResult(result as unknown as Record<string, unknown>);
       } catch (error) {
         return errorResult(
           error instanceof Error
