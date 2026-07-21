@@ -25,6 +25,10 @@ export const sidebar: SidebarGroup[] = [
         slug: 'start-here/import-from-anki',
       },
       { label: 'Share a deck with a link', slug: 'start-here/share-a-deck' },
+      {
+        label: 'Use 2anki inside Claude or ChatGPT',
+        slug: 'start-here/use-in-claude',
+      },
     ],
   },
   {

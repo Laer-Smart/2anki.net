@@ -54,6 +54,14 @@ minutes. No exports, no manual steps. $30/month.
 - Cloze deletion support from Notion toggle nesting.
 - Images and audio embed directly in cards.
 
+## MCP connector (use 2anki inside AI assistants)
+
+2anki runs a hosted MCP server at https://2anki.net/mcp (OAuth 2.1, streamable
+HTTP). Connect it to Claude or ChatGPT to turn conversation text or photos into
+downloadable Anki decks — tools cover convert, create with subdecks, photo to
+deck, preview, and deck listing. Setup guide:
+https://2anki.net/documentation/start-here/use-in-claude
+
 ## Canonical URLs
 
 - Homepage: https://2anki.net
