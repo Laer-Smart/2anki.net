@@ -12,15 +12,46 @@ import {
 } from '../../lib/apiKeys/apiKeyToken';
 import { applyUserLocals } from './configureUserLocal';
 import { getEventsSink } from '../../services/events/eventsSinkInstance';
+import { InMemoryRateLimiter } from '../../lib/rateLimit/InMemoryRateLimiter';
+import DeveloperTiersRepository from '../../data_layer/DeveloperTiersRepository';
+import ResolveDeveloperTierUseCase, {
+  ResolvedDeveloperTier,
+} from '../../usecases/developer/ResolveDeveloperTierUseCase';
+import SubscriptionService from '../../services/SubscriptionService';
 
 const USAGE_EVENT_THROTTLE_MS = 60_000;
 const lastUsageEventAt = new Map<number, number>();
+
+const RATE_WINDOW_MS = 60_000;
+const tierLimiters = new Map<string, InMemoryRateLimiter>();
+
+function limiterForTier(tier: ResolvedDeveloperTier): InMemoryRateLimiter {
+  const existing = tierLimiters.get(tier.tier_key);
+  if (existing != null) {
+    return existing;
+  }
+  const limiter = new InMemoryRateLimiter({
+    windowMs: RATE_WINDOW_MS,
+    perKeyMax: tier.requests_per_minute,
+    globalMax: tier.requests_per_minute * 200,
+  });
+  tierLimiters.set(tier.tier_key, limiter);
+  return limiter;
+}
+
+export type TierResolver = (input: {
+  patreon: boolean;
+  activeProductIds: string[];
+}) => Promise<ResolvedDeveloperTier>;
 
 export interface RequireApiKeyDeps {
   apiKeyRepo?: IApiKeyRepository;
   usersRepo?: UsersRepository;
   authService?: AuthenticationService;
   now?: () => Date;
+  tierResolver?: TierResolver;
+  getActiveProductIds?: (email: string) => Promise<string[]>;
+  rateLimiterForTier?: (tier: ResolvedDeveloperTier) => { check(key: string): boolean };
 }
 
 function recordUsage(keyId: number, userId: number, at: number) {
@@ -81,6 +112,40 @@ export function makeRequireApiKey(
       authService,
       database
     );
+
+    const getProductIds =
+      deps.getActiveProductIds ??
+      (async (email: string) => {
+        const subscriptions =
+          await SubscriptionService.getUserActiveSubscriptions(email);
+        return subscriptions
+          .map((subscription) => subscription.stripe_product_id)
+          .filter((id): id is string => id != null && id !== '');
+      });
+    const resolveTier =
+      deps.tierResolver ??
+      ((input: { patreon: boolean; activeProductIds: string[] }) =>
+        new ResolveDeveloperTierUseCase(
+          new DeveloperTiersRepository(database)
+        ).execute(input));
+
+    const tier = await resolveTier({
+      patreon: user.patreon === true,
+      activeProductIds:
+        user.patreon === true || user.email == null
+          ? []
+          : await getProductIds(user.email),
+    });
+
+    const limiter = (deps.rateLimiterForTier ?? limiterForTier)(tier);
+    if (!limiter.check(String(active.user_id))) {
+      return res.status(429).json({
+        message: `Rate limit reached for the ${tier.tier_key} tier (${tier.requests_per_minute} requests per minute). Try again in a minute.`,
+      });
+    }
+
+    res.locals.api_key_auth = true;
+    res.locals.developer_tier = tier;
 
     const at = (deps.now ?? (() => new Date()))().getTime();
     void apiKeyRepo.touchLastUsed(active.id, new Date(at));

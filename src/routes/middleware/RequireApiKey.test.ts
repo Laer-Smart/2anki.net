@@ -20,6 +20,7 @@ jest.mock('../../data_layer/ApiKeyRepository', () => ({
 import { makeRequireApiKey, acceptKeyOr } from './RequireApiKey';
 import { generateApiKey, hashApiKey } from '../../lib/apiKeys/apiKeyToken';
 import { IApiKeyRepository } from '../../data_layer/ApiKeyRepository';
+import ResolveDeveloperTierUseCase from '../../usecases/developer/ResolveDeveloperTierUseCase';
 
 interface FakeResponse {
   statusCode: number;
@@ -105,6 +106,64 @@ describe('makeRequireApiKey', () => {
     expect(res.locals.email).toBe('dev@example.com');
     expect(res.locals.patreon).toBe(true);
     expect(apiKeyRepo.touchLastUsed).toHaveBeenCalledWith(9, expect.any(Date));
+  });
+
+  it('resolves the sandbox tier and stamps api-key locals for a free account', async () => {
+    const apiKeyRepo = makeApiKeyRepo({
+      findActiveByHash: jest.fn(async () => ({ id: 9, user_id: 55 })),
+    });
+    const freeUsersRepo = {
+      getById: jest.fn(async () => ({
+        id: 55,
+        owner: 55,
+        email: 'dev@example.com',
+        patreon: false,
+        developer_access: true,
+        chat_consent_at: null,
+      })),
+    } as never;
+    const mw = makeRequireApiKey({
+      apiKeyRepo,
+      usersRepo: freeUsersRepo,
+      authService: fakeAuthService,
+      getActiveProductIds: jest.fn(async () => []),
+      tierResolver: (input) =>
+        new ResolveDeveloperTierUseCase({
+          listActive: jest.fn(async () => []),
+          upsert: jest.fn(),
+        }).execute(input),
+    });
+    const res = makeResponse();
+    const next = jest.fn();
+
+    await mw(makeRequest(`Bearer ${key.raw}`), res as never, next);
+
+    expect(next).toHaveBeenCalled();
+    expect(res.locals.api_key_auth).toBe(true);
+    expect(res.locals.developer_tier).toMatchObject({
+      tier_key: 'sandbox',
+      monthly_card_limit: 100,
+    });
+  });
+
+  it('returns 429 when the tier rate limit is exhausted', async () => {
+    const apiKeyRepo = makeApiKeyRepo({
+      findActiveByHash: jest.fn(async () => ({ id: 9, user_id: 55 })),
+    });
+    const mw = makeRequireApiKey({
+      apiKeyRepo,
+      usersRepo,
+      authService: fakeAuthService,
+      rateLimiterForTier: () => ({ check: () => false }),
+    });
+    const res = makeResponse();
+    const next = jest.fn();
+
+    await mw(makeRequest(`Bearer ${key.raw}`), res as never, next);
+
+    expect(next).not.toHaveBeenCalled();
+    expect(res.statusCode).toBe(429);
+    expect((res.body as { message: string }).message).toContain('Rate limit');
   });
 
   it('fails closed with 401 when the key is unknown', async () => {
