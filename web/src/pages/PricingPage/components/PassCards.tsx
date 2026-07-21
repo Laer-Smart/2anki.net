@@ -9,7 +9,6 @@ const PASS_BENEFIT_KEYS = [
   'pricing.pass.everyFormat',
   'pricing.pass.nativeApkg',
   'pricing.pass.imageOcclusion',
-  'pricing.pass.noAds',
 ];
 
 interface PassCardsProps {
