@@ -356,16 +356,24 @@ function KeyManager() {
 const RELEVANT_ENDPOINTS = [
   {
     method: 'POST',
-    path: '/api/upload/file',
+    path: 'https://2anki.net/api/upload/file',
     label: 'Convert a file into a deck',
   },
-  { method: 'GET', path: '/api/upload/jobs', label: 'Check conversion status' },
   {
     method: 'GET',
-    path: '/api/apkg/:key/meta',
+    path: 'https://2anki.net/api/upload/jobs',
+    label: 'Check conversion status',
+  },
+  {
+    method: 'GET',
+    path: 'https://2anki.net/api/apkg/:key/meta',
     label: 'Deck preview — counts and decks',
   },
-  { method: 'GET', path: '/api/apkg/:key/cards', label: 'Rendered cards' },
+  {
+    method: 'GET',
+    path: 'https://2anki.net/api/apkg/:key/cards',
+    label: 'Rendered cards',
+  },
 ];
 
 function ApiGuide() {
@@ -474,7 +482,7 @@ function SpecRail() {
       </dl>
       <div className={styles.railStatus}>
         <span className={styles.railStatusDot} aria-hidden="true" />
-        API and connector in limited beta
+        MCP connector in limited beta
       </div>
     </aside>
   );
