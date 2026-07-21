@@ -4,7 +4,9 @@ import type { AddressInfo } from 'node:net';
 import type { OAuthServerProvider } from '@modelcontextprotocol/sdk/server/auth/provider.js';
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 
-import { createMcpRouter } from './createMcpRouter';
+import { InMemoryRateLimiter } from '../../lib/rateLimit/InMemoryRateLimiter';
+
+import { createMcpRouter, McpRouterDeps } from './createMcpRouter';
 
 const RESOURCE = 'https://2anki.net/mcp';
 
@@ -49,7 +51,8 @@ async function withServer(
   onPost: express.RequestHandler = (_req, res) => {
     res.json({ ok: true });
   },
-  mountExtra?: (app: express.Express) => void
+  mountExtra?: (app: express.Express) => void,
+  depsOverride?: Partial<McpRouterDeps>
 ): Promise<void> {
   const app = express();
   app.use(express.json());
@@ -59,6 +62,8 @@ async function withServer(
       issuerUrl: new URL('https://2anki.net'),
       resourceUrl: new URL(RESOURCE),
       onAuthenticatedPost: onPost,
+      consentSecret: 'test-secret',
+      ...depsOverride,
     })
   );
   if (mountExtra) {
@@ -189,5 +194,102 @@ describe('McpRouter endpoint namespacing (no /register collision)', () => {
       });
       expect(resource.status).toBe(401);
     });
+  });
+});
+
+function registerBody() {
+  return JSON.stringify({ redirect_uris: ['https://claude.ai/callback'] });
+}
+
+describe('McpRouter registration rate limiting', () => {
+  it('registers a client while under the per-IP cap', async () => {
+    const limiter = new InMemoryRateLimiter({
+      windowMs: 60_000,
+      perKeyMax: 2,
+      globalMax: 100,
+    });
+    await withServer(
+      async (base) => {
+        for (let i = 0; i < 2; i += 1) {
+          const res = await fetch(`${base}/mcp/register`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: registerBody(),
+          });
+          expect(res.status).toBe(201);
+        }
+      },
+      undefined,
+      undefined,
+      { rateLimiters: { register: limiter } }
+    );
+  });
+
+  it('returns 429 with a rate_limited body once the per-IP cap is exceeded', async () => {
+    const limiter = new InMemoryRateLimiter({
+      windowMs: 60_000,
+      perKeyMax: 2,
+      globalMax: 100,
+    });
+    await withServer(
+      async (base) => {
+        for (let i = 0; i < 2; i += 1) {
+          await fetch(`${base}/mcp/register`, {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: registerBody(),
+          });
+        }
+        const blocked = await fetch(`${base}/mcp/register`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: registerBody(),
+        });
+        expect(blocked.status).toBe(429);
+        const body = (await blocked.json()) as {
+          error?: string;
+          error_description?: string;
+        };
+        expect(body.error).toBe('rate_limited');
+        expect(typeof body.error_description).toBe('string');
+      },
+      undefined,
+      undefined,
+      { rateLimiters: { register: limiter } }
+    );
+  });
+});
+
+describe('McpRouter consent-secret boot assertion', () => {
+  const originalNodeEnv = process.env.NODE_ENV;
+
+  afterEach(() => {
+    process.env.NODE_ENV = originalNodeEnv;
+  });
+
+  it('throws when the consent secret is empty in production', () => {
+    process.env.NODE_ENV = 'production';
+    expect(() =>
+      createMcpRouter({
+        provider: fakeProvider(),
+        issuerUrl: new URL('https://2anki.net'),
+        resourceUrl: new URL(RESOURCE),
+        onAuthenticatedPost: (_req, res) => res.json({ ok: true }),
+        consentSecret: '',
+      })
+    ).toThrow();
+  });
+
+  it('does not throw for an empty consent secret outside production', () => {
+    process.env.NODE_ENV = 'development';
+    expect(() =>
+      createMcpRouter({
+        provider: fakeProvider(),
+        issuerUrl: new URL('https://2anki.net'),
+        resourceUrl: new URL(RESOURCE),
+        onAuthenticatedPost: (_req, res) => res.json({ ok: true }),
+        consentSecret: '',
+      })
+    ).not.toThrow();
   });
 });
