@@ -75,6 +75,10 @@ import { ReconcileOrphanedSubscriptionsUseCase } from '../usecases/ops/Reconcile
 
 const OpsRouter = () => {
   const router = express.Router();
+  router.use('/api/ops', (_req, res, next) => {
+    res.set('Cache-Control', 'no-store');
+    next();
+  });
   const database = getDatabase();
   const repo = new ObservabilityRepository(database);
   const queryService = new ObservabilityQueryService(

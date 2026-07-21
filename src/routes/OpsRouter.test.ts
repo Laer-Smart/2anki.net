@@ -280,6 +280,28 @@ describe('OpsRouter /api/ops/business/metrics', () => {
     }
   });
 
+  it('sets Cache-Control no-store on ops endpoints so browsers never serve stale dashboard data', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/performance/metrics`);
+      expect(response.headers.get('cache-control')).toBe('no-store');
+    } finally {
+      await close();
+    }
+  });
+
+  it('lets business metrics keep its deliberate day-long cache header', async () => {
+    const { url, close } = await startServer(true);
+    try {
+      const response = await fetch(`${url}/api/ops/business/metrics`);
+      expect(response.headers.get('cache-control')).toBe(
+        'private, max-age=86400'
+      );
+    } finally {
+      await close();
+    }
+  });
+
   it('returns 200 with the business metrics shape for the ops owner', async () => {
     const { url, close } = await startServer(true);
     try {

@@ -50,6 +50,25 @@ describe('usePerformanceMetrics', () => {
     expect(result.current.data).toEqual(payload);
   });
 
+  test('bypasses the browser HTTP cache on every request', async () => {
+    (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      text: async () => '{}',
+    });
+
+    const { result } = renderHook(() => usePerformanceMetrics(), {
+      wrapper: wrap(noRetryClient()),
+    });
+
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      '/api/ops/performance/metrics',
+      expect.objectContaining({ cache: 'no-store' })
+    );
+  });
+
   test('surfaces a clean error when a 200 has an empty body', async () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue({
       ok: true,

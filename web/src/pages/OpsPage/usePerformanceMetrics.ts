@@ -8,6 +8,7 @@ const fetchPerformanceMetrics =
   async (): Promise<PerformanceMetricsResponse> => {
     const response = await fetch('/api/ops/performance/metrics', {
       credentials: 'include',
+      cache: 'no-store',
     });
     if (!response.ok) {
       throw new Error(`${response.status} ${response.statusText}`);
