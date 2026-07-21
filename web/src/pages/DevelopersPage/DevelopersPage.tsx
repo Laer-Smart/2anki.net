@@ -136,27 +136,7 @@ function GetStarted() {
   );
 }
 
-function McpCard() {
-  return (
-    <section className={sharedStyles.sectionCard}>
-      <h2 className={styles.cardTitle}>Use 2anki in Claude or ChatGPT</h2>
-      <p className={styles.body}>
-        Add 2anki as a connector and build decks straight from a conversation.
-        During the beta, connector access follows your developer access.
-      </p>
-      <div className={styles.urlRow}>
-        <span className={styles.urlLabel}>Connector URL</span>
-        <code className={styles.urlValue}>{MCP_SERVER_URL}</code>
-        <CopyButton text={MCP_SERVER_URL} label="Copy connector URL" />
-      </div>
-      <a className={sharedStyles.btnSecondary} href={CONNECT_GUIDE_PATH}>
-        How to connect
-      </a>
-    </section>
-  );
-}
-
-function RequestAccessCard() {
+function McpRequestAccess() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>(
     'idle'
   );
@@ -173,29 +153,50 @@ function RequestAccessCard() {
     }
   };
 
+  if (status === 'sent') {
+    return (
+      <p className={styles.noticeSuccess}>
+        Request sent. We&rsquo;ll be in touch by email.
+      </p>
+    );
+  }
+  return (
+    <>
+      <button
+        type="button"
+        className={sharedStyles.btnSecondary}
+        onClick={request}
+        disabled={status === 'sending'}
+      >
+        {status === 'sending' ? 'Sending' : 'Request connector access'}
+      </button>
+      {status === 'error' && <p className={styles.noticeDanger}>{message}</p>}
+    </>
+  );
+}
+
+function McpCard({
+  showRequestAccess,
+}: Readonly<{ showRequestAccess: boolean }>) {
   return (
     <section className={sharedStyles.sectionCard}>
-      <h2 className={styles.cardTitle}>Developer access</h2>
+      <h2 className={styles.cardTitle}>Use 2anki in Claude or ChatGPT</h2>
       <p className={styles.body}>
-        API keys and the connector are in a limited beta. Lifetime accounts have
-        access already; everyone else can request it and accounts are enabled by
+        Add 2anki as a connector and build decks straight from a conversation.
+        The connector is in a limited beta; access is enabled per account by
         email.
       </p>
-      {status === 'sent' ? (
-        <p className={styles.noticeSuccess}>
-          Request sent. We&rsquo;ll be in touch by email.
-        </p>
-      ) : (
-        <button
-          type="button"
-          className={sharedStyles.btnPrimary}
-          onClick={request}
-          disabled={status === 'sending'}
-        >
-          {status === 'sending' ? 'Sending' : 'Request access'}
-        </button>
-      )}
-      {status === 'error' && <p className={styles.noticeDanger}>{message}</p>}
+      <div className={styles.urlRow}>
+        <span className={styles.urlLabel}>Connector URL</span>
+        <code className={styles.urlValue}>{MCP_SERVER_URL}</code>
+        <CopyButton text={MCP_SERVER_URL} label="Copy connector URL" />
+      </div>
+      <div className={styles.linkRow}>
+        <a className={sharedStyles.btnSecondary} href={CONNECT_GUIDE_PATH}>
+          How to connect
+        </a>
+        {showRequestAccess && <McpRequestAccess />}
+      </div>
     </section>
   );
 }
@@ -355,16 +356,24 @@ function KeyManager() {
 const RELEVANT_ENDPOINTS = [
   {
     method: 'POST',
-    path: '/api/upload/file',
+    path: 'https://2anki.net/api/upload/file',
     label: 'Convert a file into a deck',
   },
-  { method: 'GET', path: '/api/upload/jobs', label: 'Check conversion status' },
   {
     method: 'GET',
-    path: '/api/apkg/:key/meta',
+    path: 'https://2anki.net/api/upload/jobs',
+    label: 'Check conversion status',
+  },
+  {
+    method: 'GET',
+    path: 'https://2anki.net/api/apkg/:key/meta',
     label: 'Deck preview — counts and decks',
   },
-  { method: 'GET', path: '/api/apkg/:key/cards', label: 'Rendered cards' },
+  {
+    method: 'GET',
+    path: 'https://2anki.net/api/apkg/:key/cards',
+    label: 'Rendered cards',
+  },
 ];
 
 function ApiGuide() {
@@ -473,7 +482,7 @@ function SpecRail() {
       </dl>
       <div className={styles.railStatus}>
         <span className={styles.railStatusDot} aria-hidden="true" />
-        API and connector in limited beta
+        MCP connector in limited beta
       </div>
     </aside>
   );
@@ -481,7 +490,7 @@ function SpecRail() {
 
 export default function DevelopersPage() {
   const { data, isLoading } = useUserLocals();
-  const hasAccess =
+  const hasMcpAccess =
     data?.locals?.patreon === true || data?.locals?.developer_access === true;
 
   return (
@@ -498,14 +507,8 @@ export default function DevelopersPage() {
       <div className={styles.layout}>
         <main className={styles.main}>
           <GetStarted />
-          <McpCard />
-          {isLoading ? (
-            <p className={styles.body}>Loading</p>
-          ) : hasAccess ? (
-            <KeyManager />
-          ) : (
-            <RequestAccessCard />
-          )}
+          <McpCard showRequestAccess={!isLoading && !hasMcpAccess} />
+          {isLoading ? <p className={styles.body}>Loading</p> : <KeyManager />}
           <ApiGuide />
         </main>
         <SpecRail />

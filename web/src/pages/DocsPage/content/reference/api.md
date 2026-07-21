@@ -7,7 +7,7 @@ The 2anki.net HTTP API is in a **limited beta**. Endpoints and payloads can stil
 
 ## Access
 
-Keys are managed on the [Developers page](/developers). Lifetime accounts have access already; everyone else can request it from the same page and accounts are enabled by email.
+Keys are self-service: sign in and create one on the [Developers page](/developers). Every key starts on the free Sandbox plan; paid plans raise the volume (see below).
 
 Send your key as a bearer token on every request:
 
@@ -21,12 +21,12 @@ Keep the key secret. Anyone holding it can convert on your account, against your
 
 The endpoints a converter client needs:
 
-| Method | Path                   | What it does                    |
-| ------ | ---------------------- | ------------------------------- |
-| POST   | `/api/upload/file`     | Convert a file into a deck      |
-| GET    | `/api/upload/jobs`     | Check conversion status         |
-| GET    | `/api/apkg/:key/meta`  | Deck preview — counts and decks |
-| GET    | `/api/apkg/:key/cards` | Rendered cards                  |
+| Method | Path                                    | What it does                    |
+| ------ | --------------------------------------- | ------------------------------- |
+| POST   | `https://2anki.net/api/upload/file`     | Convert a file into a deck      |
+| GET    | `https://2anki.net/api/upload/jobs`     | Check conversion status         |
+| GET    | `https://2anki.net/api/apkg/:key/meta`  | Deck preview — counts and decks |
+| GET    | `https://2anki.net/api/apkg/:key/cards` | Rendered cards                  |
 
 The full OpenAPI reference lives at [`/api/docs`](/api/docs) — a live Swagger UI generated from the running server. Anything not listed above should be treated as internal and may change without notice.
 

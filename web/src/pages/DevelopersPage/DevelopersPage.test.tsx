@@ -62,14 +62,36 @@ describe('DevelopersPage', () => {
     );
   });
 
-  test('shows the request-access card for a non-access account', () => {
+  test('shows the key manager to a free account — keys are self-service', async () => {
     useUserLocals.mockReturnValue({
       data: { locals: { patreon: false, developer_access: false } },
       isLoading: false,
     });
     renderPage();
-    expect(screen.getByText('Request access')).toBeInTheDocument();
-    expect(screen.queryByText('Create key')).not.toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('API keys')).toBeInTheDocument()
+    );
+    expect(screen.getByText('Create key')).toBeInTheDocument();
+  });
+
+  test('offers the MCP access request only to accounts without connector access', () => {
+    useUserLocals.mockReturnValue({
+      data: { locals: { patreon: false, developer_access: false } },
+      isLoading: false,
+    });
+    renderPage();
+    expect(screen.getByText('Request connector access')).toBeInTheDocument();
+  });
+
+  test('hides the MCP access request for lifetime accounts', () => {
+    useUserLocals.mockReturnValue({
+      data: { locals: { patreon: true } },
+      isLoading: false,
+    });
+    renderPage();
+    expect(
+      screen.queryByText('Request connector access')
+    ).not.toBeInTheDocument();
   });
 
   test('install strip and MCP card are visible without access', () => {
