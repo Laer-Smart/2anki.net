@@ -830,7 +830,7 @@ const claudeToAnki: AnswerConfig = {
     },
     {
       heading: 'Connector access and the self-service path',
-      body: 'The hosted connector is in a limited beta — request access from the developers page. API keys and the command-line tool are self-service today, so if you would rather script deck creation without the connector you can start there right away. Both paths build decks through the same 2anki account, so anything you make in the connector shows up alongside your uploads.',
+      body: 'The hosted connector is open to every signed-in account — add it and approve the consent screen once, no request needed. API keys and the command-line tool are self-service too, so if you would rather script deck creation without the connector you can start there right away. Both paths build decks through the same 2anki account, so anything you make in the connector shows up alongside your uploads.',
     },
     {
       heading: 'What it costs',

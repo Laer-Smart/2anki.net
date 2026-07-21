@@ -1,10 +1,5 @@
 import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import {
-  listApiKeys,
-  createApiKey,
-  revokeApiKey,
-  requestDeveloperAccess,
-} from './developerKeys';
+import { listApiKeys, createApiKey, revokeApiKey } from './developerKeys';
 
 function textResponse(status: number, body: string): Response {
   return {
@@ -59,7 +54,7 @@ describe('developerKeys client', () => {
     (globalThis.fetch as ReturnType<typeof vi.fn>).mockResolvedValue(
       textResponse(403, JSON.stringify({ message: 'not enabled' }))
     );
-    await expect(requestDeveloperAccess()).rejects.toMatchObject({
+    await expect(revokeApiKey(2)).rejects.toMatchObject({
       message: 'not enabled',
       status: 403,
     });

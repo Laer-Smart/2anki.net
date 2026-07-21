@@ -361,22 +361,29 @@ describe('KnexOAuthProvider authorize', () => {
     expect(codeRepo.rows).toHaveLength(0);
   });
 
-  it('denies a signed-in user without developer_access and issues no code', async () => {
+  it('renders consent for any signed-in account, including one without developer_access', async () => {
     const { provider, codeRepo } = makeProvider();
     const { res, calls } = fakeResponse('valid-no-dev');
-    await provider.authorize(
-      CLIENT,
-      {
-        codeChallenge: 'chal',
-        redirectUri: 'https://claude.ai/callback',
-        state: 'xyz',
-      },
-      res
-    );
-    expect(calls.redirectedTo).toContain('error=access_denied');
-    expect(calls.redirectedTo).toContain('state=xyz');
-    expect(calls.redirectedTo).not.toContain('code=');
+    await provider.authorize(CLIENT, AUTHORIZE_PARAMS, res);
+    expect(calls.redirectedTo).toBeNull();
+    expect(calls.statusCode).toBe(200);
+    expect(String(calls.body)).toContain('name="consent"');
     expect(codeRepo.rows).toHaveLength(0);
+  });
+
+  it('mints a code for a plain account without developer_access on POST approval', async () => {
+    const { provider, codeRepo } = makeProvider();
+    const csrf = computeConsentToken('valid-no-dev', TEST_CONSENT_SECRET);
+    const { res, calls } = fakeResponse('valid-no-dev', {
+      method: 'POST',
+      body: { consent: 'approve', csrf },
+    });
+    await provider.authorize(CLIENT, AUTHORIZE_PARAMS, res);
+    expect(calls.redirectedTo).toMatch(
+      /^https:\/\/claude\.ai\/callback\?code=mcp_ac_/
+    );
+    expect(codeRepo.rows).toHaveLength(1);
+    expect(codeRepo.rows[0].user_id).toBe(43);
   });
 });
 

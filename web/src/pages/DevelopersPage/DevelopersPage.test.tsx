@@ -10,10 +10,8 @@ vi.mock('../../lib/hooks/useUserLocals', () => ({
 }));
 
 const listApiKeys = vi.fn();
-const requestDeveloperAccess = vi.fn();
 vi.mock('../../lib/backend/developerKeys', () => ({
   listApiKeys: () => listApiKeys(),
-  requestDeveloperAccess: () => requestDeveloperAccess(),
   createApiKey: vi.fn(),
   revokeApiKey: vi.fn(),
 }));
@@ -30,7 +28,6 @@ describe('DevelopersPage', () => {
   beforeEach(() => {
     useUserLocals.mockReset();
     listApiKeys.mockReset();
-    requestDeveloperAccess.mockReset();
     listApiKeys.mockResolvedValue([]);
   });
 
@@ -74,24 +71,18 @@ describe('DevelopersPage', () => {
     expect(screen.getByText('Create key')).toBeInTheDocument();
   });
 
-  test('offers the MCP access request only to accounts without connector access', () => {
+  test('never offers a connector access request — the connector is self-service', () => {
     useUserLocals.mockReturnValue({
       data: { locals: { patreon: false, developer_access: false } },
-      isLoading: false,
-    });
-    renderPage();
-    expect(screen.getByText('Request connector access')).toBeInTheDocument();
-  });
-
-  test('hides the MCP access request for lifetime accounts', () => {
-    useUserLocals.mockReturnValue({
-      data: { locals: { patreon: true } },
       isLoading: false,
     });
     renderPage();
     expect(
       screen.queryByText('Request connector access')
     ).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/Free accounts keep their monthly card limit/)
+    ).toBeInTheDocument();
   });
 
   test('install strip and MCP card are visible without access', () => {
