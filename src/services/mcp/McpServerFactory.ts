@@ -36,6 +36,7 @@ interface ToolConfig {
   title: string;
   description: string;
   inputSchema: ToolShape;
+  annotations: { readOnlyHint: boolean; destructiveHint: boolean };
 }
 
 type ErasedRegisterTool = (
@@ -84,6 +85,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'list_my_decks',
     {
       title: 'List my decks',
+      annotations: { readOnlyHint: true, destructiveHint: false },
       description:
         'List the conversion jobs and decks in your 2anki account, newest first.',
       inputSchema: {},
@@ -100,6 +102,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'get_deck_preview',
     {
       title: 'Get deck preview',
+      annotations: { readOnlyHint: true, destructiveHint: false },
       description:
         'Preview an .apkg deck you own — total cards, decks, and a sample of cards. Pass a jobId (preferred, from list_my_decks) or an .apkg deck key.',
       inputSchema: {
@@ -192,6 +195,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'convert_to_deck',
     {
       title: 'Convert to Anki deck',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Convert a URL or text into an Anki deck. Pass options to control the output: request a note type (basic, basic-reversed, cloze, input, or mcq), add tags, name and nest the deck with ::, split sections into subdecks, pick a style, or add text-to-speech. Call deck_capabilities first to learn every option. Returns the deck preview (card count and a sample of cards) for an immediate conversion, or a job id to check with list_my_decks for a queued one — never raw file bytes.',
       inputSchema: {
@@ -237,6 +241,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'create_deck',
     {
       title: 'Create an Anki deck from cards',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Build an Anki deck from structured front/back cards. Returns a deck preview and a no-login download link for the .apkg, plus a job id you can find later with list_my_decks. Give a card a deck to sort it into a subdeck under deckName — e.g. deck "Vocabulary" under deckName "JLPT N5" lands in JLPT N5::Vocabulary.',
       inputSchema: {
@@ -293,6 +298,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'deck_capabilities',
     {
       title: 'Deck capabilities',
+      annotations: { readOnlyHint: true, destructiveHint: false },
       description:
         'Discover what convert_to_deck can produce — the note types with when to use each, the curated card options, the supported input kinds, and the cloze and :: subdeck conventions. Call this once to learn the surface before converting.',
       inputSchema: {},
@@ -313,6 +319,7 @@ export function buildMcpServer(context: McpRequestContext): McpServer {
     'photo_to_deck',
     {
       title: 'Photo to flashcards',
+      annotations: { readOnlyHint: false, destructiveHint: false },
       description:
         'Turn a photo of handwritten notes, a textbook page, or a slide into flashcards using 2anki vision. Returns the generated cards (front/back), not a file. Two-step flow: call photo_to_deck to get the cards, review them, then call create_deck to build and download the .apkg. Counts against your monthly AI photo quota.',
       inputSchema: {
