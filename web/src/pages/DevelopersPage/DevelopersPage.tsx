@@ -12,13 +12,151 @@ import {
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './DevelopersPage.module.css';
 
+const MCP_SERVER_URL = 'https://2anki.net/mcp';
+const API_BASE_URL = 'https://2anki.net/api';
+const CLI_RELEASES_URL = 'https://github.com/2anki/server/releases/latest';
+const CLI_NPM_URL = 'https://www.npmjs.com/package/@2anki/cli';
+const GITHUB_ISSUES_URL = 'https://github.com/2anki/server/issues';
+const CONNECT_GUIDE_PATH = '/documentation/start-here/use-in-claude';
+
 function formatLastUsed(value: string | null): string {
   if (value == null) return 'Never used';
   const date = new Date(value);
   return `Used ${date.toLocaleDateString()}`;
 }
 
-function LockedState() {
+function CopyButton({
+  text,
+  label,
+}: Readonly<{ text: string; label: string }>) {
+  const [copied, setCopied] = useState(false);
+  const copy = () => {
+    void navigator.clipboard?.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      type="button"
+      className={styles.copyButton}
+      onClick={copy}
+      aria-label={label}
+    >
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  );
+}
+
+const INSTALL_TABS = [
+  { id: 'npx', command: 'npx @2anki/cli login' },
+  { id: 'npm', command: 'npm install -g @2anki/cli' },
+  { id: 'pnpm', command: 'pnpm add -g @2anki/cli' },
+  { id: 'binary', command: null },
+] as const;
+
+type InstallTabId = (typeof INSTALL_TABS)[number]['id'];
+
+function InstallStrip() {
+  const [active, setActive] = useState<InstallTabId>('npx');
+  const tab = INSTALL_TABS.find((t) => t.id === active) ?? INSTALL_TABS[0];
+
+  return (
+    <div className={styles.terminal}>
+      <div
+        className={styles.terminalTabs}
+        role="group"
+        aria-label="Install method"
+      >
+        {INSTALL_TABS.map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            className={
+              t.id === active ? styles.terminalTabActive : styles.terminalTab
+            }
+            aria-pressed={t.id === active}
+            onClick={() => setActive(t.id)}
+          >
+            {t.id}
+          </button>
+        ))}
+      </div>
+      {tab.command != null ? (
+        <div className={styles.terminalLine}>
+          <span className={styles.terminalPrompt} aria-hidden="true">
+            $
+          </span>
+          <code className={styles.terminalCommand}>{tab.command}</code>
+          <CopyButton text={tab.command} label={`Copy ${tab.id} command`} />
+        </div>
+      ) : (
+        <div className={styles.terminalLine}>
+          <a
+            className={styles.terminalLink}
+            href={CLI_RELEASES_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Download the CLI
+          </a>
+          <span className={styles.terminalNote}>
+            macOS, Linux, and Windows binaries. On macOS, clear quarantine once:{' '}
+            <code>xattr -d com.apple.quarantine ./2anki-macos-arm64</code>
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function GetStarted() {
+  return (
+    <section className={sharedStyles.sectionCard}>
+      <h2 className={styles.cardTitle}>Get started</h2>
+      <ol className={styles.steps}>
+        <li className={styles.step}>
+          <span className={styles.stepLabel}>Create an API key</span>
+          <span className={styles.stepBody}>
+            Below, under API keys. The key is shown once.
+          </span>
+        </li>
+        <li className={styles.step}>
+          <span className={styles.stepLabel}>Install the CLI and sign in</span>
+          <InstallStrip />
+        </li>
+        <li className={styles.step}>
+          <span className={styles.stepLabel}>Convert</span>
+          <span className={styles.stepBody}>
+            <code className={styles.inlineCode}>2anki convert notes.md</code>{' '}
+            builds an Anki deck from your file and prints the download path.
+          </span>
+        </li>
+      </ol>
+    </section>
+  );
+}
+
+function McpCard() {
+  return (
+    <section className={sharedStyles.sectionCard}>
+      <h2 className={styles.cardTitle}>Use 2anki in Claude or ChatGPT</h2>
+      <p className={styles.body}>
+        Add 2anki as a connector and build decks straight from a conversation.
+        During the beta, connector access follows your developer access.
+      </p>
+      <div className={styles.urlRow}>
+        <span className={styles.urlLabel}>Connector URL</span>
+        <code className={styles.urlValue}>{MCP_SERVER_URL}</code>
+        <CopyButton text={MCP_SERVER_URL} label="Copy connector URL" />
+      </div>
+      <a className={sharedStyles.btnSecondary} href={CONNECT_GUIDE_PATH}>
+        How to connect
+      </a>
+    </section>
+  );
+}
+
+function RequestAccessCard() {
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>(
     'idle'
   );
@@ -39,10 +177,9 @@ function LockedState() {
     <section className={sharedStyles.sectionCard}>
       <h2 className={styles.cardTitle}>Developer access</h2>
       <p className={styles.body}>
-        The developer API and CLI are under development and invite-only. Use an
-        API key to convert from your own tools — a script, a cron job, or an MCP
-        client. Access is open to lifetime accounts; everyone else can request
-        it.
+        API keys and the connector are in a limited beta. Lifetime accounts have
+        access already; everyone else can request it and accounts are enabled by
+        email.
       </p>
       {status === 'sent' ? (
         <p className={styles.noticeSuccess}>
@@ -155,9 +292,8 @@ function KeyManager() {
     <section className={sharedStyles.sectionCard}>
       <h2 className={styles.cardTitle}>API keys</h2>
       <p className={styles.body}>
-        Use an API key to convert from your own tools — a script, a cron job, or
-        an MCP client. Keep it secret; anyone with the key can convert on your
-        account.
+        Send the key as a bearer token. Keep it secret; anyone with the key can
+        convert on your account.
       </p>
 
       <div className={styles.createRow}>
@@ -231,16 +367,16 @@ const RELEVANT_ENDPOINTS = [
   { method: 'GET', path: '/api/apkg/:key/cards', label: 'Rendered cards' },
 ];
 
-const CLI_RELEASES_URL = 'https://github.com/2anki/server/releases/latest';
-
 function ApiGuide() {
   return (
     <section className={sharedStyles.sectionCard}>
       <h2 className={styles.cardTitle}>Using the API</h2>
       <p className={styles.body}>
         Send your key as a bearer token:{' '}
-        <code>Authorization: Bearer sk_live_…</code>. These are the endpoints a
-        converter client needs.
+        <code className={styles.inlineCode}>
+          Authorization: Bearer sk_live_…
+        </code>
+        . These are the endpoints a converter client needs.
       </p>
       <ul className={styles.endpointList}>
         {RELEVANT_ENDPOINTS.map((endpoint) => (
@@ -253,20 +389,93 @@ function ApiGuide() {
           </li>
         ))}
       </ul>
-      <div className={styles.linkRow}>
-        <a className={sharedStyles.btnSecondary} href="/api/docs">
-          Full API docs
+      <a className={sharedStyles.btnSecondary} href="/api/docs">
+        Full API docs
+      </a>
+      <p className={styles.contactNote}>
+        Use case not covered, or need more access? Email{' '}
+        <a href="mailto:support@2anki.net">support@2anki.net</a> — every message
+        is read, and access is widened for real projects. Found a bug?{' '}
+        <a href={GITHUB_ISSUES_URL} target="_blank" rel="noreferrer">
+          Open a GitHub issue
         </a>
-        <a
-          className={sharedStyles.btnSecondary}
-          href={CLI_RELEASES_URL}
-          target="_blank"
-          rel="noreferrer"
-        >
-          Download the CLI
-        </a>
-      </div>
+        .
+      </p>
     </section>
+  );
+}
+
+const RAIL_FACTS: Array<{
+  label: string;
+  value: string;
+  href?: string;
+  external?: boolean;
+}> = [
+  { label: 'API base', value: API_BASE_URL },
+  { label: 'Auth', value: 'Bearer sk_live_…' },
+  { label: 'MCP server', value: MCP_SERVER_URL },
+  {
+    label: 'CLI',
+    value: '@2anki/cli',
+    href: CLI_NPM_URL,
+    external: true,
+  },
+  {
+    label: 'Binaries',
+    value: 'github releases',
+    href: CLI_RELEASES_URL,
+    external: true,
+  },
+  { label: 'API docs', value: '/api/docs', href: '/api/docs' },
+  {
+    label: 'Connect guide',
+    value: 'use-in-claude',
+    href: CONNECT_GUIDE_PATH,
+  },
+  {
+    label: 'Bug reports',
+    value: 'github issues',
+    href: GITHUB_ISSUES_URL,
+    external: true,
+  },
+  {
+    label: 'Support',
+    value: 'support@2anki.net',
+    href: 'mailto:support@2anki.net',
+  },
+];
+
+function SpecRail() {
+  return (
+    <aside className={styles.rail} aria-label="Connection facts">
+      <div className={styles.railHeading}>Reference</div>
+      <dl className={styles.railList}>
+        {RAIL_FACTS.map((fact) => (
+          <div key={fact.label} className={styles.railRow}>
+            <dt className={styles.railLabel}>{fact.label}</dt>
+            <dd className={styles.railValue}>
+              {fact.href != null ? (
+                <a
+                  className={styles.railLink}
+                  href={fact.href}
+                  {...(fact.external === true
+                    ? { target: '_blank', rel: 'noreferrer' }
+                    : {})}
+                >
+                  {fact.value}
+                </a>
+              ) : (
+                fact.value
+              )}
+            </dd>
+          </div>
+        ))}
+      </dl>
+      <div className={styles.railStatus}>
+        <span className={styles.railStatusDot} aria-hidden="true" />
+        API and connector in limited beta
+      </div>
+    </aside>
   );
 }
 
@@ -283,19 +492,24 @@ export default function DevelopersPage() {
       <header className={sharedStyles.pageHeader}>
         <h1 className={styles.title}>Developers</h1>
         <p className={styles.body}>
-          Convert with the 2anki API from your own tools. Under development.
+          Convert from your own tools — a script, the CLI, or an AI assistant.
         </p>
       </header>
-      {isLoading ? (
-        <p className={styles.body}>Loading</p>
-      ) : hasAccess ? (
-        <>
-          <KeyManager />
+      <div className={styles.layout}>
+        <main className={styles.main}>
+          <GetStarted />
+          <McpCard />
+          {isLoading ? (
+            <p className={styles.body}>Loading</p>
+          ) : hasAccess ? (
+            <KeyManager />
+          ) : (
+            <RequestAccessCard />
+          )}
           <ApiGuide />
-        </>
-      ) : (
-        <LockedState />
-      )}
+        </main>
+        <SpecRail />
+      </div>
     </div>
   );
 }
