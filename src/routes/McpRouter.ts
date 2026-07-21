@@ -36,6 +36,7 @@ const McpRouter = () => {
   const database = getDatabase();
   const issuerUrl = resolveIssuerUrl();
   const resourceUrl = new URL('/mcp', issuerUrl);
+  const consentSecret = process.env.SECRET ?? '';
 
   const usersRepository = new UsersRepository(database);
   const authService = new AuthenticationService(
@@ -53,7 +54,7 @@ const McpRouter = () => {
       resourceUrl,
       loginPath: '/login',
       authorizePath: MCP_AUTHORIZE_PATH,
-      consentSecret: process.env.SECRET ?? '',
+      consentSecret,
     },
   });
 
@@ -149,6 +150,7 @@ const McpRouter = () => {
     issuerUrl,
     resourceUrl,
     onAuthenticatedPost,
+    consentSecret,
   });
 };
 

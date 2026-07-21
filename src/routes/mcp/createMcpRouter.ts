@@ -11,21 +11,91 @@ import { revocationHandler } from '@modelcontextprotocol/sdk/server/auth/handler
 import { requireBearerAuth } from '@modelcontextprotocol/sdk/server/auth/middleware/bearerAuth.js';
 import type { OAuthServerProvider } from '@modelcontextprotocol/sdk/server/auth/provider.js';
 
+import {
+  InMemoryRateLimiter,
+  RateLimiter,
+} from '../../lib/rateLimit/InMemoryRateLimiter';
+import { hashIp, resolveClientIp } from '../../lib/rateLimit/ipHelpers';
+
 export const MCP_AUTHORIZE_PATH = '/mcp/authorize';
 export const MCP_TOKEN_PATH = '/mcp/token';
 export const MCP_REGISTER_PATH = '/mcp/register';
 export const MCP_REVOKE_PATH = '/mcp/revoke';
+
+const HOUR_MS = 60 * 60 * 1000;
+const MINUTE_MS = 60 * 1000;
+
+const REGISTER_PER_IP_MAX = 10;
+const REGISTER_GLOBAL_MAX = 500;
+const AUTHORIZE_PER_IP_MAX = 30;
+const AUTHORIZE_GLOBAL_MAX = 3000;
+const TOKEN_PER_IP_MAX = 60;
+const TOKEN_GLOBAL_MAX = 6000;
+
+export interface McpRateLimiters {
+  register: RateLimiter;
+  authorize: RateLimiter;
+  token: RateLimiter;
+}
 
 export interface McpRouterDeps {
   provider: OAuthServerProvider;
   issuerUrl: URL;
   resourceUrl: URL;
   onAuthenticatedPost: RequestHandler;
+  consentSecret: string;
+  rateLimiters?: Partial<McpRateLimiters>;
+}
+
+function rateLimit(limiter: RateLimiter): RequestHandler {
+  return (req, res, next) => {
+    if (limiter.check(hashIp(resolveClientIp(req)))) {
+      next();
+      return;
+    }
+    res.set('Retry-After', '60');
+    res.status(429).json({
+      error: 'rate_limited',
+      error_description:
+        'Too many requests from this network. Wait a moment and try again.',
+    });
+  };
 }
 
 export function createMcpRouter(deps: McpRouterDeps): express.Router {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    deps.consentSecret.length === 0
+  ) {
+    throw new Error(
+      'MCP consent secret is empty in production. Set process.env.SECRET.'
+    );
+  }
+
   const router = express.Router();
   const { provider, issuerUrl, resourceUrl } = deps;
+
+  const registerLimiter =
+    deps.rateLimiters?.register ??
+    new InMemoryRateLimiter({
+      windowMs: HOUR_MS,
+      perKeyMax: REGISTER_PER_IP_MAX,
+      globalMax: REGISTER_GLOBAL_MAX,
+    });
+  const authorizeLimiter =
+    deps.rateLimiters?.authorize ??
+    new InMemoryRateLimiter({
+      windowMs: MINUTE_MS,
+      perKeyMax: AUTHORIZE_PER_IP_MAX,
+      globalMax: AUTHORIZE_GLOBAL_MAX,
+    });
+  const tokenLimiter =
+    deps.rateLimiters?.token ??
+    new InMemoryRateLimiter({
+      windowMs: MINUTE_MS,
+      perKeyMax: TOKEN_PER_IP_MAX,
+      globalMax: TOKEN_GLOBAL_MAX,
+    });
 
   const baseMetadata = createOAuthMetadata({
     provider,
@@ -53,11 +123,20 @@ export function createMcpRouter(deps: McpRouterDeps): express.Router {
     })
   );
 
-  router.use(MCP_AUTHORIZE_PATH, authorizationHandler({ provider }));
-  router.use(MCP_TOKEN_PATH, tokenHandler({ provider }));
+  router.use(
+    MCP_AUTHORIZE_PATH,
+    rateLimit(authorizeLimiter),
+    authorizationHandler({ provider })
+  );
+  router.use(
+    MCP_TOKEN_PATH,
+    rateLimit(tokenLimiter),
+    tokenHandler({ provider })
+  );
   if (baseMetadata.registration_endpoint) {
     router.use(
       MCP_REGISTER_PATH,
+      rateLimit(registerLimiter),
       clientRegistrationHandler({ clientsStore: provider.clientsStore })
     );
   }
