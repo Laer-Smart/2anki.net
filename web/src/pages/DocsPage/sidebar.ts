@@ -90,6 +90,7 @@ export const sidebar: SidebarGroup[] = [
       { label: 'Print or export to PDF', slug: 'reference/print-export' },
       { label: 'Self-hosting', slug: 'reference/self-hosting' },
       { label: 'API access', slug: 'reference/api' },
+      { label: 'MCP connector', slug: 'reference/mcp' },
       { label: 'Privacy policy', slug: 'reference/privacy' },
       { label: 'Terms of service', slug: 'reference/terms' },
     ],

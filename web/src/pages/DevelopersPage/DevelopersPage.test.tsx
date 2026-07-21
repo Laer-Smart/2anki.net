@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { describe, expect, test, vi, beforeEach } from 'vitest';
 import { HelmetProvider } from 'react-helmet-async';
@@ -48,7 +48,6 @@ describe('DevelopersPage', () => {
       'href',
       '/api/docs'
     );
-    expect(screen.getByText('Download the CLI')).toBeInTheDocument();
     expect(screen.getByText('Convert a file into a deck')).toBeInTheDocument();
   });
 
@@ -63,7 +62,7 @@ describe('DevelopersPage', () => {
     );
   });
 
-  test('shows the locked request-access state for a non-access account', () => {
+  test('shows the request-access card for a non-access account', () => {
     useUserLocals.mockReturnValue({
       data: { locals: { patreon: false, developer_access: false } },
       isLoading: false,
@@ -71,5 +70,70 @@ describe('DevelopersPage', () => {
     renderPage();
     expect(screen.getByText('Request access')).toBeInTheDocument();
     expect(screen.queryByText('Create key')).not.toBeInTheDocument();
+  });
+
+  test('install strip and MCP card are visible without access', () => {
+    useUserLocals.mockReturnValue({
+      data: { locals: { patreon: false, developer_access: false } },
+      isLoading: false,
+    });
+    renderPage();
+    expect(screen.getByText('npx @2anki/cli login')).toBeInTheDocument();
+    expect(screen.getAllByText('https://2anki.net/mcp').length).toBeGreaterThan(
+      0
+    );
+    expect(screen.getByText('How to connect')).toHaveAttribute(
+      'href',
+      '/documentation/start-here/use-in-claude'
+    );
+  });
+
+  test('switching the package manager tab swaps the install command', () => {
+    useUserLocals.mockReturnValue({
+      data: { locals: { patreon: true } },
+      isLoading: false,
+    });
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'pnpm' }));
+    expect(screen.getByText('pnpm add -g @2anki/cli')).toBeInTheDocument();
+    expect(screen.queryByText('npx @2anki/cli login')).not.toBeInTheDocument();
+  });
+
+  test('binary tab links to the GitHub releases page', () => {
+    useUserLocals.mockReturnValue({
+      data: { locals: { patreon: true } },
+      isLoading: false,
+    });
+    renderPage();
+    fireEvent.click(screen.getByRole('button', { name: 'binary' }));
+    expect(screen.getByText('Download the CLI')).toHaveAttribute(
+      'href',
+      'https://github.com/2anki/server/releases/latest'
+    );
+  });
+
+  test('invites contact when a use case is not covered', () => {
+    useUserLocals.mockReturnValue({
+      data: { locals: { patreon: true } },
+      isLoading: false,
+    });
+    renderPage();
+    const mailLinks = screen.getAllByRole('link', {
+      name: 'support@2anki.net',
+    });
+    expect(mailLinks[0]).toHaveAttribute('href', 'mailto:support@2anki.net');
+    expect(
+      screen.getByRole('link', { name: 'Open a GitHub issue' })
+    ).toHaveAttribute('href', 'https://github.com/2anki/server/issues');
+  });
+
+  test('spec rail lists the API base and MCP server', () => {
+    useUserLocals.mockReturnValue({
+      data: { locals: { patreon: true } },
+      isLoading: false,
+    });
+    renderPage();
+    expect(screen.getByText('https://2anki.net/api')).toBeInTheDocument();
+    expect(screen.getByLabelText('Connection facts')).toBeInTheDocument();
   });
 });
