@@ -801,11 +801,15 @@ export class EmailService implements IEmailService {
     limit: number,
     tierKey: string
   ): Promise<void> {
+    const groupDigits = (value: number) =>
+      value >= 10000
+        ? String(value).replace(/\B(?=(\d{3})+(?!\d))/g, THIN_SPACE)
+        : String(value);
     const markup = API_USAGE_WARNING_TEMPLATE.replace(
       '{{cardsUsed}}',
-      String(cardsUsed)
+      groupDigits(cardsUsed)
     )
-      .replace('{{limit}}', String(limit))
+      .replace('{{limit}}', groupDigits(limit))
       .replace('{{tier}}', tierKey);
     const msg = {
       to: email,

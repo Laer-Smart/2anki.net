@@ -44,6 +44,9 @@ export function DevelopersSection() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ tier: tierKey }),
       });
+      if (response.status === 401) {
+        throw new Error('Sign in to start a developer plan.');
+      }
       if (!response.ok) {
         const data = await response.json().catch(() => ({}));
         throw new Error(data.message ?? 'Could not start checkout. Try again.');
@@ -113,7 +116,11 @@ export function DevelopersSection() {
           </a>
         </div>
       </div>
-      {error !== '' && <p className={styles.error}>{error}</p>}
+      {error !== '' && (
+        <p className={styles.error} role="alert">
+          {error}
+        </p>
+      )}
     </section>
   );
 }
