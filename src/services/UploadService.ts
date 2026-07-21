@@ -39,6 +39,19 @@ import {
   MONTHLY_CARD_LIMIT,
 } from '../usecases/users/CheckMonthlyCardLimitUseCase';
 import {
+  ApiCardLimitError,
+  CheckApiCardLimitUseCase,
+} from '../usecases/developer/CheckApiCardLimitUseCase';
+import {
+  ApiUsageWarner,
+  RecordApiCardUsageUseCase,
+} from '../usecases/developer/RecordApiCardUsageUseCase';
+import type { IApiKeyUsageRepository } from '../data_layer/ApiKeyUsageRepository';
+import {
+  ResolvedDeveloperTier,
+  SANDBOX_TIER,
+} from '../usecases/developer/ResolveDeveloperTierUseCase';
+import {
   generateDeckInfo,
   DeckInfo,
   ClaudeParseError,
@@ -217,8 +230,56 @@ class UploadService {
     private readonly usersRepository: UsersRepository,
     private readonly settingsRepository?: ISettingsRepository,
     private readonly conversionOutputStatsRepository?: IConversionOutputStatsRepository,
-    private readonly parsePathSignatureRepository?: IParsePathSignatureRepository
+    private readonly parsePathSignatureRepository?: IParsePathSignatureRepository,
+    private readonly apiKeyUsageRepository?: IApiKeyUsageRepository,
+    private readonly apiUsageWarner?: ApiUsageWarner
   ) {}
+
+  private apiTierOf(
+    res: express.Response
+  ): ResolvedDeveloperTier | null {
+    if (res.locals.api_key_auth !== true) {
+      return null;
+    }
+    return (res.locals.developer_tier as ResolvedDeveloperTier) ?? SANDBOX_TIER;
+  }
+
+  private async checkApiCardLimit(
+    res: express.Response,
+    owner: string | number | null | undefined,
+    totalCards: number
+  ): Promise<void> {
+    const tier = this.apiTierOf(res);
+    if (tier == null || owner == null || this.apiKeyUsageRepository == null) {
+      return;
+    }
+    await new CheckApiCardLimitUseCase(this.apiKeyUsageRepository).execute({
+      userId: Number(owner),
+      candidateCardCount: totalCards,
+      tier,
+    });
+  }
+
+  private async recordApiCardUsage(
+    res: express.Response,
+    owner: string | number | null | undefined,
+    totalCards: number
+  ): Promise<void> {
+    const tier = this.apiTierOf(res);
+    if (tier == null || owner == null || this.apiKeyUsageRepository == null) {
+      return;
+    }
+    const email = typeof res.locals.email === 'string' ? res.locals.email : '';
+    await new RecordApiCardUsageUseCase(
+      this.apiKeyUsageRepository,
+      this.apiUsageWarner ?? (async () => {})
+    ).execute({
+      userId: Number(owner),
+      email,
+      cards: totalCards,
+      tier,
+    });
+  }
 
   private recordConversionOutput(
     packages: {
@@ -452,6 +513,26 @@ class UploadService {
 
       return await this.handleSyncUpload(req, res, settings, ws, paying);
     } catch (err) {
+      if (err instanceof ApiCardLimitError) {
+        const owner = getOwner(res);
+        track('conversion_failed', {
+          userId: owner != null ? Number(owner) : null,
+          anonymousId: this.resolveAnonId(req),
+          props: {
+            source: this.resolveUploadSource(req),
+            reason: 'api_card_limit',
+            signup_origin: this.resolveSignupOrigin(req),
+          },
+        });
+        return res.status(402).json({
+          message: `Monthly API card limit reached (${err.cards_used} of ${err.limit} on the ${err.tier_key} tier), so this deck wasn't created. Upgrade at https://2anki.net/pricing?from=api or wait for the reset on ${err.reset_on.slice(0, 10)}.`,
+          cards_used: err.cards_used,
+          limit: err.limit,
+          tier: err.tier_key,
+          reset_on: err.reset_on,
+          upgrade_url: 'https://2anki.net/pricing?from=api',
+        });
+      }
       if (err instanceof MonthlyLimitError) {
         const owner = getOwner(res);
         const userId = owner != null ? Number(owner) : null;
@@ -471,6 +552,15 @@ class UploadService {
           anonymousId,
           props: { source, kind: 'card_count' },
         });
+        if (res.locals.api_key_auth === true) {
+          return res.status(402).json({
+            message: `Monthly card limit reached (${err.cards_used} of ${err.limit}), so this deck wasn't created. Upgrade at https://2anki.net/pricing?from=api or wait for the reset on ${err.reset_on.slice(0, 10)}.`,
+            cards_used: err.cards_used,
+            limit: err.limit,
+            reset_on: err.reset_on,
+            upgrade_url: 'https://2anki.net/pricing?from=api',
+          });
+        }
         return res.redirect('/limit?kind=card_count');
       } else if (err instanceof AnonymousCardCapError) {
         const owner = getOwner(res);
@@ -622,6 +712,7 @@ class UploadService {
         if (totalCards > 0) {
           this.recordConversionOutput(packages);
           logEmptyBackAttribution(packages, this.resolveUploadSource(req));
+          await this.checkApiCardLimit(res, owner, totalCards);
           await this.promoteClaudeJobToUpload(
             ws.id,
             ws.location,
@@ -630,6 +721,7 @@ class UploadService {
             source,
             paying
           );
+          await this.recordApiCardUsage(res, owner, totalCards);
           track('conversion_succeeded', {
             userId: Number(owner),
             anonymousId: this.resolveAnonId(req),
@@ -730,6 +822,7 @@ class UploadService {
         candidateCardCount: totalCards,
         isPaying: paying,
       });
+      await this.checkApiCardLimit(res, owner, totalCards);
     } else if (totalCards > ANONYMOUS_CARD_CAP) {
       if (authenticated) {
         throw new MonthlyLimitError(
@@ -814,6 +907,7 @@ class UploadService {
       });
       if (owner != null) {
         await this.usersRepository.incrementCardUsage(owner, totalCards);
+        await this.recordApiCardUsage(res, owner, totalCards);
       }
       return res.status(200).send(apkg);
     }
@@ -829,6 +923,7 @@ class UploadService {
     });
     if (owner != null) {
       await this.usersRepository.incrementCardUsage(owner, totalCards);
+      await this.recordApiCardUsage(res, owner, totalCards);
     }
     return res
       .status(200)

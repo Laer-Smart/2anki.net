@@ -5,6 +5,7 @@ import * as path from 'path';
 
 import {
   ABANDONED_CHECKOUT_RECOVERY_TEMPLATE,
+  API_USAGE_WARNING_TEMPLATE,
   CONVERT_LINK_TEMPLATE,
   CONVERT_TEMPLATE,
   DEFAULT_SENDER,
@@ -81,6 +82,12 @@ export interface IEmailService {
     userEmail: string,
     payingStatus: string
   ): Promise<EmailResponse>;
+  sendApiUsageWarningEmail(
+    email: string,
+    cardsUsed: number,
+    limit: number,
+    tierKey: string
+  ): Promise<void>;
   sendMagicLinkEmail(
     email: string,
     token: string,
@@ -788,6 +795,33 @@ export class EmailService implements IEmailService {
     }
   }
 
+  async sendApiUsageWarningEmail(
+    email: string,
+    cardsUsed: number,
+    limit: number,
+    tierKey: string
+  ): Promise<void> {
+    const markup = API_USAGE_WARNING_TEMPLATE.replace(
+      '{{cardsUsed}}',
+      String(cardsUsed)
+    )
+      .replace('{{limit}}', String(limit))
+      .replace('{{tier}}', tierKey);
+    const msg = {
+      to: email,
+      from: this.defaultSender,
+      subject: `API usage: ${cardsUsed} of ${limit} cards this month`,
+      text: `Your API usage is at ${cardsUsed} of ${limit} cards this month on the ${tierKey} tier. Conversions stop at the limit and resume when it resets on the 1st. Manage your plan at https://2anki.net/developers`,
+      html: markup,
+      replyTo: 'support@2anki.net',
+    };
+    try {
+      await this.deliver(msg);
+    } catch (error) {
+      console.error('[api-usage] failed to send usage warning email:', error);
+    }
+  }
+
   async sendNotionReconnectEmail(email: string): Promise<void> {
     const ctaUrl = `${process.env.DOMAIN ?? 'https://2anki.net'}/notion`;
     const markup = NOTION_RECONNECT_TEMPLATE.replace('{{ctaUrl}}', ctaUrl);
@@ -1039,6 +1073,21 @@ export class UnimplementedEmailService implements IEmailService {
 
   async sendParserCanaryAlert(to: string, summary: string): Promise<void> {
     console.info('sendParserCanaryAlert not handled', to, summary);
+  }
+
+  async sendApiUsageWarningEmail(
+    email: string,
+    cardsUsed: number,
+    limit: number,
+    tierKey: string
+  ): Promise<void> {
+    console.info(
+      'sendApiUsageWarningEmail not handled',
+      email,
+      cardsUsed,
+      limit,
+      tierKey
+    );
   }
 
   async sendNotionReconnectEmail(email: string): Promise<void> {
