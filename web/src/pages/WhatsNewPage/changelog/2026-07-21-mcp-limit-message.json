@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-21-mcp-limit-message",
+  "date": "2026-07-21",
+  "type": "fix",
+  "title": "Claude and ChatGPT now explain the monthly card limit instead of failing silently"
+}

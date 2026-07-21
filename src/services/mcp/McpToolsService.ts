@@ -56,6 +56,10 @@ const NO_CARDS_FOUND_MESSAGE =
 const EMPTY_BACK_MESSAGE =
   'Some cards have an empty back. Every card needs both a front and a back.';
 const GENERIC_CONVERT_ERROR = 'Could not convert this input.';
+const MONTHLY_LIMIT_CODE = 'monthly_limit';
+const MONTHLY_LIMIT_MESSAGE =
+  "You've reached your free limit of 100 cards this month, so this deck wasn't created. Upgrade to Unlimited to keep converting, or wait for your limit to reset next month. Upgrade: https://2anki.net/pricing?from=mcp";
+const CARD_LIMIT_REDIRECT_PREFIX = '/limit?kind=card_count';
 const OVER_SIZE_MESSAGE =
   'These cards are over the 5 MB limit. Split into smaller decks.';
 const NO_CARD_CODES = new Set(['markdown_likely_lossy', 'empty_export']);
@@ -494,7 +498,11 @@ export class McpToolsService {
       });
     } catch (error) {
       if (error instanceof MonthlyLimitError) {
-        return { kind: 'error', message: GENERIC_CONVERT_ERROR };
+        return {
+          kind: 'error',
+          code: MONTHLY_LIMIT_CODE,
+          message: MONTHLY_LIMIT_MESSAGE,
+        };
       }
       throw error;
     }
@@ -701,6 +709,13 @@ export class McpToolsService {
     }
     if (res.statusCode === 200 && res.bodyBuffer != null) {
       return this.persistDeckResult(res.bodyBuffer, res, owner, fallbackTitle);
+    }
+    if (res.redirectedTo?.startsWith(CARD_LIMIT_REDIRECT_PREFIX)) {
+      return {
+        kind: 'error',
+        code: MONTHLY_LIMIT_CODE,
+        message: MONTHLY_LIMIT_MESSAGE,
+      };
     }
     const code = this.errorCode(res.body);
     return {
