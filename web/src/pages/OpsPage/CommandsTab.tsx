@@ -3,6 +3,10 @@ import { useState } from 'react';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './OpsPage.module.css';
 import { syncStripeSubscriptions } from './syncStripeSubscriptions';
+import {
+  createDeveloperTiers,
+  ProvisionedTier,
+} from './createDeveloperTiers';
 import { grantDeveloperAccess } from './grantDeveloperAccess';
 import {
   deleteInactiveUsers,
@@ -97,6 +101,31 @@ export default function CommandsTab() {
     } catch (error) {
       setStatus('error');
       setMessage(error instanceof Error ? error.message : 'Unknown error');
+    }
+  };
+
+  const [tiersStatus, setTiersStatus] = useState<Status>('idle');
+  const [tiersMessage, setTiersMessage] = useState('');
+
+  const runCreateDeveloperTiers = async () => {
+    setTiersStatus('loading');
+    setTiersMessage('');
+    try {
+      const { tiers } = await createDeveloperTiers();
+      setTiersStatus('success');
+      setTiersMessage(
+        tiers
+          .map(
+            (tier: ProvisionedTier) =>
+              `${tier.tier_key}: ${tier.created_product ? 'product created' : 'product found'}, ${tier.created_price ? 'price created' : 'price found'} (${tier.stripe_price_id})`
+          )
+          .join(' · ')
+      );
+    } catch (error) {
+      setTiersStatus('error');
+      setTiersMessage(
+        error instanceof Error ? error.message : 'Unknown error'
+      );
     }
   };
 
@@ -250,6 +279,37 @@ export default function CommandsTab() {
       {status === 'error' && message && (
         <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
           {message}
+        </div>
+      )}
+
+      <section className={`${sharedStyles.surface} ${styles.card}`}>
+        <h2 className={styles.cardTitle}>Developer tiers</h2>
+        <p className={styles.panelSubtitle}>
+          Creates the Starter and Growth developer-tier products and monthly
+          prices in Stripe and writes the developer_tiers rows that gate API
+          volume. Idempotent — re-running finds existing products by metadata
+          instead of duplicating them.
+        </p>
+        <div className={styles.controls}>
+          <button
+            type="button"
+            className={sharedStyles.btnSmall}
+            onClick={runCreateDeveloperTiers}
+            disabled={tiersStatus === 'loading'}
+          >
+            {tiersStatus === 'loading' ? 'Provisioning…' : 'Create tiers'}
+          </button>
+        </div>
+      </section>
+
+      {tiersStatus === 'success' && tiersMessage && (
+        <div className={`${sharedStyles.alertSuccess} ${styles.banner}`}>
+          {tiersMessage}
+        </div>
+      )}
+      {tiersStatus === 'error' && tiersMessage && (
+        <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
+          {tiersMessage}
         </div>
       )}
 

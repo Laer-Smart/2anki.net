@@ -24,6 +24,7 @@ import { ReconcileOrphanedSubscriptionsUseCase } from '../usecases/ops/Reconcile
 import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldUseCase';
 import { GetCustomerSignalsUseCase } from '../usecases/ops/GetCustomerSignalsUseCase';
 import { GetPassUnlockMonitorUseCase } from '../usecases/ops/GetPassUnlockMonitorUseCase';
+import { CreateDeveloperTiersUseCase } from '../usecases/ops/CreateDeveloperTiersUseCase';
 import GrantDeveloperAccessUseCase, {
   InvalidEmailError,
 } from '../usecases/developer/GrantDeveloperAccessUseCase';
@@ -51,8 +52,23 @@ class OpsController {
     private readonly getPassUnlockMonitorUseCase?: GetPassUnlockMonitorUseCase,
     private readonly sendPassWinbackUseCase?: SendPassWinbackUseCase,
     private readonly grantDeveloperAccessUseCase?: GrantDeveloperAccessUseCase,
-    private readonly getCancelFunnelUseCase?: GetCancelFunnelUseCase
+    private readonly getCancelFunnelUseCase?: GetCancelFunnelUseCase,
+    private readonly createDeveloperTiersUseCase?: CreateDeveloperTiersUseCase
   ) {}
+
+  async createDeveloperTiers(_req: express.Request, res: express.Response) {
+    if (this.createDeveloperTiersUseCase == null) {
+      res.status(500).json({ message: 'Developer tiers not configured' });
+      return;
+    }
+    try {
+      const tiers = await this.createDeveloperTiersUseCase.execute();
+      res.status(200).json({ tiers });
+    } catch (error) {
+      console.error('[ops] createDeveloperTiers failed', error);
+      res.status(500).json({ message: 'Failed to create developer tiers' });
+    }
+  }
 
   async grantDeveloperAccess(req: express.Request, res: express.Response) {
     if (this.grantDeveloperAccessUseCase == null) {
