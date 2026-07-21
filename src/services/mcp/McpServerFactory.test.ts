@@ -158,7 +158,7 @@ describe('get_deck_preview handler', () => {
       'get_deck_preview'
     );
     const result = await handler({ jobId: 'job-1' });
-    expect(getDeckPreview).toHaveBeenCalledWith('user-1', 'job-1');
+    expect(getDeckPreview).toHaveBeenCalledWith('user-1', 'job-1', 0, 20);
     expect(result.isError).toBeUndefined();
   });
 
@@ -177,7 +177,7 @@ describe('get_deck_preview handler', () => {
       'get_deck_preview'
     );
     await handler({ key: 'deck.apkg' });
-    expect(getDeckPreview).toHaveBeenCalledWith('user-1', 'deck.apkg');
+    expect(getDeckPreview).toHaveBeenCalledWith('user-1', 'deck.apkg', 0, 20);
   });
 
   it('returns a clean error when neither jobId nor key is given', async () => {

@@ -166,6 +166,7 @@ export interface SampleCard {
 }
 
 export interface DeckPreview {
+  note?: string;
   cardCount: number;
   deckCount: number;
   decks: { id: number; name: string; cardCount: number }[];
@@ -316,23 +317,37 @@ export class McpToolsService {
     };
   }
 
-  async listMyDecks(owner: string): Promise<DeckSummary[]> {
+  async listMyDecks(
+    owner: string,
+    limit = 20
+  ): Promise<{ decks: DeckSummary[]; total: number; note?: string }> {
+    const cappedLimit = Math.min(Math.max(limit, 1), 100);
     const jobs = await this.jobLister.getJobsByOwner(owner);
-    return jobs.map((job) => ({
+    const decks = jobs.slice(0, cappedLimit).map((job) => ({
       jobId: job.object_id,
       title: job.title ?? 'Untitled deck',
       status: job.status,
       createdAt: job.created_at ? new Date(job.created_at).toISOString() : null,
       downloadUrl:
         job.download_key != null
-          ? `/api/upload/jobs/${job.object_id}/download`
+          ? `${this.baseUrl}/api/upload/jobs/${job.object_id}/download`
           : null,
     }));
+    const result: { decks: DeckSummary[]; total: number; note?: string } = {
+      decks,
+      total: jobs.length,
+    };
+    if (jobs.length > decks.length) {
+      result.note = `Showing ${decks.length} of ${jobs.length} decks, newest first. Pass a higher limit for more.`;
+    }
+    return result;
   }
 
   async getDeckPreview(
     owner: string,
-    identifier: string
+    identifier: string,
+    page = 0,
+    pageSize = PREVIEW_CARD_LIMIT
   ): Promise<DeckPreview> {
     const key = await this.resolveDeckKey(owner, identifier);
     const body = await this.downloadService.getFileBody(
@@ -349,13 +364,20 @@ export class McpToolsService {
     );
     const meta = this.previewService.getMeta(parsed);
     const mediaBaseUrl = `/api/apkg/${encodeURIComponent(key)}/media/`;
-    const page = this.previewService.getCardsPage(
+    const cappedPageSize = Math.min(Math.max(pageSize, 1), 50);
+    const safePage = Math.max(page, 0);
+    const cardsPage = this.previewService.getCardsPage(
       parsed,
-      0,
-      PREVIEW_CARD_LIMIT,
+      safePage * cappedPageSize,
+      cappedPageSize,
       mediaBaseUrl
     );
-    return {
+    const sampleCards = this.toSampleCards(
+      cardsPage.cards,
+      this.deckIsReversible(parsed)
+    );
+    const shownThrough = safePage * cappedPageSize + sampleCards.length;
+    const preview: DeckPreview = {
       cardCount: meta.totalCards,
       deckCount: meta.decks.length,
       decks: meta.decks.map((deck) => ({
@@ -363,11 +385,12 @@ export class McpToolsService {
         name: deck.fullName,
         cardCount: deck.cardCount,
       })),
-      sampleCards: this.toSampleCards(
-        page.cards,
-        this.deckIsReversible(parsed)
-      ),
+      sampleCards,
     };
+    if (meta.totalCards > shownThrough) {
+      preview.note = `Showing cards ${safePage * cappedPageSize + 1}–${shownThrough} of ${meta.totalCards}. Pass page (0-based) and pageSize for more.`;
+    }
+    return preview;
   }
 
   private async resolveDeckKey(
