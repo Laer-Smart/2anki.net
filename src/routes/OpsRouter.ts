@@ -68,6 +68,8 @@ import { FeatureFlagsRepository } from '../data_layer/FeatureFlagsRepository';
 import { ListFeatureFlagsUseCase } from '../usecases/ops/ListFeatureFlagsUseCase';
 import { SetFeatureFlagUseCase } from '../usecases/ops/SetFeatureFlagUseCase';
 import { getStripe } from '../lib/integrations/stripe';
+import { CreateDeveloperTiersUseCase } from '../usecases/ops/CreateDeveloperTiersUseCase';
+import DeveloperTiersRepository from '../data_layer/DeveloperTiersRepository';
 import { OrphanedSubscriptionsRepository } from '../data_layer/OrphanedSubscriptionsRepository';
 import { SubscriptionRecoveryNotificationsRepository } from '../data_layer/SubscriptionRecoveryNotificationsRepository';
 import { GetOrphanedSubscriptionsUseCase } from '../usecases/ops/GetOrphanedSubscriptionsUseCase';
@@ -195,6 +197,10 @@ const OpsRouter = () => {
     new GrantDeveloperAccessUseCase(new UsersRepository(database)),
     new GetCancelFunnelUseCase(
       new CancelFunnelService({ eventsRepo: new EventsRepository(database) })
+    ),
+    new CreateDeveloperTiersUseCase(
+      getStripe(),
+      new DeveloperTiersRepository(database)
     )
   );
 
@@ -614,6 +620,29 @@ const OpsRouter = () => {
    */
   router.get('/api/ops/cancel-funnel', RequireOpsAccess, (req, res) =>
     controller.getCancelFunnel(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/commands/create-developer-tiers:
+   *   post:
+   *     summary: Create the Stripe developer-tier products and prices
+   *     description: |
+   *       Internal endpoint locked to the ops owner. Idempotently ensures the Starter and Growth
+   *       developer-tier products and monthly prices exist in Stripe (found by product metadata),
+   *       and writes the developer_tiers rows that gate API-key volume. Safe to re-run.
+   *       Returns 404 for everyone else.
+   *     tags: [Ops]
+   *     responses:
+   *       200:
+   *         description: Provisioned tiers with created/found flags
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.post(
+    '/api/ops/commands/create-developer-tiers',
+    RequireOpsAccess,
+    (req, res) => controller.createDeveloperTiers(req, res)
   );
 
   /**

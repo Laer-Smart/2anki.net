@@ -11,6 +11,8 @@ import UploadController from '../controllers/Upload/UploadController';
 import { SaveNativeDeckController } from '../controllers/Upload/SaveNativeDeckController';
 import { SaveNativeDeckUseCase } from '../usecases/uploads/SaveNativeDeckUseCase';
 import StorageHandler from '../lib/storage/StorageHandler';
+import { ApiKeyUsageRepository } from '../data_layer/ApiKeyUsageRepository';
+import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import JobController from '../controllers/JobController';
 import JobService from '../services/JobService';
 import JobRepository from '../data_layer/JobRepository';
@@ -46,7 +48,15 @@ const UploadRouter = () => {
     new UsersRepository(database),
     new SettingsRepository(database),
     new ConversionOutputStatsRepository(database),
-    new ParsePathSignatureRepository(database)
+    new ParsePathSignatureRepository(database),
+    new ApiKeyUsageRepository(database),
+    (email, cardsUsed, limit, tierKey) =>
+      getDefaultEmailService().sendApiUsageWarningEmail(
+        email,
+        cardsUsed,
+        limit,
+        tierKey
+      )
   );
   const jobController = new JobController(
     jobService,

@@ -12,15 +12,63 @@ import {
 } from '../../lib/apiKeys/apiKeyToken';
 import { applyUserLocals } from './configureUserLocal';
 import { getEventsSink } from '../../services/events/eventsSinkInstance';
+import { InMemoryRateLimiter } from '../../lib/rateLimit/InMemoryRateLimiter';
+import DeveloperTiersRepository from '../../data_layer/DeveloperTiersRepository';
+import ResolveDeveloperTierUseCase, {
+  ResolvedDeveloperTier,
+} from '../../usecases/developer/ResolveDeveloperTierUseCase';
+import SubscriptionService from '../../services/SubscriptionService';
 
 const USAGE_EVENT_THROTTLE_MS = 60_000;
 const lastUsageEventAt = new Map<number, number>();
+
+const RATE_WINDOW_MS = 60_000;
+const tierLimiters = new Map<string, InMemoryRateLimiter>();
+
+function limiterForTier(tier: ResolvedDeveloperTier): InMemoryRateLimiter {
+  const cacheKey = `${tier.tier_key}:${tier.requests_per_minute}`;
+  const existing = tierLimiters.get(cacheKey);
+  if (existing != null) {
+    return existing;
+  }
+  const limiter = new InMemoryRateLimiter({
+    windowMs: RATE_WINDOW_MS,
+    perKeyMax: tier.requests_per_minute,
+    globalMax: tier.requests_per_minute * 200,
+  });
+  tierLimiters.set(cacheKey, limiter);
+  return limiter;
+}
+
+const TIER_CACHE_TTL_MS = 60_000;
+const tierCache = new Map<
+  number,
+  { tier: ResolvedDeveloperTier; at: number }
+>();
+
+function cachedTier(userId: number, now: number): ResolvedDeveloperTier | null {
+  const entry = tierCache.get(userId);
+  if (entry == null || now - entry.at > TIER_CACHE_TTL_MS) {
+    return null;
+  }
+  return entry.tier;
+}
+
+export type TierResolver = (input: {
+  patreon: boolean;
+  activeProductIds: string[];
+}) => Promise<ResolvedDeveloperTier>;
 
 export interface RequireApiKeyDeps {
   apiKeyRepo?: IApiKeyRepository;
   usersRepo?: UsersRepository;
   authService?: AuthenticationService;
   now?: () => Date;
+  tierResolver?: TierResolver;
+  getActiveProductIds?: (email: string) => Promise<string[]>;
+  rateLimiterForTier?: (tier: ResolvedDeveloperTier) => {
+    check(key: string): boolean;
+  };
 }
 
 function recordUsage(keyId: number, userId: number, at: number) {
@@ -82,9 +130,50 @@ export function makeRequireApiKey(
       database
     );
 
-    const at = (deps.now ?? (() => new Date()))().getTime();
-    void apiKeyRepo.touchLastUsed(active.id, new Date(at));
-    recordUsage(active.id, active.user_id, at);
+    const getProductIds =
+      deps.getActiveProductIds ??
+      (async (email: string) => {
+        const subscriptions =
+          await SubscriptionService.getUserActiveSubscriptions(email);
+        return subscriptions
+          .map((subscription) => subscription.stripe_product_id)
+          .filter((id): id is string => id != null && id !== '');
+      });
+    const resolveTier =
+      deps.tierResolver ??
+      ((input: { patreon: boolean; activeProductIds: string[] }) =>
+        new ResolveDeveloperTierUseCase(
+          new DeveloperTiersRepository(database)
+        ).execute(input));
+
+    const nowMs = (deps.now ?? (() => new Date()))().getTime();
+    const useCache = deps.tierResolver == null;
+    let tier = useCache ? cachedTier(active.user_id, nowMs) : null;
+    if (tier == null) {
+      tier = await resolveTier({
+        patreon: user.patreon === true,
+        activeProductIds:
+          user.patreon === true || user.email == null
+            ? []
+            : await getProductIds(user.email),
+      });
+      if (useCache) {
+        tierCache.set(active.user_id, { tier, at: nowMs });
+      }
+    }
+
+    const limiter = (deps.rateLimiterForTier ?? limiterForTier)(tier);
+    if (!limiter.check(String(active.user_id))) {
+      return res.status(429).json({
+        message: `Rate limit reached for the ${tier.tier_key} tier (${tier.requests_per_minute} requests per minute). Try again in a minute.`,
+      });
+    }
+
+    res.locals.api_key_auth = true;
+    res.locals.developer_tier = tier;
+
+    void apiKeyRepo.touchLastUsed(active.id, new Date(nowMs));
+    recordUsage(active.id, active.user_id, nowMs);
 
     return next();
   };

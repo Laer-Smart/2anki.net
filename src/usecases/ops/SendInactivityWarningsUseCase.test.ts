@@ -19,6 +19,7 @@ function makeEmailService(
     sendSubscriptionResumingSoonEmail: jest.fn().mockResolvedValue(undefined),
     sendHostedAnkiAccessRequestEmail: jest.fn(),
     sendDeveloperAccessRequestEmail: jest.fn(),
+    sendApiUsageWarningEmail: jest.fn().mockResolvedValue(undefined),
     sendMagicLinkEmail: jest.fn(),
     sendReEngagementEmail: jest.fn(),
     sendInactivityWarningEmail: jest.fn().mockResolvedValue(undefined),
