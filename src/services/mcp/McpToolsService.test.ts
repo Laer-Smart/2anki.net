@@ -189,16 +189,32 @@ describe('McpToolsService.listMyDecks', () => {
         } as unknown as JobWithDownloadKey,
       ],
     });
-    const decks = await service.listMyDecks('owner-9');
+    const { decks, total } = await service.listMyDecks('owner-9');
+    expect(total).toBe(2);
     expect(decks[0]).toEqual({
       jobId: 'job-1',
       title: 'Pharmacology',
       status: 'done',
       createdAt: '2026-07-18T00:00:00.000Z',
-      downloadUrl: '/api/upload/jobs/job-1/download',
+      downloadUrl: 'https://mcp.test/api/upload/jobs/job-1/download',
     });
     expect(decks[1].title).toBe('Untitled deck');
     expect(decks[1].downloadUrl).toBeNull();
+  });
+
+  it('caps the list at the limit and notes how to fetch more', async () => {
+    const jobs = Array.from({ length: 5 }, (_, i) => ({
+      object_id: `job-${i}`,
+      title: `Deck ${i}`,
+      status: 'done',
+      created_at: null,
+      download_key: null,
+    })) as unknown as JobWithDownloadKey[];
+    const { service } = makeService({ jobs });
+    const result = await service.listMyDecks('owner-9', 2);
+    expect(result.decks).toHaveLength(2);
+    expect(result.total).toBe(5);
+    expect(result.note).toContain('Showing 2 of 5 decks');
   });
 });
 
