@@ -16,7 +16,7 @@ description: Cover parts of an image and recall them — anatomy, diagrams, maps
 
 Image occlusion cards show you a picture with bits hidden. You try to recall what's behind the cover, then flip the card to see if you got it right. The canvas tool at [2anki.net/image-occlusion](https://2anki.net/image-occlusion) lets you draw the covers yourself — no Anki add-on, no plugin install.
 
-**Plan:** Free for image upload. Importing images from Notion needs Subscription or Lifetime.
+**Plan:** Free accounts can use any source, including Notion import, up to 3 images per deck. Subscription and Lifetime remove the cap.
 
 ## When to use this
 
@@ -33,7 +33,7 @@ If your source is text — toggles, bullets, prose — basic or cloze cards are 
 3. Add images. Three ways:
    - **Upload** — drag images into the queue or use the file picker.
    - **Paste** — copy an image to your clipboard (screenshot tool, a Notion page, anywhere) and paste anywhere on the page.
-   - **Import from Notion** — click the Notion button on the queue if you're signed in and connected. Pick images from your Notion pages. This path needs a paid plan.
+   - **Import from Notion** — click the Notion button on the queue if you're signed in and connected. Pick images from your Notion pages. Free accounts can use this too, within the 3-images-per-deck cap.
 4. Click an image in the queue to load it onto the canvas on the right.
 5. Draw a rectangle on each part you want to hide. Each box becomes one flashcard. Add a label to each box if you want extra context on the card back.
 6. (Optional) Add a header — short text above the image — to give the card a title or a question stem.

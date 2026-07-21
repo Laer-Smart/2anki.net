@@ -5,7 +5,7 @@ description: Three things to try when your deck won't update.
 
 Sync runs every five minutes in the background. Most of the time you don't notice it. When it does get stuck, it's almost always one of the three things below.
 
-**Plan:** Lifetime (sync is gated by the same access as [How sync works](/documentation/sync/how-it-works))
+**Plan:** Auto Sync subscribers and Lifetime (sync is gated by the same access as [How sync works](/documentation/sync/how-it-works))
 
 ## Page didn't sync
 

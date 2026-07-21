@@ -7,7 +7,7 @@ The 2anki.net HTTP API is in a **limited beta**. Endpoints and payloads can stil
 
 ## Access
 
-Keys are self-service: sign in and create one on the [Developers page](/developers). Every key starts on the free Sandbox plan; paid plans raise the volume (see below).
+Keys are self-service: sign in and create one on the [Developers page](/developers). Every key starts on the free Sandbox plan; paid plans raise the volume (see the tiers below).
 
 Send your key as a bearer token on every request:
 
@@ -16,6 +16,17 @@ Authorization: Bearer sk_live_…
 ```
 
 Keep the key secret. Anyone holding it can convert on your account, against your plan's limits.
+
+## Tiers
+
+| Tier    | Price    | Cards per month | Requests per minute |
+| ------- | -------- | --------------- | ------------------- |
+| Sandbox | free     | 100             | 5                   |
+| Starter | $29 / mo | 5 000           | 30                  |
+| Growth  | $99 / mo | 30 000          | 60                  |
+| Custom  | contact  | above 100 000   | by arrangement      |
+
+Every key starts on Sandbox. For Custom volume above 100 000 cards a month, email [support@2anki.net](mailto:support@2anki.net). See the [pricing page](/pricing) for the account plans.
 
 ## Endpoints
 
@@ -39,7 +50,7 @@ npx @2anki/cli login
 2anki convert notes.md
 ```
 
-Prebuilt binaries for macOS, Linux, and Windows are on the [releases page](https://github.com/2anki/server/releases/latest).
+Prebuilt binaries for macOS, Linux, and Windows are on the [releases page](https://github.com/2anki/server/releases/latest). The macOS binary is arm64 (Apple Silicon).
 
 ## Assistants
 

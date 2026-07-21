@@ -39,11 +39,11 @@ The same advice that works for [AI flashcards](/documentation/cards/ai-flashcard
 
 ## Conversation limits
 
-|                    | Free             | Subscription       | Lifetime           |
-| ------------------ | ---------------- | ------------------ | ------------------ |
-| Messages per month | 20               | Unlimited          | Unlimited          |
-| Message length     | 4 000 characters | 100 000 characters | 100 000 characters |
-| Model              | Claude Haiku     | Claude Sonnet      | Claude Sonnet      |
+|                    | Free               | Subscription       | Lifetime           |
+| ------------------ | ------------------ | ------------------ | ------------------ |
+| Messages per month | 20                 | Unlimited          | Unlimited          |
+| Message length     | 100 000 characters | 100 000 characters | 100 000 characters |
+| Model              | Claude Haiku       | Claude Sonnet      | Claude Sonnet      |
 
 The count resets on the first of the following month. The exact reset date shows up when you hit the limit. See [Limits and quotas](/documentation/help/limits) for the full plan table.
 
@@ -57,7 +57,7 @@ Delete a conversation any time using the trash icon in the sidebar. Deletion is 
 
 ## Common mistakes
 
-- **Pasting more than the message limit.** 4 000 characters on Free is roughly two pages. Split a long source across multiple messages, or upgrade.
+- **Pasting more than the message limit.** Each message caps at 100 000 characters. Split a longer source across multiple messages.
 - **Expecting Chat to read uploaded files.** Chat reads text. To convert a PDF or a Notion export, use the [upload page](/documentation/start-here/upload-a-file) instead — that path is built for files. Chat can help you debug a stuck upload, but it doesn't process the file itself.
 - **Treating Chat as the only path.** For source that already has structure, the standard parser is faster, deterministic, and free.
 

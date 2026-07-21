@@ -43,11 +43,11 @@ Die Kartenoption **Use Claude AI** ist eine Subscription-/Lifetime-Funktion. Kos
 
 Der Chat-Lernassistent ist für alle angemeldeten Nutzer verfügbar.
 
-|                       | Free          | Subscription    | Lifetime        |
-| --------------------- | ------------- | --------------- | --------------- |
-| Nachrichten pro Monat | 20            | Unbegrenzt      | Unbegrenzt      |
-| Nachrichtenlänge      | 4 000 Zeichen | 100 000 Zeichen | 100 000 Zeichen |
-| Modell                | Claude Haiku  | Claude Sonnet   | Claude Sonnet   |
+|                       | Free            | Subscription    | Lifetime        |
+| --------------------- | --------------- | --------------- | --------------- |
+| Nachrichten pro Monat | 20              | Unbegrenzt      | Unbegrenzt      |
+| Nachrichtenlänge      | 100 000 Zeichen | 100 000 Zeichen | 100 000 Zeichen |
+| Modell                | Claude Haiku    | Claude Sonnet   | Claude Sonnet   |
 
 Kostenlose Nutzer, die 20 Nachrichten erreichen, sehen das genaue Reset-Datum (der Erste des Folgemonats). Der Nachrichtenzähler setzt sich monatlich zurück.
 

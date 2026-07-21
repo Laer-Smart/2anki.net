@@ -43,13 +43,35 @@ The **Use Claude AI** card option is a Subscription / Lifetime feature. Free acc
 
 The Chat study assistant is available to all signed-in users.
 
-|                    | Free             | Subscription       | Lifetime           |
-| ------------------ | ---------------- | ------------------ | ------------------ |
-| Messages per month | 20               | Unlimited          | Unlimited          |
-| Message length     | 4 000 characters | 100 000 characters | 100 000 characters |
-| Model              | Claude Haiku     | Claude Sonnet      | Claude Sonnet      |
+|                    | Free               | Subscription       | Lifetime           |
+| ------------------ | ------------------ | ------------------ | ------------------ |
+| Messages per month | 20                 | Unlimited          | Unlimited          |
+| Message length     | 100 000 characters | 100 000 characters | 100 000 characters |
+| Model              | Claude Haiku       | Claude Sonnet      | Claude Sonnet      |
 
 Free users who reach 20 messages see the exact reset date (first of the following month). Message count resets monthly.
+
+## Mind maps
+
+| Plan                 | Saved maps | Nodes per map |
+| -------------------- | ---------- | ------------- |
+| Free account         | 3          | 50            |
+| Subscription         | 25         | 250           |
+| Lifetime / Auto Sync | Unlimited  | Unlimited     |
+
+Deleting a map frees a slot right away — there's no monthly window. See [Mind maps](/documentation/cards/mind-maps).
+
+## Photo to deck
+
+Free accounts can turn 5 photos into decks per month. Subscription and Lifetime remove the cap. See [Photo to deck](/documentation/cards/photo-to-deck).
+
+## PDF print export
+
+Free accounts get 1 PDF export per month. Subscription and Lifetime are unlimited. See [Print or export to PDF](/documentation/reference/print-export).
+
+## Image occlusion
+
+Free accounts can build up to 3 images per deck. Subscription and Lifetime remove the cap. See [Image occlusion](/documentation/cards/image-occlusion).
 
 ## Storage
 
@@ -77,16 +99,16 @@ If your subscription lapses, your stored decks are removed in the next daily cle
 
 Free covers the conversion paths most people need: drag in a file, get a deck back. The paid plans add AI-generated flashcards, larger uploads, longer storage, and Notion sync.
 
-| Capability                                       | Free               | Subscription  | Lifetime   |
-| ------------------------------------------------ | ------------------ | ------------- | ---------- |
-| Cards per month                                  | 100 (21 anonymous) | Unlimited     | Unlimited  |
-| Anonymous file upload                            | ✓                  | ✓             | ✓          |
-| Account features (history, favorites, templates) | sign-in required   | ✓             | ✓          |
-| AI-generated flashcards (Claude)                 | —                  | ✓             | ✓          |
-| Chat (study assistant)                           | 20 msg / mo        | Unlimited     | Unlimited  |
-| Long-term deck storage                           | 24 h               | active sub    | indefinite |
-| Auto Sync (Notion → Anki)                        | —                  | $30/mo add-on | ✓          |
+| Capability                                       | Free               | Subscription | Lifetime   |
+| ------------------------------------------------ | ------------------ | ------------ | ---------- |
+| Cards per month                                  | 100 (21 anonymous) | Unlimited    | Unlimited  |
+| Anonymous file upload                            | ✓                  | ✓            | ✓          |
+| Account features (history, favorites, templates) | sign-in required   | ✓            | ✓          |
+| AI-generated flashcards (Claude)                 | —                  | ✓            | ✓          |
+| Chat (study assistant)                           | 20 msg / mo        | Unlimited    | Unlimited  |
+| Long-term deck storage                           | 24 h               | active sub   | indefinite |
+| Auto Sync (Notion → Anki)                        | —                  | by request   | ✓          |
 
-See the [pricing page](/pricing) for the current plan list. Privacy details — what we read, what we don't — are on the [privacy policy](/documentation/reference/privacy).
+Auto Sync isn't sold as a plan — it's included with Lifetime, and on any subscription you can email [support@2anki.net](mailto:support@2anki.net) to have it switched on. See the [pricing page](/pricing) for the current plan list. Privacy details — what we read, what we don't — are on the [privacy policy](/documentation/reference/privacy).
 
 If something looks wrong, [contact us](/documentation/help/contact).

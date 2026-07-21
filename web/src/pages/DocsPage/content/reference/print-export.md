@@ -5,7 +5,7 @@ description: Turn an .apkg into a printable PDF — for paper study, sharing, or
 
 The print tool at [2anki.net/print](https://2anki.net/print) takes an existing Anki deck (`.apkg`) and turns it into a PDF you can print or hand to someone. Useful for paper study, for sharing with a classmate who doesn't use Anki, or for keeping a hard copy of a deck.
 
-**Plan:** Subscription or Lifetime. Free accounts see the page but the export returns a "PDF export is available to subscribers and lifetime members" message.
+**Plan:** Free logged-in accounts get 1 PDF export per month. Subscription and Lifetime are unlimited. Anonymous users need to log in first — the export prompts you to sign in.
 
 ## When to use this
 
@@ -41,7 +41,8 @@ Uploaded `.apkg` files are removed within **2 hours** of the export. The PDF is 
 
 - **Wrong file type.** The print tool only accepts `.apkg`. If your source is a Notion export, a Markdown file, or a PDF, go to the [upload page](/documentation/start-here/upload-a-file) first to make the `.apkg`, then come back here.
 - **Very large decks.** Free print covers decks up to 1000 cards. Bigger decks return "PDF export supports up to 1000 cards." Upgrade for unlimited, or split the deck in Anki (use a filtered deck or export a subdeck) and run each through the print tool.
-- **Free plan trying to export.** The export returns the upgrade message instead of a PDF. See [pricing](/pricing) for plans, or use a short [Day or Week Pass](/documentation/reference/plans) if you need it once.
+- **Free monthly export used up.** A free account gets 1 PDF export a month. Once it's used, the export returns "Your free PDF for this month has been used." Wait for the reset, or subscribe for unlimited exports.
+- **Not signed in.** Anonymous users can't export. Log in first, then run the export. See [pricing](/pricing) for plans, or use a short [Day or Week Pass](/documentation/reference/plans) if you need it once.
 
 ## Related
 
