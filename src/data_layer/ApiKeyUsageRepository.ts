@@ -8,7 +8,7 @@ export interface ApiKeyUsageMonth {
 export interface IApiKeyUsageRepository {
   getMonth(userId: number, month: Date): Promise<ApiKeyUsageMonth>;
   incrementCards(userId: number, month: Date, cards: number): Promise<number>;
-  markWarned(userId: number, month: Date): Promise<void>;
+  markWarned(userId: number, month: Date): Promise<boolean>;
 }
 
 function toMonthKey(month: Date): string {
@@ -49,11 +49,12 @@ export class ApiKeyUsageRepository implements IApiKeyUsageRepository {
     return Number(rows[0]?.cards ?? cards);
   }
 
-  async markWarned(userId: number, month: Date): Promise<void> {
-    await this.database(this.table)
+  async markWarned(userId: number, month: Date): Promise<boolean> {
+    const updated = await this.database(this.table)
       .where({ user_id: userId, month: toMonthKey(month) })
       .whereNull('warned_at')
       .update({ warned_at: this.database.fn.now() });
+    return updated === 1;
   }
 }
 

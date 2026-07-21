@@ -9,7 +9,7 @@ function makeUsageRepo(cards: number): jest.Mocked<IApiKeyUsageRepository> {
   return {
     getMonth: jest.fn().mockResolvedValue({ cards, warned_at: null }),
     incrementCards: jest.fn(),
-    markWarned: jest.fn(),
+    markWarned: jest.fn().mockResolvedValue(true),
   };
 }
 

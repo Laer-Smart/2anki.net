@@ -184,6 +184,15 @@ function resolveAsyncFailureReason(
       reset_on: err.reset_on,
     });
   }
+  if (err instanceof ApiCardLimitError) {
+    return JSON.stringify({
+      code: 'api_card_limit',
+      cards_used: err.cards_used,
+      limit: err.limit,
+      tier: err.tier_key,
+      reset_on: err.reset_on,
+    });
+  }
   const isParserCrash =
     err instanceof Error &&
     (err as Error & { code?: string }).code === 'PARSER_CRASH';
@@ -248,7 +257,13 @@ class UploadService {
     totalCards: number
   ): Promise<void> {
     const tier = this.apiTierOf(res);
-    if (tier == null || owner == null || this.apiKeyUsageRepository == null) {
+    if (tier == null || owner == null) {
+      return;
+    }
+    if (this.apiKeyUsageRepository == null) {
+      console.error(
+        '[api-tier] api_key_auth request but no usage repository wired — cap not enforced'
+      );
       return;
     }
     await new CheckApiCardLimitUseCase(this.apiKeyUsageRepository).execute({

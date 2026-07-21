@@ -39,7 +39,8 @@ export class RecordApiCardUsageUseCase {
     const month = await this.usage.getMonth(userId, now);
     if (month.warned_at != null) return;
 
-    await this.usage.markWarned(userId, now);
+    const claimed = await this.usage.markWarned(userId, now);
+    if (!claimed) return;
     try {
       await this.warn(email, total, tier.monthly_card_limit, tier.tier_key);
     } catch (error) {

@@ -48,7 +48,10 @@ export class DeveloperTierCheckoutUseCase {
       session_id_hash: hashToken(session.id ?? ''),
     });
 
-    return { url: session.url! };
+    if (session.url == null) {
+      throw new Error('Stripe returned a session without a URL');
+    }
+    return { url: session.url };
   }
 }
 

@@ -26,7 +26,8 @@ const RATE_WINDOW_MS = 60_000;
 const tierLimiters = new Map<string, InMemoryRateLimiter>();
 
 function limiterForTier(tier: ResolvedDeveloperTier): InMemoryRateLimiter {
-  const existing = tierLimiters.get(tier.tier_key);
+  const cacheKey = `${tier.tier_key}:${tier.requests_per_minute}`;
+  const existing = tierLimiters.get(cacheKey);
   if (existing != null) {
     return existing;
   }
@@ -35,8 +36,22 @@ function limiterForTier(tier: ResolvedDeveloperTier): InMemoryRateLimiter {
     perKeyMax: tier.requests_per_minute,
     globalMax: tier.requests_per_minute * 200,
   });
-  tierLimiters.set(tier.tier_key, limiter);
+  tierLimiters.set(cacheKey, limiter);
   return limiter;
+}
+
+const TIER_CACHE_TTL_MS = 60_000;
+const tierCache = new Map<
+  number,
+  { tier: ResolvedDeveloperTier; at: number }
+>();
+
+function cachedTier(userId: number, now: number): ResolvedDeveloperTier | null {
+  const entry = tierCache.get(userId);
+  if (entry == null || now - entry.at > TIER_CACHE_TTL_MS) {
+    return null;
+  }
+  return entry.tier;
 }
 
 export type TierResolver = (input: {
@@ -131,13 +146,21 @@ export function makeRequireApiKey(
           new DeveloperTiersRepository(database)
         ).execute(input));
 
-    const tier = await resolveTier({
-      patreon: user.patreon === true,
-      activeProductIds:
-        user.patreon === true || user.email == null
-          ? []
-          : await getProductIds(user.email),
-    });
+    const nowMs = (deps.now ?? (() => new Date()))().getTime();
+    const useCache = deps.tierResolver == null;
+    let tier = useCache ? cachedTier(active.user_id, nowMs) : null;
+    if (tier == null) {
+      tier = await resolveTier({
+        patreon: user.patreon === true,
+        activeProductIds:
+          user.patreon === true || user.email == null
+            ? []
+            : await getProductIds(user.email),
+      });
+      if (useCache) {
+        tierCache.set(active.user_id, { tier, at: nowMs });
+      }
+    }
 
     const limiter = (deps.rateLimiterForTier ?? limiterForTier)(tier);
     if (!limiter.check(String(active.user_id))) {
@@ -149,9 +172,8 @@ export function makeRequireApiKey(
     res.locals.api_key_auth = true;
     res.locals.developer_tier = tier;
 
-    const at = (deps.now ?? (() => new Date()))().getTime();
-    void apiKeyRepo.touchLastUsed(active.id, new Date(at));
-    recordUsage(active.id, active.user_id, at);
+    void apiKeyRepo.touchLastUsed(active.id, new Date(nowMs));
+    recordUsage(active.id, active.user_id, nowMs);
 
     return next();
   };

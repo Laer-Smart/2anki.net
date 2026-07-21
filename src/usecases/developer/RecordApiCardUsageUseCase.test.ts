@@ -11,7 +11,7 @@ function makeUsageRepo(
       .fn()
       .mockResolvedValue({ cards: totalAfterIncrement, warned_at: warnedAt }),
     incrementCards: jest.fn().mockResolvedValue(totalAfterIncrement),
-    markWarned: jest.fn().mockResolvedValue(undefined),
+    markWarned: jest.fn().mockResolvedValue(true),
   };
 }
 
