@@ -11,6 +11,7 @@ import { usePricingOrderVariant } from '../../lib/hooks/usePricingOrderVariant';
 import { ComparisonTable } from './components/ComparisonTable';
 import { FeatureGrid } from './components/FeatureGrid';
 import { PassCards } from './components/PassCards';
+import { DevelopersSection } from './components/DevelopersSection';
 import { PricingCard } from './components/PricingCard';
 import { PricingFaq } from './components/PricingFaq';
 import { UnlimitedCard } from './components/UnlimitedCard';
@@ -313,6 +314,8 @@ export default function PricingPage({
       </div>
 
       <p className={styles.pricesNote}>{t('pricing.pricesNote')}</p>
+
+      <DevelopersSection />
 
       <ul className={styles.reassurance}>
         <li>{t('pricing.reassuranceCancel')}</li>
