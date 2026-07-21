@@ -16,6 +16,7 @@ export interface StoredMcpClient {
 export interface IMcpOAuthClientRepository {
   create(client: StoredMcpClient): Promise<StoredMcpClient>;
   findById(clientId: string): Promise<StoredMcpClient | null>;
+  deleteOrphaned(issuedBeforeUnixSeconds: number): Promise<number>;
 }
 
 function toStored(row: McpOauthClients): StoredMcpClient {
@@ -59,5 +60,37 @@ export class McpOAuthClientRepository implements IMcpOAuthClientRepository {
       .where({ client_id: clientId })
       .first()) as McpOauthClients | undefined;
     return row == null ? null : toStored(row);
+  }
+
+  buildDeleteOrphanedQuery(issuedBeforeUnixSeconds: number): Knex.QueryBuilder {
+    return this.database(this.table)
+      .where('client_id_issued_at', '<', issuedBeforeUnixSeconds)
+      .whereNotExists((qb) =>
+        qb
+          .select(1)
+          .from('mcp_authorization_codes')
+          .whereRaw(
+            'mcp_authorization_codes.client_id = mcp_oauth_clients.client_id'
+          )
+      )
+      .whereNotExists((qb) =>
+        qb
+          .select(1)
+          .from('mcp_access_tokens')
+          .whereRaw('mcp_access_tokens.client_id = mcp_oauth_clients.client_id')
+      )
+      .whereNotExists((qb) =>
+        qb
+          .select(1)
+          .from('mcp_refresh_tokens')
+          .whereRaw(
+            'mcp_refresh_tokens.client_id = mcp_oauth_clients.client_id'
+          )
+      )
+      .del();
+  }
+
+  async deleteOrphaned(issuedBeforeUnixSeconds: number): Promise<number> {
+    return this.buildDeleteOrphanedQuery(issuedBeforeUnixSeconds);
   }
 }

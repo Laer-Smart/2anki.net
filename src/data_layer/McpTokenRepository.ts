@@ -29,6 +29,8 @@ export interface IMcpTokenRepository {
   revokeAccessTokenByHash(tokenHash: string): Promise<void>;
   revokeRefreshTokenByHash(tokenHash: string): Promise<void>;
   revokeAllForUserClient(userId: number, clientId: string): Promise<void>;
+  deleteExpiredAccessTokens(now: Date): Promise<number>;
+  deleteExpiredRefreshTokens(now: Date): Promise<number>;
 }
 
 function toStored(row: McpAccessTokens | McpRefreshTokens): StoredToken {
@@ -109,5 +111,21 @@ export class McpTokenRepository implements IMcpTokenRepository {
       .where({ user_id: userId, client_id: clientId })
       .whereNull('revoked_at')
       .update({ revoked_at: now });
+  }
+
+  buildDeleteExpiredAccessTokensQuery(now: Date): Knex.QueryBuilder {
+    return this.database(this.accessTable).where('expires_at', '<', now).del();
+  }
+
+  buildDeleteExpiredRefreshTokensQuery(now: Date): Knex.QueryBuilder {
+    return this.database(this.refreshTable).where('expires_at', '<', now).del();
+  }
+
+  async deleteExpiredAccessTokens(now: Date): Promise<number> {
+    return this.buildDeleteExpiredAccessTokensQuery(now);
+  }
+
+  async deleteExpiredRefreshTokens(now: Date): Promise<number> {
+    return this.buildDeleteExpiredRefreshTokensQuery(now);
   }
 }

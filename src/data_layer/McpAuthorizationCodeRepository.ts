@@ -28,6 +28,7 @@ export interface IMcpAuthorizationCodeRepository {
   create(input: CreateAuthorizationCodeInput): Promise<void>;
   findByHash(codeHash: string): Promise<StoredAuthorizationCode | null>;
   consume(id: number, now: Date): Promise<boolean>;
+  deleteExpired(now: Date): Promise<number>;
 }
 
 function toStored(row: McpAuthorizationCodes): StoredAuthorizationCode {
@@ -75,5 +76,13 @@ export class McpAuthorizationCodeRepository implements IMcpAuthorizationCodeRepo
       .whereNull('consumed_at')
       .update({ consumed_at: now });
     return updated === 1;
+  }
+
+  buildDeleteExpiredQuery(now: Date): Knex.QueryBuilder {
+    return this.database(this.table).where('expires_at', '<', now).del();
+  }
+
+  async deleteExpired(now: Date): Promise<number> {
+    return this.buildDeleteExpiredQuery(now);
   }
 }

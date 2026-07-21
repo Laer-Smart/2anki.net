@@ -35,6 +35,16 @@ class FakeClientRepo implements IMcpOAuthClientRepository {
   async findById(clientId: string): Promise<StoredMcpClient | null> {
     return this.clients.get(clientId) ?? null;
   }
+  async deleteOrphaned(issuedBeforeUnixSeconds: number): Promise<number> {
+    let deleted = 0;
+    for (const [id, client] of this.clients) {
+      if (client.client_id_issued_at < issuedBeforeUnixSeconds) {
+        this.clients.delete(id);
+        deleted++;
+      }
+    }
+    return deleted;
+  }
 }
 
 class FakeCodeRepo implements IMcpAuthorizationCodeRepository {
@@ -73,6 +83,17 @@ class FakeCodeRepo implements IMcpAuthorizationCodeRepository {
     }
     return false;
   }
+  async deleteExpired(now: Date): Promise<number> {
+    let deleted = 0;
+    for (const [hash, row] of this.byHash) {
+      if (row.expires_at < now) {
+        this.byHash.delete(hash);
+        this.rows = this.rows.filter((r) => r.id !== row.id);
+        deleted++;
+      }
+    }
+    return deleted;
+  }
 }
 
 class FakeTokenRepo implements IMcpTokenRepository {
@@ -108,6 +129,25 @@ class FakeTokenRepo implements IMcpTokenRepository {
     if (t) t.revoked_at = new Date();
   }
   async revokeAllForUserClient(): Promise<void> {}
+  async deleteExpiredAccessTokens(now: Date): Promise<number> {
+    return this.deleteExpiredFrom(this.access, now);
+  }
+  async deleteExpiredRefreshTokens(now: Date): Promise<number> {
+    return this.deleteExpiredFrom(this.refresh, now);
+  }
+  private deleteExpiredFrom(
+    store: Map<string, StoredToken>,
+    now: Date
+  ): number {
+    let deleted = 0;
+    for (const [hash, token] of store) {
+      if (token.expires_at < now) {
+        store.delete(hash);
+        deleted++;
+      }
+    }
+    return deleted;
+  }
 }
 
 function fakeResponse(
