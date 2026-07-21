@@ -5,7 +5,7 @@ description: Connect the 2anki MCP server and build Anki decks straight from a c
 
 2anki runs as an MCP connector, so an AI assistant can build your Anki decks for you. Paste lecture notes into a conversation, ask for flashcards, and get a download link for a ready `.apkg` — without leaving the chat.
 
-**Connector access is in limited beta.** Sign in at [2anki.net](https://2anki.net/), open **Developers** in the sidebar, and click **Request access**. You'll get an email when your account is enabled. Lifetime accounts have access already.
+**Connector access is in limited beta.** Sign in at [2anki.net](https://2anki.net/), open **Developers** in the sidebar, and click **Request connector access**. We'll be in touch by email once it's enabled. Lifetime accounts have access already.
 
 ## Connect to Claude
 

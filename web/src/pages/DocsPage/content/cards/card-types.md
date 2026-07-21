@@ -5,7 +5,7 @@ description: The four card shapes 2anki makes, and when each fires.
 
 2anki produces four card shapes. Which one you get depends on what's in your source — bold text becomes a typed answer, code becomes a cloze, a checked option in a toggle becomes an MCQ, and everything else stays as a basic front/back card.
 
-**Plan:** Free (all three card types work on every plan)
+**Plan:** Free (all four card types work on every plan)
 
 ## Basic
 

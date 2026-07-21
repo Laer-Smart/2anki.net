@@ -5,7 +5,7 @@ description: Build a tree in your browser and download it as an Anki deck.
 
 The mind map editor at [2anki.net/mindmaps](https://2anki.net/mindmaps) lets you sketch a hierarchy in your browser — topics, sub-topics, nested concepts — and export it as a `.apkg` deck. The export modal lets you choose a card type before downloading.
 
-**Plan:** Free accounts can have 3 saved maps and 50 nodes per map. Auto-Sync ($30/mo) and Patreon lifetime give unlimited maps and nodes.
+**Plan:** Free accounts can have 3 saved maps and 50 nodes per map. Subscribers get 25 maps and 250 nodes per map. Lifetime and Auto Sync give unlimited maps and nodes.
 
 ## Build a deck
 
@@ -66,10 +66,15 @@ Nodes with no edges (isolated nodes) produce no cards in either mode.
 
 The entire tree becomes a single card. The back of the card displays an interactive, collapsible mind map rendered directly in Anki — no internet connection required. Pan and zoom to explore the tree while studying.
 
-## Free-tier limits
+## Tiers
 
-- **3 saved maps.** Deleting a map frees a slot immediately; there is no monthly window.
-- **50 nodes per map.** The editor shows a toast when you reach the cap. Paid accounts have no node limit.
+| Plan                 | Saved maps | Nodes per map |
+| -------------------- | ---------- | ------------- |
+| Free account         | 3          | 50            |
+| Subscription         | 25         | 250           |
+| Lifetime / Auto Sync | Unlimited  | Unlimited     |
+
+Deleting a map frees a slot immediately; there is no monthly window. The editor shows a toast when you reach a cap.
 
 ## Images in nodes
 

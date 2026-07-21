@@ -39,11 +39,11 @@ Der gleiche Rat, der für [KI-Karteikarten](/documentation/cards/ai-flashcards) 
 
 ## Unterhaltungsgrenzen
 
-|                       | Free          | Subscription    | Lifetime        |
-| --------------------- | ------------- | --------------- | --------------- |
-| Nachrichten pro Monat | 20            | Unbegrenzt      | Unbegrenzt      |
-| Nachrichtenlänge      | 4 000 Zeichen | 100 000 Zeichen | 100 000 Zeichen |
-| Modell                | Claude Haiku  | Claude Sonnet   | Claude Sonnet   |
+|                       | Free            | Subscription    | Lifetime        |
+| --------------------- | --------------- | --------------- | --------------- |
+| Nachrichten pro Monat | 20              | Unbegrenzt      | Unbegrenzt      |
+| Nachrichtenlänge      | 100 000 Zeichen | 100 000 Zeichen | 100 000 Zeichen |
+| Modell                | Claude Haiku    | Claude Sonnet   | Claude Sonnet   |
 
 Die Zählung setzt sich am Ersten des Folgemonats zurück. Das genaue Rücksetzdatum erscheint, wenn du das Limit erreichst. Siehe [Grenzen und Kontingente](/documentation/help/limits) für die vollständige Plantabelle.
 
@@ -57,7 +57,7 @@ Lösche eine Unterhaltung jederzeit über das Papierkorb-Symbol in der Seitenlei
 
 ## Häufige Fehler
 
-- **Mehr als das Nachrichtenlimit einfügen.** 4 000 Zeichen im kostenlosen Plan sind grob zwei Seiten. Teile eine lange Quelle über mehrere Nachrichten, oder mach ein Upgrade.
+- **Mehr als das Nachrichtenlimit einfügen.** Jede Nachricht ist auf 100 000 Zeichen begrenzt. Teile eine längere Quelle über mehrere Nachrichten auf.
 - **Erwarten, dass Chat hochgeladene Dateien liest.** Chat liest Text. Um ein PDF oder einen Notion-Export zu konvertieren, nutze stattdessen die [Upload-Seite](/documentation/start-here/upload-a-file) — dieser Weg ist für Dateien gebaut. Chat kann dir helfen, einen festgefahrenen Upload zu debuggen, aber er verarbeitet die Datei nicht selbst.
 - **Chat als einzigen Weg behandeln.** Für Quellen, die schon Struktur haben, ist der Standard-Parser schneller, deterministisch und kostenlos.
 
