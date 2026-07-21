@@ -430,6 +430,24 @@ describe('McpToolsService.convertToDeck', () => {
     expect(persist).not.toHaveBeenCalled();
   });
 
+  it('returns the paywall message when the upload redirects to the card limit', async () => {
+    const uploadEntry: UploadEntrypoint = (_req, res) => {
+      res.redirect('/limit?kind=card_count');
+    };
+    const { service, persist } = makeService({ uploadEntry });
+    const result = await service.convertToDeck({ text: 'x' }, 'owner', {});
+    expect(result).toEqual({
+      kind: 'error',
+      code: 'monthly_limit',
+      message:
+        "You've reached your free limit of 100 cards this month, so this deck wasn't created. Upgrade to Unlimited to keep converting, or wait for your limit to reset next month. Upgrade: https://2anki.net/pricing?from=mcp",
+    });
+    expect((result as { message: string }).message).toContain(
+      'https://2anki.net/pricing?from=mcp'
+    );
+    expect(persist).not.toHaveBeenCalled();
+  });
+
   it('surfaces the upload error message on a 400', async () => {
     const uploadEntry: UploadEntrypoint = (_req, res) => {
       res.status(400).json({ message: 'This file type is not supported.' });
@@ -1035,8 +1053,13 @@ describe('McpToolsService.createDeck with subdecks', () => {
     );
     expect(result).toEqual({
       kind: 'error',
-      message: 'Could not convert this input.',
+      code: 'monthly_limit',
+      message:
+        "You've reached your free limit of 100 cards this month, so this deck wasn't created. Upgrade to Unlimited to keep converting, or wait for your limit to reset next month. Upgrade: https://2anki.net/pricing?from=mcp",
     });
+    expect((result as { message: string }).message).toContain(
+      'https://2anki.net/pricing?from=mcp'
+    );
     expect(persist).not.toHaveBeenCalled();
     expect(incrementCardUsage).not.toHaveBeenCalled();
   });
