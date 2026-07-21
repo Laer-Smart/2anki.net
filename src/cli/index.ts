@@ -6,7 +6,7 @@ import { convert } from './commands/convert';
 import { info, ui } from './ui';
 
 const HELP = `${ui.bold('2anki')} — turn your notes into Anki decks
-${ui.dim('Under development · invite-only. Request access at https://2anki.net/developers')}
+${ui.dim('Create an API key at https://2anki.net/developers — free keys convert 100 cards/month')}
 
 ${ui.bold('Usage')}
   2anki <command> [options]

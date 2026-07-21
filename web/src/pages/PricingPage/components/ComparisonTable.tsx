@@ -69,7 +69,7 @@ export function ComparisonTable({
         },
         {
           label: t('rows.ankiNotionNotes'),
-          values: ['1,000', '5,000', '5,000', '5,000'],
+          values: ['1,000', '10,000', '10,000', '10,000'],
         },
       ],
     },
@@ -103,7 +103,7 @@ export function ComparisonTable({
         },
         {
           label: t('rows.mindMaps'),
-          values: ['3', unlimited, unlimited, unlimited],
+          values: ['3', '25', '25', unlimited],
         },
         {
           label: t('rows.printsToPdf'),

@@ -186,7 +186,7 @@ export class KnexOAuthProvider implements OAuthServerProvider {
     }
     return {
       id: Number(user.id),
-      developerAccess: user.developer_access === true,
+      developerAccess: user.developer_access === true || user.patreon === true,
       sessionToken: token,
     };
   }
