@@ -94,6 +94,10 @@ import { EventsRepository } from './data_layer/EventsRepository';
 import { scheduleParserCanary } from './lib/parser/canary/scheduleParserCanary';
 import { scheduleExportDriftCanary } from './lib/parser/canary/scheduleExportDriftCanary';
 import { scheduleObservabilityCleanup } from './lib/observability/jobs/scheduleObservabilityCleanup';
+import { scheduleMcpOAuthReaper } from './lib/mcp/jobs/scheduleMcpOAuthReaper';
+import { McpAuthorizationCodeRepository } from './data_layer/McpAuthorizationCodeRepository';
+import { McpTokenRepository } from './data_layer/McpTokenRepository';
+import { McpOAuthClientRepository } from './data_layer/McpOAuthClientRepository';
 import { ObservabilityRepository } from './data_layer/ObservabilityRepository';
 import { getDefaultEmailService } from './services/EmailService/EmailService';
 import { SendInactivityWarningsUseCase } from './usecases/ops/SendInactivityWarningsUseCase';
@@ -337,6 +341,12 @@ const serve = async () => {
   scheduleExportDriftCanary(emailService);
 
   scheduleObservabilityCleanup(new ObservabilityRepository(database));
+
+  scheduleMcpOAuthReaper({
+    authorizationCodes: new McpAuthorizationCodeRepository(database),
+    tokens: new McpTokenRepository(database),
+    clients: new McpOAuthClientRepository(database),
+  });
 
   try {
     ScheduleCleanup(database);
