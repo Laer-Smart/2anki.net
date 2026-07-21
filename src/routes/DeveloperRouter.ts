@@ -20,14 +20,55 @@ const DeveloperRouter = () => {
     new RequestDeveloperAccessUseCase(getDefaultEmailService())
   );
 
+  /**
+   * @swagger
+   * /api/developer/keys:
+   *   get:
+   *     summary: List the caller's API keys
+   *     description: Self-service — any signed-in account. Returns key names, prefixes, and last-used timestamps; never the secret.
+   *     tags: [Developer]
+   *     responses:
+   *       200:
+   *         description: The caller's keys
+   *       401:
+   *         description: Not signed in
+   */
   router.get('/api/developer/keys', RequireAuthentication, (req, res) =>
     controller.list(req, res)
   );
 
+  /**
+   * @swagger
+   * /api/developer/keys:
+   *   post:
+   *     summary: Create an API key
+   *     description: Self-service — any signed-in account. The secret is returned once and stored only as a hash. Keys start on the free Sandbox tier.
+   *     tags: [Developer]
+   *     responses:
+   *       201:
+   *         description: The new key, including the one-time secret
+   *       400:
+   *         description: Invalid key name
+   *       401:
+   *         description: Not signed in
+   */
   router.post('/api/developer/keys', RequireAuthentication, (req, res) =>
     controller.create(req, res)
   );
 
+  /**
+   * @swagger
+   * /api/developer/keys/{id}:
+   *   delete:
+   *     summary: Revoke an API key
+   *     description: Revocation is immediate — anything using the key stops working.
+   *     tags: [Developer]
+   *     responses:
+   *       204:
+   *         description: Key revoked
+   *       401:
+   *         description: Not signed in
+   */
   router.delete('/api/developer/keys/:id', RequireAuthentication, (req, res) =>
     controller.revoke(req, res)
   );
