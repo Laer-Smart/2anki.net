@@ -291,4 +291,17 @@ describe('EmailService support notifications cc the owner', () => {
     expect(msg.to).toBe('support@2anki.net');
     expect(msg.cc).toBe('alexander@alemayhu.com');
   });
+
+  it('ccs the owner on parser canary alerts', async () => {
+    const service = getDefaultEmailService();
+
+    await service.sendParserCanaryAlert(
+      'support@2anki.net',
+      'fixture count mismatch'
+    );
+
+    const msg = lastMessage();
+    expect(msg.to).toBe('support@2anki.net');
+    expect(msg.cc).toBe('alexander@alemayhu.com');
+  });
 });

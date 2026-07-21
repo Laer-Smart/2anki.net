@@ -755,6 +755,7 @@ export class EmailService implements IEmailService {
   async sendParserCanaryAlert(to: string, summary: string): Promise<void> {
     const msg = {
       to,
+      cc: SUPPORT_CC_ADDRESS,
       from: this.defaultSender,
       subject: '[2anki] Parser canary failure — fixture count mismatch',
       text: summary,
