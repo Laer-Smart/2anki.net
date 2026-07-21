@@ -401,7 +401,7 @@ describe('PricingPage internal event tracking', () => {
 
     renderAt('/pricing', { isLoggedIn: true });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Get Unlimited — billed yearly' })
+      screen.getByRole('button', { name: 'Get Unlimited — billed monthly' })
     );
 
     await waitFor(() => {
@@ -497,7 +497,7 @@ describe('PricingPage anonymous upgrade-click tracking', () => {
 
     renderAt('/pricing', { isLoggedIn: false });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Get Unlimited — billed yearly' })
+      screen.getByRole('button', { name: 'Get Unlimited — billed monthly' })
     );
 
     expect(trackMock).toHaveBeenCalledWith('paywall_upgrade_clicked', {
@@ -599,30 +599,28 @@ describe('PricingPage Unlimited billing toggle', () => {
     ).toBeInTheDocument();
   });
 
-  it('selects Yearly by default with the annual per-month hero price', () => {
+  it('selects Monthly by default with the monthly hero price', () => {
     renderAt('/pricing');
+    expect(screen.getByRole('radio', { name: 'Monthly' })).toHaveAttribute(
+      'aria-checked',
+      'true'
+    );
+    expect(screen.getByText('$7.99')).toBeInTheDocument();
     expect(
-      screen.getByRole('radio', { name: 'Yearly · save 33%' })
-    ).toHaveAttribute('aria-checked', 'true');
+      screen.getByText('$7.99 billed today, then monthly')
+    ).toBeInTheDocument();
+  });
+
+  it('switches the hero to the annual price and terms after selecting Yearly', () => {
+    renderAt('/pricing');
+    fireEvent.click(screen.getByRole('radio', { name: 'Yearly · save 33%' }));
     expect(screen.getByText('$5.33')).toBeInTheDocument();
     expect(
       screen.getByText('$64 billed today, then yearly · save 33%')
     ).toBeInTheDocument();
   });
 
-  it('switches the hero to the monthly price and terms after selecting Monthly', () => {
-    renderAt('/pricing');
-    fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }));
-    expect(screen.getByText('$7.99')).toBeInTheDocument();
-    expect(
-      screen.getByText('$7.99 billed today, then monthly')
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText('$7.99 billed today, renews monthly. Cancel anytime.')
-    ).toBeInTheDocument();
-  });
-
-  it('calls startUnlimitedCheckout with month when Monthly is selected', async () => {
+  it('calls startUnlimitedCheckout with month by default', async () => {
     mockStartUnlimitedCheckout.mockResolvedValue({
       url: 'https://checkout.stripe.com/month',
     });
@@ -632,7 +630,6 @@ describe('PricingPage Unlimited billing toggle', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true });
-    fireEvent.click(screen.getByRole('radio', { name: 'Monthly' }));
     fireEvent.click(
       screen.getByRole('button', { name: 'Get Unlimited — billed monthly' })
     );
@@ -646,7 +643,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     });
   });
 
-  it('calls startUnlimitedCheckout with year by default', async () => {
+  it('calls startUnlimitedCheckout with year when Yearly is selected', async () => {
     mockStartUnlimitedCheckout.mockResolvedValue({
       url: 'https://checkout.stripe.com/year',
     });
@@ -656,6 +653,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     });
 
     renderAt('/pricing', { isLoggedIn: true });
+    fireEvent.click(screen.getByRole('radio', { name: 'Yearly · save 33%' }));
     fireEvent.click(
       screen.getByRole('button', { name: 'Get Unlimited — billed yearly' })
     );
@@ -676,7 +674,7 @@ describe('PricingPage Unlimited billing toggle', () => {
     });
     renderAt('/pricing', { isLoggedIn: false });
     fireEvent.click(
-      screen.getByRole('button', { name: 'Get Unlimited — billed yearly' })
+      screen.getByRole('button', { name: 'Get Unlimited — billed monthly' })
     );
     expect(globalThis.location.href).toBe('/login?redirect=/pricing');
   });

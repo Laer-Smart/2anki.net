@@ -42,7 +42,7 @@ export default function PricingPage({
   const lifetimeLink = getLifetimeLink();
   const [dayPassState, setDayPassState] = useState<PassState>('idle');
   const [weekPassState, setWeekPassState] = useState<PassState>('idle');
-  const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('year');
+  const [billingCycle, setBillingCycle] = useState<'month' | 'year'>('month');
   const [producerModalOpen, setProducerModalOpen] = useState(false);
   const educatorsRef = useInViewOnce<HTMLElement>(() =>
     track('producer_entry_viewed', { source: 'pricing_page' })
