@@ -125,6 +125,7 @@ const ANSWERS_SLUGS = new Set<string>([
   'kindle-highlights-to-anki',
   'language-app-to-anki',
   'obsidian-to-anki',
+  'claude-to-anki',
 ]);
 
 const PARAM_PREFIXES = [
