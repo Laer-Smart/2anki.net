@@ -25,7 +25,7 @@ import {
 import { isValidDeckName, addDeckNameSuffix } from '../../lib/anki/format';
 import { escapeHtml } from '../../lib/notion-render/escape';
 import { ClientResponse } from '@sendgrid/mail';
-import { SUPPORT_EMAIL_ADDRESS } from '../../lib/constants';
+import { SUPPORT_CC_ADDRESS, SUPPORT_EMAIL_ADDRESS } from '../../lib/constants';
 import { emailHash } from '../../lib/emailHash';
 import { getDatabase } from '../../data_layer';
 import { sendWithRetry } from './sendWithRetry';
@@ -323,6 +323,7 @@ export class EmailService implements IEmailService {
   ): Promise<EmailResponse> {
     const msg = {
       to: SUPPORT_EMAIL_ADDRESS,
+      cc: SUPPORT_CC_ADDRESS,
       from: DEFAULT_SENDER,
       replyTo: email,
       subject: `Contact form submission on behalf of ${
@@ -351,6 +352,7 @@ export class EmailService implements IEmailService {
   ): Promise<EmailResponse> {
     const msg = {
       to: SUPPORT_EMAIL_ADDRESS,
+      cc: SUPPORT_CC_ADDRESS,
       from: DEFAULT_SENDER,
       subject: 'Auto Sync access request',
       text: `User ${userId} <${userEmail}> requested access to Auto Sync.`,
@@ -372,6 +374,7 @@ export class EmailService implements IEmailService {
   ): Promise<EmailResponse> {
     const msg = {
       to: SUPPORT_EMAIL_ADDRESS,
+      cc: SUPPORT_CC_ADDRESS,
       from: DEFAULT_SENDER,
       subject: 'Developer API access request',
       text: `User ${userId} <${userEmail}> (${payingStatus}) requested access to the Developers API.`,

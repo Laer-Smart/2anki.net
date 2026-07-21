@@ -48,3 +48,4 @@ export const CREATE_DECK_SCRIPT_PATH = path.join(
 );
 
 export const SUPPORT_EMAIL_ADDRESS = 'support@2anki.net';
+export const SUPPORT_CC_ADDRESS = 'alexander@alemayhu.com';

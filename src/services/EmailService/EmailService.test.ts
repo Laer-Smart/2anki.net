@@ -250,3 +250,60 @@ describe('EmailService conversion emails name the deck and count', () => {
     expect(msg.html).toContain('12 450 cards');
   });
 });
+
+describe('EmailService support notifications cc the owner', () => {
+  const originalEnv = { ...process.env };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env.SENDGRID_API_KEY = 'test-key';
+  });
+
+  afterEach(() => {
+    process.env = { ...originalEnv };
+  });
+
+  function lastMessage() {
+    const calls = send.mock.calls;
+    return calls[calls.length - 1][0] as {
+      to: string;
+      cc?: string;
+      replyTo?: string;
+    };
+  }
+
+  it('ccs the owner on developer access requests', async () => {
+    const service = getDefaultEmailService();
+
+    await service.sendDeveloperAccessRequestEmail(
+      '21770',
+      'user@example.com',
+      'free'
+    );
+
+    const msg = lastMessage();
+    expect(msg.to).toBe('support@2anki.net');
+    expect(msg.cc).toBe('alexander@alemayhu.com');
+    expect(msg.replyTo).toBe('user@example.com');
+  });
+
+  it('ccs the owner on Auto Sync access requests', async () => {
+    const service = getDefaultEmailService();
+
+    await service.sendHostedAnkiAccessRequestEmail('21770', 'user@example.com');
+
+    const msg = lastMessage();
+    expect(msg.to).toBe('support@2anki.net');
+    expect(msg.cc).toBe('alexander@alemayhu.com');
+  });
+
+  it('ccs the owner on contact form submissions', async () => {
+    const service = getDefaultEmailService();
+
+    await service.sendContactEmail('Ada', 'user@example.com', 'Hello', []);
+
+    const msg = lastMessage();
+    expect(msg.to).toBe('support@2anki.net');
+    expect(msg.cc).toBe('alexander@alemayhu.com');
+  });
+});
