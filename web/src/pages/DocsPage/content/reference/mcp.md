@@ -7,7 +7,7 @@ description: The hosted 2anki MCP server — tools, limits, and how it authentic
 
 **Server URL:** `https://2anki.net/mcp`
 
-For step-by-step connection instructions for Claude and ChatGPT, see [Use 2anki inside Claude or ChatGPT](/documentation/start-here/use-in-claude). Connector access is in a limited beta — click **Request connector access** on the MCP card on the [Developers page](/developers). Lifetime accounts have connector access included.
+For step-by-step connection instructions for Claude and ChatGPT, see [Use 2anki inside Claude or ChatGPT](/documentation/start-here/use-in-claude). The connector is open to every signed-in account — no request needed.
 
 ## Tools
 

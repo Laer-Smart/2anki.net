@@ -172,7 +172,6 @@ export class KnexOAuthProvider implements OAuthServerProvider {
 
   private async resolveLoggedInUser(res: Response): Promise<{
     id: number;
-    developerAccess: boolean;
     sessionToken: string;
   } | null> {
     const cookies = res.req?.cookies as Record<string, unknown> | undefined;
@@ -186,7 +185,6 @@ export class KnexOAuthProvider implements OAuthServerProvider {
     }
     return {
       id: Number(user.id),
-      developerAccess: user.developer_access === true || user.patreon === true,
       sessionToken: token,
     };
   }
@@ -230,15 +228,6 @@ export class KnexOAuthProvider implements OAuthServerProvider {
     const user = await this.resolveLoggedInUser(res);
     if (user == null) {
       this.redirectToLogin(res);
-      return;
-    }
-    if (!user.developerAccess) {
-      this.redirectWithError(
-        params,
-        'access_denied',
-        'MCP access is in limited beta.',
-        res
-      );
       return;
     }
 

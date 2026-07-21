@@ -69,9 +69,8 @@ export function DevelopersSection() {
         For developers
       </h2>
       <p className={styles.sectionIntro}>
-        Convert through the API, the CLI, or the MCP connector (limited beta) on
-        your own key. Volume is metered on cards generated, separate from
-        personal plans.
+        Convert through the API, the CLI, or the MCP connector on your own key.
+        Volume is metered on cards generated, separate from personal plans.
       </p>
       <div className={styles.grid}>
         {TIERS.map((tier) => (

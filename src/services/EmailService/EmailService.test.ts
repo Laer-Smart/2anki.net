@@ -272,21 +272,6 @@ describe('EmailService support notifications cc the owner', () => {
     };
   }
 
-  it('ccs the owner on developer access requests', async () => {
-    const service = getDefaultEmailService();
-
-    await service.sendDeveloperAccessRequestEmail(
-      '21770',
-      'user@example.com',
-      'free'
-    );
-
-    const msg = lastMessage();
-    expect(msg.to).toBe('support@2anki.net');
-    expect(msg.cc).toBe('alexander@alemayhu.com');
-    expect(msg.replyTo).toBe('user@example.com');
-  });
-
   it('ccs the owner on Auto Sync access requests', async () => {
     const service = getDefaultEmailService();
 

@@ -77,11 +77,6 @@ export interface IEmailService {
     userId: string,
     userEmail: string
   ): Promise<EmailResponse>;
-  sendDeveloperAccessRequestEmail(
-    userId: string,
-    userEmail: string,
-    payingStatus: string
-  ): Promise<EmailResponse>;
   sendApiUsageWarningEmail(
     email: string,
     cardsUsed: number,
@@ -370,28 +365,6 @@ export class EmailService implements IEmailService {
       return { didSend: true };
     } catch (e) {
       console.error('Error sending Auto Sync access request email', e);
-      return { didSend: false, error: e as Error };
-    }
-  }
-
-  async sendDeveloperAccessRequestEmail(
-    userId: string,
-    userEmail: string,
-    payingStatus: string
-  ): Promise<EmailResponse> {
-    const msg = {
-      to: SUPPORT_EMAIL_ADDRESS,
-      cc: SUPPORT_CC_ADDRESS,
-      from: DEFAULT_SENDER,
-      subject: 'Developer API access request',
-      text: `User ${userId} <${userEmail}> (${payingStatus}) requested access to the Developers API.`,
-      replyTo: userEmail,
-    };
-    try {
-      await sgMail.send(msg);
-      return { didSend: true };
-    } catch (e) {
-      console.error('Error sending developer access request email', e);
       return { didSend: false, error: e as Error };
     }
   }
@@ -1016,20 +989,6 @@ export class UnimplementedEmailService implements IEmailService {
       'sendHostedAnkiAccessRequestEmail not handled',
       userId,
       userEmail
-    );
-    return Promise.resolve({ didSend: false });
-  }
-
-  sendDeveloperAccessRequestEmail(
-    userId: string,
-    userEmail: string,
-    payingStatus: string
-  ): Promise<EmailResponse> {
-    console.info(
-      'sendDeveloperAccessRequestEmail not handled',
-      userId,
-      userEmail,
-      payingStatus
     );
     return Promise.resolve({ didSend: false });
   }

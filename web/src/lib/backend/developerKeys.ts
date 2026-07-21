@@ -56,10 +56,3 @@ export async function createApiKey(name: string): Promise<CreatedApiKey> {
 export async function revokeApiKey(id: number): Promise<void> {
   await request(`/keys/${id}`, { method: 'DELETE' });
 }
-
-export async function requestDeveloperAccess(): Promise<void> {
-  await request('/request-access', {
-    method: 'POST',
-    body: JSON.stringify({}),
-  });
-}

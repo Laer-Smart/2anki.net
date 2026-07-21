@@ -21,7 +21,6 @@ function makeEmailService(
     sendSubscriptionCancelledEmail: jest.fn(),
     sendSubscriptionScheduledCancellationEmail: jest.fn(),
     sendHostedAnkiAccessRequestEmail: jest.fn(),
-    sendDeveloperAccessRequestEmail: jest.fn(),
     sendMagicLinkEmail: jest.fn(),
     sendReEngagementEmail: jest.fn(),
     sendInactivityWarningEmail: jest.fn(),

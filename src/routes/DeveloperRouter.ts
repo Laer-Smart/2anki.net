@@ -1,11 +1,9 @@
 import express from 'express';
 import { getDatabase } from '../data_layer';
 import ApiKeyRepository from '../data_layer/ApiKeyRepository';
-import { getDefaultEmailService } from '../services/EmailService/EmailService';
 import CreateApiKeyUseCase from '../usecases/developer/CreateApiKeyUseCase';
 import ListApiKeysUseCase from '../usecases/developer/ListApiKeysUseCase';
 import RevokeApiKeyUseCase from '../usecases/developer/RevokeApiKeyUseCase';
-import RequestDeveloperAccessUseCase from '../usecases/developer/RequestDeveloperAccessUseCase';
 import DeveloperController from '../controllers/DeveloperController';
 import RequireAuthentication from './middleware/RequireAuthentication';
 
@@ -16,8 +14,7 @@ const DeveloperRouter = () => {
   const controller = new DeveloperController(
     new CreateApiKeyUseCase(repo),
     new ListApiKeysUseCase(repo),
-    new RevokeApiKeyUseCase(repo),
-    new RequestDeveloperAccessUseCase(getDefaultEmailService())
+    new RevokeApiKeyUseCase(repo)
   );
 
   /**
@@ -71,12 +68,6 @@ const DeveloperRouter = () => {
    */
   router.delete('/api/developer/keys/:id', RequireAuthentication, (req, res) =>
     controller.revoke(req, res)
-  );
-
-  router.post(
-    '/api/developer/request-access',
-    RequireAuthentication,
-    (req, res) => controller.requestAccessForUser(req, res)
   );
 
   return router;

@@ -7,7 +7,6 @@ import {
   createApiKey,
   listApiKeys,
   revokeApiKey,
-  requestDeveloperAccess,
 } from '../../lib/backend/developerKeys';
 import sharedStyles from '../../styles/shared.module.css';
 import styles from './DevelopersPage.module.css';
@@ -147,55 +146,14 @@ function GetStarted() {
   );
 }
 
-function McpRequestAccess() {
-  const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>(
-    'idle'
-  );
-  const [message, setMessage] = useState('');
-
-  const request = async () => {
-    setStatus('sending');
-    try {
-      await requestDeveloperAccess();
-      setStatus('sent');
-    } catch (error) {
-      setStatus('error');
-      setMessage(error instanceof Error ? error.message : 'Something broke.');
-    }
-  };
-
-  if (status === 'sent') {
-    return (
-      <p className={styles.noticeSuccess}>
-        Request sent. We&rsquo;ll be in touch by email.
-      </p>
-    );
-  }
-  return (
-    <>
-      <button
-        type="button"
-        className={sharedStyles.btnSecondary}
-        onClick={request}
-        disabled={status === 'sending'}
-      >
-        {status === 'sending' ? 'Sending' : 'Request connector access'}
-      </button>
-      {status === 'error' && <p className={styles.noticeDanger}>{message}</p>}
-    </>
-  );
-}
-
-function McpCard({
-  showRequestAccess,
-}: Readonly<{ showRequestAccess: boolean }>) {
+function McpCard() {
   return (
     <section className={sharedStyles.sectionCard}>
       <h2 className={styles.cardTitle}>Use 2anki in Claude or ChatGPT</h2>
       <p className={styles.body}>
         Add 2anki as a connector and build decks straight from a conversation.
-        The connector is in a limited beta; access is enabled per account by
-        email.
+        Free accounts keep their monthly card limit; paid plans convert without
+        limits.
       </p>
       <div className={styles.urlRow}>
         <span className={styles.urlLabel}>Connector URL</span>
@@ -206,7 +164,6 @@ function McpCard({
         <a className={sharedStyles.btnSecondary} href={CONNECT_GUIDE_PATH}>
           How to connect
         </a>
-        {showRequestAccess && <McpRequestAccess />}
       </div>
     </section>
   );
@@ -510,18 +467,12 @@ function SpecRail() {
           </div>
         ))}
       </dl>
-      <div className={styles.railStatus}>
-        <span className={styles.railStatusDot} aria-hidden="true" />
-        MCP connector in limited beta
-      </div>
     </aside>
   );
 }
 
 export default function DevelopersPage() {
-  const { data, isLoading } = useUserLocals();
-  const hasMcpAccess =
-    data?.locals?.patreon === true || data?.locals?.developer_access === true;
+  const { isLoading } = useUserLocals();
 
   return (
     <div className={styles.page}>
@@ -537,7 +488,7 @@ export default function DevelopersPage() {
       <div className={styles.layout}>
         <main className={styles.main}>
           <GetStarted />
-          <McpCard showRequestAccess={!isLoading && !hasMcpAccess} />
+          <McpCard />
           {isLoading ? <p className={styles.body}>Loading</p> : <KeyManager />}
           <ApiGuide />
         </main>

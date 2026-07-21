@@ -6,7 +6,6 @@ import CreateApiKeyUseCase, {
 } from '../usecases/developer/CreateApiKeyUseCase';
 import ListApiKeysUseCase from '../usecases/developer/ListApiKeysUseCase';
 import RevokeApiKeyUseCase from '../usecases/developer/RevokeApiKeyUseCase';
-import RequestDeveloperAccessUseCase from '../usecases/developer/RequestDeveloperAccessUseCase';
 import type { ApiKeyListItem } from '../data_layer/ApiKeyRepository';
 
 function toKeyResponse(key: ApiKeyListItem) {
@@ -23,8 +22,7 @@ export class DeveloperController {
   constructor(
     private readonly createKey: CreateApiKeyUseCase,
     private readonly listKeys: ListApiKeysUseCase,
-    private readonly revokeKey: RevokeApiKeyUseCase,
-    private readonly requestAccess: RequestDeveloperAccessUseCase
+    private readonly revokeKey: RevokeApiKeyUseCase
   ) {}
 
   async list(req: express.Request, res: express.Response) {
@@ -68,22 +66,6 @@ export class DeveloperController {
       return;
     }
     res.status(204).end();
-  }
-
-  async requestAccessForUser(req: express.Request, res: express.Response) {
-    const owner = getOwner(res);
-    const email = res.locals.email as string | undefined;
-    if (owner == null || email == null) {
-      res.status(401).json({ message: 'Authentication required' });
-      return;
-    }
-    const sent = await this.requestAccess.execute({
-      userId: Number(owner),
-      email,
-      patreon: res.locals.patreon === true,
-      subscriber: res.locals.subscriber === true,
-    });
-    res.status(202).json({ requested: sent });
   }
 }
 

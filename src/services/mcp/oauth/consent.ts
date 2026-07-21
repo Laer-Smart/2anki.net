@@ -46,7 +46,7 @@ const SCOPE_LINES: Record<string, string[]> = {
   mcp: [
     'List your decks',
     "Preview a deck's cards",
-    'Create decks from your content — these count toward your usual card limit',
+    'Create decks from your content',
   ],
 };
 
@@ -209,6 +209,7 @@ export function renderConsentPage(input: ConsentPageInput): string {
       <ul class="consent-scopes">
         ${scopeList}
       </ul>
+      <p class="consent-reassure">New decks count toward your monthly card limit, the same as on the web.</p>
       <form method="post" action="${escapeHtml(input.actionPath)}">
         ${hidden}
         ${hiddenInput('csrf', input.csrf)}

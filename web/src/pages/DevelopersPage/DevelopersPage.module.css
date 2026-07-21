@@ -84,22 +84,6 @@
   text-decoration: underline;
 }
 
-.railStatus {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 0.75rem;
-  color: var(--color-text-secondary);
-}
-
-.railStatusDot {
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: var(--radius-full);
-  background: var(--color-warning);
-  flex-shrink: 0;
-}
-
 .steps {
   list-style: none;
   counter-reset: step;
@@ -379,11 +363,6 @@
 
 .revokeButton:hover {
   color: var(--color-danger);
-}
-
-.noticeSuccess {
-  color: var(--color-success);
-  font-size: var(--text-sm);
 }
 
 .noticeDanger {
