@@ -10,9 +10,16 @@ The gate blocks merges when **Security Rating on New Code < A**. Security issues
 
 **Why it's required:** `/check` (tsc + oxlint + Jest + Vitest) does not run SonarCloud's rule engine. Cognitive complexity, nesting depth, redundant type assertions, and accessibility smells are invisible to local tooling — they surface only after the push, after CI runs, after the agent has already declared the work done. Catching them locally costs 30–90 seconds; catching them post-push costs another rebase + force-push + CI cycle.
 
-**Setup:** `brew install sonar-scanner` (or `npm i -g sonar-scanner`); token from https://sonarcloud.io/account/security → `SONAR_TOKEN` in your shell profile. The `sonarqube` MCP plugin (see `.claude/MCP_README.md`) runs the same rule engine in-loop and is the easier path if it's connected.
+**Setup:** `brew install sonar-scanner` (or `npm i -g sonar-scanner`); token from https://sonarcloud.io/account/security → `SONAR_TOKEN` in your shell profile.
 
-**Per-PR run** (repo root, before flipping a PR ready):
+**Preferred path: the `sonarqube` MCP plugin.** Requires Docker (or Podman/Nerdctl) running — the CLI's `sonar run mcp` shells out to a container, there's no bare-metal mode. Auth reads the token from `sonar auth status` (OS keychain), no `SONAR_TOKEN` env needed. Approve it once via `/mcp` in this repo; if `/mcp` reports `Failed to reconnect to sonarqube: -32000`, Docker isn't running — start it and retry.
+
+Once connected, two different jobs use different tools — don't conflate them:
+
+- **Pre-push, on changed-but-unpushed code:** `mcp__sonarqube__analyze_code_snippet` — runs the real rule engine against a file/snippet locally, no push needed. This is the direct replacement for a local `sonar-scanner` run on your working tree; run it per changed file before flipping a PR ready.
+- **Post-push, on a project/PR SonarCloud has already analyzed:** `mcp__sonarqube__get_project_quality_gate_status` (pass/fail + conditions), `mcp__sonarqube__search_sonar_issues_in_projects` (filter by severity/quality/status, scope with `pullRequest` — get the key from `mcp__sonarqube__list_pull_requests`, never a git branch name), `mcp__sonarqube__search_security_hotspots` / `show_security_hotspot` / `change_security_hotspot_status`, `mcp__sonarqube__get_duplications`, `mcp__sonarqube__get_file_coverage_details`. These read SonarCloud's stored analysis — they don't trigger a new scan, so they're only useful once Automatic Analysis has run on the branch/PR (i.e., after a push).
+
+**Fallback: `sonar-scanner` CLI**, if Docker isn't available or the MCP server won't connect (repo root, before flipping a PR ready):
 
 ```bash
 pnpm test -- --coverage
@@ -20,7 +27,7 @@ pnpm --filter 2anki-web test -- --coverage
 sonar-scanner -Dsonar.host.url=https://sonarcloud.io
 ```
 
-Scanner reads `sonar-project.properties`; the report link prints to stdout — resolve new smells **before** pushing. Unset `SONAR_TOKEN` still posts anonymously, link still appears. **If running it locally is impractical**, say so in the PR body — don't go silent and re-push 30 min later, and don't pretend it ran.
+Scanner reads `sonar-project.properties`; the report link prints to stdout — resolve new smells **before** pushing. Unset `SONAR_TOKEN` still posts anonymously, link still appears. **If running it locally is impractical** (no Docker, no `SONAR_TOKEN`), say so in the PR body — don't go silent and re-push 30 min later, and don't pretend it ran.
 
 ## What triggers a security issue
 
