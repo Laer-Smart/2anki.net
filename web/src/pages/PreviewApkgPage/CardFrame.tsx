@@ -16,6 +16,24 @@ interface CardFrameProps {
 
 const mediaCache = new Map<string, string | null>();
 
+const MATHJAX_CDN =
+  'https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+
+function containsMath(html: string): boolean {
+  return html.includes('\\(') || html.includes('\\[');
+}
+
+function mathJaxTags(html: string): string {
+  if (!containsMath(html)) return '';
+  return `<script>
+window.MathJax = {
+  tex: { inlineMath: [['\\\\(', '\\\\)']], displayMath: [['\\\\[', '\\\\]']] },
+  options: { skipHtmlTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'] }
+};
+</script>
+<script async src="${MATHJAX_CDN}"></script>`;
+}
+
 function buildSrcDoc(
   html: string,
   css: string,
@@ -76,6 +94,7 @@ function buildSrcDoc(
   img, video { max-width: 100%; height: auto; }
 ${css}
 </style>
+${mathJaxTags(html)}
 </head>
 <body${bodyClass}>
 <div class="card">${html}</div>

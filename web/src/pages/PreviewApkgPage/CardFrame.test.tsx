@@ -170,6 +170,44 @@ describe('CardFrame srcDoc', () => {
     const srcDoc = await waitForSrcDoc(container);
     expect(srcDoc).toContain('alert(1)');
   });
+
+  it('injects MathJax when the card contains inline math delimiters', async () => {
+    const card = buildCard({ front: 'Euler: \\(e^{i\\pi} = -1\\)' });
+    const { container } = render(
+      <CardFrame card={card} cardIndex={0} onEdit={noop} isEditable={false} />
+    );
+    const srcDoc = await waitForSrcDoc(container);
+    expect(srcDoc).toContain('mathjax@3/es5/tex-mml-chtml.js');
+    expect(srcDoc).toContain('window.MathJax');
+  });
+
+  it('injects MathJax when the back contains display math delimiters', async () => {
+    const card = buildCard({
+      front: 'Integral',
+      back: '\\[\\int_0^1 x^2\\,dx\\]',
+    });
+    const { container } = render(
+      <CardFrame card={card} cardIndex={0} onEdit={noop} isEditable={false} />
+    );
+    fireEvent.click(screen.getByRole('button', { name: /show back/i }));
+    const srcDoc = await waitFor(() => {
+      const value = getSrcDoc(container);
+      if (!value.includes('tex-mml-chtml.js')) {
+        throw new Error('MathJax not injected yet');
+      }
+      return value;
+    });
+    expect(srcDoc).toContain('displayMath');
+  });
+
+  it('does not inject MathJax when the card has no math', async () => {
+    const card = buildCard({ front: 'Plain front', back: 'Plain back' });
+    const { container } = render(
+      <CardFrame card={card} cardIndex={0} onEdit={noop} isEditable={false} />
+    );
+    const srcDoc = await waitForSrcDoc(container);
+    expect(srcDoc).not.toContain('tex-mml-chtml.js');
+  });
 });
 
 describe('CardFrame postMessage height update', () => {
