@@ -4,6 +4,7 @@ import sharedStyles from '../../styles/shared.module.css';
 import styles from './OpsPage.module.css';
 import { syncStripeSubscriptions } from './syncStripeSubscriptions';
 import { createDeveloperTiers, ProvisionedTier } from './createDeveloperTiers';
+import { createSemesterPass } from './createSemesterPass';
 import { grantDeveloperAccess } from './grantDeveloperAccess';
 import {
   deleteInactiveUsers,
@@ -121,6 +122,26 @@ export default function CommandsTab() {
     } catch (error) {
       setTiersStatus('error');
       setTiersMessage(error instanceof Error ? error.message : 'Unknown error');
+    }
+  };
+
+  const [semesterStatus, setSemesterStatus] = useState<Status>('idle');
+  const [semesterMessage, setSemesterMessage] = useState('');
+
+  const runCreateSemesterPass = async () => {
+    setSemesterStatus('loading');
+    setSemesterMessage('');
+    try {
+      const result = await createSemesterPass();
+      setSemesterStatus('success');
+      setSemesterMessage(
+        `${result.created_product ? 'product created' : 'product found'}, ${result.created_price ? 'price created' : 'price found'} (${result.stripe_price_id}). Set PASS_4MO_PRICE_ID to this price id.`
+      );
+    } catch (error) {
+      setSemesterStatus('error');
+      setSemesterMessage(
+        error instanceof Error ? error.message : 'Unknown error'
+      );
     }
   };
 
@@ -305,6 +326,39 @@ export default function CommandsTab() {
       {tiersStatus === 'error' && tiersMessage && (
         <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
           {tiersMessage}
+        </div>
+      )}
+
+      <section className={`${sharedStyles.surface} ${styles.card}`}>
+        <h2 className={styles.cardTitle}>Semester pass</h2>
+        <p className={styles.panelSubtitle}>
+          Creates the Semester Pass one-time product and price in Stripe. No
+          database row — copy the returned price id into PASS_4MO_PRICE_ID.
+          Idempotent — re-running finds the existing product by metadata instead
+          of duplicating it. Checkout and webhook wiring are not built yet (see
+          spec-lifecycle gate in #3621) — provisioning this price does not
+          enable a purchase path.
+        </p>
+        <div className={styles.controls}>
+          <button
+            type="button"
+            className={sharedStyles.btnSmall}
+            onClick={runCreateSemesterPass}
+            disabled={semesterStatus === 'loading'}
+          >
+            {semesterStatus === 'loading' ? 'Provisioning…' : 'Create pass'}
+          </button>
+        </div>
+      </section>
+
+      {semesterStatus === 'success' && semesterMessage && (
+        <div className={`${sharedStyles.alertSuccess} ${styles.banner}`}>
+          {semesterMessage}
+        </div>
+      )}
+      {semesterStatus === 'error' && semesterMessage && (
+        <div className={`${sharedStyles.alertDanger} ${styles.banner}`}>
+          {semesterMessage}
         </div>
       )}
 
