@@ -2,10 +2,16 @@ import type { LandingCopy } from '../types';
 import { ankiFidelityProof } from './ankiFidelityProof';
 
 const notionCopy: LandingCopy = {
+  galleryBadge: true,
   relatedLinks: [
     {
       label: 'Convert Notion tables to Anki',
       href: '/convert/notion-tables-to-anki',
+    },
+    { label: 'Keep decks in sync with Notion', href: '/pricing' },
+    {
+      label: 'Which Notion blocks convert',
+      href: '/documentation/cards/notion-blocks',
     },
     {
       label: 'Convert Markdown and Obsidian notes to Anki',
