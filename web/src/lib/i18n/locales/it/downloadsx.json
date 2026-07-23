@@ -46,6 +46,10 @@
     "uploadMultiDeck_one": "Non è stato possibile scaricare {{count}} immagine e non è nei tuoi mazzi. Il tuo file rimanda a essa su un altro sito che non siamo riusciti a raggiungere. Salva l'immagine nel file, poi caricalo di nuovo.",
     "uploadMultiDeck_other": "Non è stato possibile scaricare {{count}} immagini e non sono nei tuoi mazzi. Il tuo file rimanda a esse su altri siti che non siamo riusciti a raggiungere. Salva le immagini nel file, poi caricalo di nuovo."
   },
+  "cardLimitPartial": {
+    "heldBack_one": "Il tuo mazzo contiene {{delivered}} delle tue {{limit}} carte mensili. {{count}} carta in più è pronta — <pricingLink>passa a carte illimitate</pricingLink>.",
+    "heldBack_other": "Il tuo mazzo contiene {{delivered}} delle tue {{limit}} carte mensili. {{count}} carte in più sono pronte — <pricingLink>passa a carte illimitate</pricingLink>."
+  },
   "truncation": {
     "converted": "Convertiti i primi {{count}} blocchi. Il piano gratuito si ferma qui — <pricingLink>passa a un piano superiore per convertire l'intera pagina</pricingLink>.",
     "subDeckSkipped": "Le regole dei sottomazzi da interruttori, intestazioni e database si applicano ai piani a pagamento — questo mazzo è stato convertito senza di esse."

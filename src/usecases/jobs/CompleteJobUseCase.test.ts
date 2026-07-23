@@ -219,6 +219,44 @@ describe('CompleteJobUseCase', () => {
     );
   });
 
+  it('persists a monthly_limit_partial payload that takes precedence over the notion signal', async () => {
+    const jobRepository = {
+      findJobById: jest.fn().mockResolvedValue({
+        id: 1,
+        object_id: 'page-1',
+        owner: 'user-a',
+        status: 'started',
+      }),
+      updateJobStatus: jest.fn().mockResolvedValue({ status: 'done' }),
+    } as unknown as JobRepository;
+
+    const useCase = new CompleteJobUseCase(jobRepository);
+    await useCase.execute(
+      'page-1',
+      'user-a',
+      100,
+      { blocksConverted: 40, subDeckRulesSkipped: true },
+      0,
+      undefined,
+      {
+        cardsDelivered: 100,
+        cardsHeldBack: 25,
+        limit: 100,
+        resetOn: '2026-08-01T00:00:00.000Z',
+      }
+    );
+
+    const payload = (jobRepository.updateJobStatus as jest.Mock).mock
+      .calls[0][3];
+    expect(JSON.parse(payload)).toEqual({
+      code: 'monthly_limit_partial',
+      cards_delivered: 100,
+      cards_held_back: 25,
+      limit: 100,
+      reset_on: '2026-08-01T00:00:00.000Z',
+    });
+  });
+
   it('throws when the job does not exist', async () => {
     const jobRepository = {
       findJobById: jest.fn().mockResolvedValue(null),

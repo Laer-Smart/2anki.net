@@ -2,9 +2,11 @@ import JobRepository from '../../data_layer/JobRepository';
 import Jobs from '../../data_layer/public/Jobs';
 import UsersRepository from '../../data_layer/UsersRepository';
 import {
+  buildMonthlyLimitPartialPayload,
   buildNotionConversionSignalPayload,
   ConversionTruncation,
   GuessedColumnMapping,
+  MonthlyLimitPartial,
 } from '../../services/NotionService/helpers/conversionTruncation';
 
 export class CompleteJobUseCase {
@@ -19,7 +21,8 @@ export class CompleteJobUseCase {
     cardCount = 0,
     truncation?: ConversionTruncation,
     droppedAssetCount = 0,
-    guessedColumns?: GuessedColumnMapping
+    guessedColumns?: GuessedColumnMapping,
+    monthlyLimitPartial?: MonthlyLimitPartial
   ): Promise<Jobs> {
     const job = await this.jobRepository.findJobById(jobId, owner);
 
@@ -31,15 +34,20 @@ export class CompleteJobUseCase {
       return job;
     }
 
+    const signalPayload =
+      monthlyLimitPartial != null
+        ? buildMonthlyLimitPartialPayload(monthlyLimitPartial)
+        : buildNotionConversionSignalPayload(
+            truncation,
+            droppedAssetCount,
+            guessedColumns
+          );
+
     const updated = await this.jobRepository.updateJobStatus(
       jobId,
       owner,
       'done',
-      buildNotionConversionSignalPayload(
-        truncation,
-        droppedAssetCount,
-        guessedColumns
-      ),
+      signalPayload,
       cardCount
     );
 

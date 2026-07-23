@@ -32,6 +32,8 @@ import { getDefaultEmailService } from '../../../../services/EmailService/EmailS
 import { MarkNotionTokenInvalidUseCase } from '../../../../usecases/notion/MarkNotionTokenInvalidUseCase';
 import { UnsupportedNotionBlockRepository } from '../../../../data_layer/UnsupportedNotionBlockRepository';
 import { ConversionOutputStatsRepository } from '../../../../data_layer/ConversionOutputStatsRepository';
+import { truncateDecksToCardLimit } from '../../../parser/truncateDecksToCardLimit';
+import { MonthlyLimitPartial } from '../../../../services/NotionService/helpers/conversionTruncation';
 
 type CardCountBucket = '<50' | '50-499' | '500+';
 type ConversionSource = 'notion' | 'upload' | 'google_drive';
@@ -126,6 +128,21 @@ function trackConversionFailed(
   });
 }
 
+function trackCardLimitPaywall(
+  owner: string,
+  anonId: string | undefined,
+  type: string | undefined
+): void {
+  track('paywall_shown', {
+    userId: Number.isFinite(Number(owner)) ? Number(owner) : null,
+    anonymousId: toAnonymousId(anonId),
+    props: {
+      source: toConversionSource(type),
+      kind: 'card_count',
+    },
+  });
+}
+
 export default async function performConversion(
   database: Knex,
   {
@@ -202,6 +219,7 @@ export default async function performConversion(
     }
 
     const checkMonthlyLimit = new CheckMonthlyCardLimitUseCase(usersRepository);
+    let cardLimitPartial: MonthlyLimitPartial | undefined;
     try {
       await checkMonthlyLimit.execute({
         userId: owner,
@@ -209,7 +227,11 @@ export default async function performConversion(
         isPaying,
       });
     } catch (error) {
-      if (error instanceof MonthlyLimitError) {
+      if (!(error instanceof MonthlyLimitError)) {
+        throw error;
+      }
+      const remaining = Math.max(0, error.limit - error.cards_used);
+      if (remaining === 0) {
         const setJobFailed = new SetJobFailedUseCase(jobRepository);
         const payload = JSON.stringify({
           code: 'monthly_limit',
@@ -225,8 +247,21 @@ export default async function performConversion(
         });
         return;
       }
-      throw error;
+      const { delivered, heldBack } = truncateDecksToCardLimit(
+        decks,
+        remaining
+      );
+      cardLimitPartial = {
+        cardsDelivered: delivered,
+        cardsHeldBack: heldBack,
+        limit: error.limit,
+        resetOn: error.reset_on,
+      };
     }
+
+    const deliveredCardCount = cardLimitPartial
+      ? cardLimitPartial.cardsDelivered
+      : cardCount;
 
     const buildDeck = new BuildDeckForJobUseCase(
       jobRepository,
@@ -252,27 +287,32 @@ export default async function performConversion(
       key,
       id,
       apkg,
-      cardCount,
+      cardCount: deliveredCardCount,
     });
 
     const completeJob = new CompleteJobUseCase(jobRepository, usersRepository);
     await completeJob.execute(
       id,
       owner,
-      cardCount,
+      deliveredCardCount,
       bl.truncation,
       bl.droppedAssetCount,
-      bl.guessedColumnMapping
+      bl.guessedColumnMapping,
+      cardLimitPartial
     );
 
     void recordConversionTelemetry(database, {
       unsupportedBlockTypes: bl.unsupportedBlockTypes,
       stats: {
         decks: decks.length,
-        cards: bl.cardCount,
+        cards: cardLimitPartial ? deliveredCardCount : bl.cardCount,
         emptyBack: bl.emptyBackCount,
       },
     });
+
+    if (cardLimitPartial) {
+      trackCardLimitPaywall(owner, anonId, type);
+    }
 
     const userId = Number.isFinite(Number(owner)) ? Number(owner) : null;
     track('conversion_succeeded', {
@@ -280,8 +320,14 @@ export default async function performConversion(
       anonymousId: toAnonymousId(anonId),
       props: {
         source: toConversionSource(type),
-        card_count_bucket: toCardCountBucket(cardCount),
+        card_count_bucket: toCardCountBucket(deliveredCardCount),
         signup_origin: resolvedSignupOrigin,
+        ...(cardLimitPartial
+          ? {
+              card_limit_partial: true,
+              cards_held_back: cardLimitPartial.cardsHeldBack,
+            }
+          : {}),
       },
     });
   } catch (error) {

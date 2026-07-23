@@ -53,6 +53,8 @@ import { parseDroppedAssetsPayload } from './helpers/parseDroppedAssetsPayload';
 import { ColumnsGuessedNotice } from './components/ColumnsGuessedNotice';
 import { parseColumnsGuessedPayload } from './helpers/parseColumnsGuessedPayload';
 import { parseMonthlyLimitPayload } from './components/ConversionResult/parseMonthlyLimitPayload';
+import { MonthlyLimitPartialNotice } from './components/MonthlyLimitPartialNotice';
+import { parseMonthlyLimitPartialPayload } from './helpers/parseMonthlyLimitPartialPayload';
 import styles from './DownloadsPage.module.css';
 import sharedStyles from '../../styles/shared.module.css';
 
@@ -589,6 +591,8 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                           const guessedColumns = parseColumnsGuessedPayload(
                             row.job
                           );
+                          const cardLimitPartial =
+                            parseMonthlyLimitPartialPayload(row.job);
                           const isMonthlyLimitRow =
                             isFailed &&
                             parseMonthlyLimitPayload(
@@ -701,6 +705,32 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                                   count: droppedAssets,
                                                 }
                                               )}
+                                            </span>
+                                            <span
+                                              className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}
+                                            >
+                                              ▾
+                                            </span>
+                                          </button>
+                                        )}
+                                        {cardLimitPartial != null && (
+                                          <button
+                                            type="button"
+                                            className={styles.statusToggle}
+                                            onClick={toggleFailurePanel}
+                                            aria-label={
+                                              isExpanded
+                                                ? t(
+                                                    'downloads.toggle.collapseNote'
+                                                  )
+                                                : t('downloads.toggle.showNote')
+                                            }
+                                            aria-expanded={isExpanded}
+                                          >
+                                            <span
+                                              className={sharedStyles.badge}
+                                            >
+                                              {t('downloads.badge.partial')}
                                             </span>
                                             <span
                                               className={`${styles.statusChevron} ${isExpanded ? styles.statusChevronExpanded : ''}`}
@@ -855,6 +885,26 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       <ColumnsGuessedNotice
                                         frontField={guessedColumns.frontField}
                                         backField={guessedColumns.backField}
+                                      />
+                                    </td>
+                                  </tr>
+                                )}
+                              {!isFailed &&
+                                isExpanded &&
+                                cardLimitPartial != null && (
+                                  <tr key={`job-${row.job.id}-cardlimit`}>
+                                    <td
+                                      colSpan={4}
+                                      className={styles.failurePanel}
+                                    >
+                                      <MonthlyLimitPartialNotice
+                                        cardsDelivered={
+                                          cardLimitPartial.cardsDelivered
+                                        }
+                                        cardsHeldBack={
+                                          cardLimitPartial.cardsHeldBack
+                                        }
+                                        limit={cardLimitPartial.limit}
                                       />
                                     </td>
                                   </tr>
