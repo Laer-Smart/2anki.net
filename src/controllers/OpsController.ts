@@ -25,6 +25,7 @@ import { GetLandingPageYieldUseCase } from '../usecases/ops/GetLandingPageYieldU
 import { GetCustomerSignalsUseCase } from '../usecases/ops/GetCustomerSignalsUseCase';
 import { GetPassUnlockMonitorUseCase } from '../usecases/ops/GetPassUnlockMonitorUseCase';
 import { CreateDeveloperTiersUseCase } from '../usecases/ops/CreateDeveloperTiersUseCase';
+import { CreateSemesterPassUseCase } from '../usecases/ops/CreateSemesterPassUseCase';
 import GrantDeveloperAccessUseCase, {
   InvalidEmailError,
 } from '../usecases/developer/GrantDeveloperAccessUseCase';
@@ -53,7 +54,8 @@ class OpsController {
     private readonly sendPassWinbackUseCase?: SendPassWinbackUseCase,
     private readonly grantDeveloperAccessUseCase?: GrantDeveloperAccessUseCase,
     private readonly getCancelFunnelUseCase?: GetCancelFunnelUseCase,
-    private readonly createDeveloperTiersUseCase?: CreateDeveloperTiersUseCase
+    private readonly createDeveloperTiersUseCase?: CreateDeveloperTiersUseCase,
+    private readonly createSemesterPassUseCase?: CreateSemesterPassUseCase
   ) {}
 
   async createDeveloperTiers(_req: express.Request, res: express.Response) {
@@ -67,6 +69,22 @@ class OpsController {
     } catch (error) {
       console.error('[ops] createDeveloperTiers failed', error);
       res.status(500).json({ message: 'Failed to create developer tiers' });
+    }
+  }
+
+  async createSemesterPass(_req: express.Request, res: express.Response) {
+    if (this.createSemesterPassUseCase == null) {
+      res
+        .status(500)
+        .json({ message: 'Semester pass provisioning not configured' });
+      return;
+    }
+    try {
+      const result = await this.createSemesterPassUseCase.execute();
+      res.status(200).json(result);
+    } catch (error) {
+      console.error('[ops] createSemesterPass failed', error);
+      res.status(500).json({ message: 'Failed to provision semester pass' });
     }
   }
 

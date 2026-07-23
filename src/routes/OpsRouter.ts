@@ -69,6 +69,7 @@ import { ListFeatureFlagsUseCase } from '../usecases/ops/ListFeatureFlagsUseCase
 import { SetFeatureFlagUseCase } from '../usecases/ops/SetFeatureFlagUseCase';
 import { getStripe } from '../lib/integrations/stripe';
 import { CreateDeveloperTiersUseCase } from '../usecases/ops/CreateDeveloperTiersUseCase';
+import { CreateSemesterPassUseCase } from '../usecases/ops/CreateSemesterPassUseCase';
 import DeveloperTiersRepository from '../data_layer/DeveloperTiersRepository';
 import { OrphanedSubscriptionsRepository } from '../data_layer/OrphanedSubscriptionsRepository';
 import { SubscriptionRecoveryNotificationsRepository } from '../data_layer/SubscriptionRecoveryNotificationsRepository';
@@ -201,7 +202,8 @@ const OpsRouter = () => {
     new CreateDeveloperTiersUseCase(
       getStripe(),
       new DeveloperTiersRepository(database)
-    )
+    ),
+    new CreateSemesterPassUseCase(getStripe())
   );
 
   /**
@@ -643,6 +645,32 @@ const OpsRouter = () => {
     '/api/ops/commands/create-developer-tiers',
     RequireOpsAccess,
     (req, res) => controller.createDeveloperTiers(req, res)
+  );
+
+  /**
+   * @swagger
+   * /api/ops/commands/create-semester-pass:
+   *   post:
+   *     summary: Provision the Stripe Semester Pass product and one-time price
+   *     description: |
+   *       Internal endpoint locked to the ops owner. Idempotently ensures a single
+   *       "2anki Semester Pass" Stripe product (found by product metadata) and one
+   *       one-time $14.99 USD price (no recurring interval) exist. Safe to re-run.
+   *       This only provisions the Stripe product/price — it does NOT enable any
+   *       checkout path. A human must copy the returned stripe_price_id into the
+   *       PASS_4MO_PRICE_ID env var before any purchase flow can reference it, and
+   *       no such flow exists yet. Returns 404 for everyone else.
+   *     tags: [Ops]
+   *     responses:
+   *       200:
+   *         description: The provisioned product/price ids with created/found flags
+   *       404:
+   *         description: Not the ops owner
+   */
+  router.post(
+    '/api/ops/commands/create-semester-pass',
+    RequireOpsAccess,
+    (req, res) => controller.createSemesterPass(req, res)
   );
 
   /**
