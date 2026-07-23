@@ -1,5 +1,9 @@
 import { APIResponseError, APIErrorCode } from '@notionhq/client';
 import { buildPythonExitError } from '../../lib/anki/buildPythonExitError';
+import {
+  ClaudeLargeSectionError,
+  LARGE_SECTION_USER_MESSAGE,
+} from '../../lib/claude/ClaudeService';
 import { EmptyDeckError } from './EmptyDeckError';
 import {
   COLUMNS_AMBIGUOUS_PREFIX,
@@ -33,6 +37,18 @@ describe('jobFailureReasonFromError', () => {
   it('returns the EmptyDeckError reason unchanged', () => {
     const reason = jobFailureReasonFromError(new EmptyDeckError(), 'job-1');
     expect(reason).toBe(EMPTY_DECK_FAILURE_REASON);
+  });
+
+  it('surfaces the actionable large-section message instead of a generic reason', () => {
+    const reason = jobFailureReasonFromError(
+      new ClaudeLargeSectionError(),
+      'job-2'
+    );
+    expect(reason).toBe(LARGE_SECTION_USER_MESSAGE);
+    expect(reason).not.toContain('Something went wrong');
+    expect(jobFailureReasonCode(new ClaudeLargeSectionError())).toBe(
+      'claude_large_section'
+    );
   });
 
   it('keeps the ops-matched empty-deck prefix intact', () => {

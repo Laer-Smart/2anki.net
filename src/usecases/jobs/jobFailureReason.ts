@@ -1,5 +1,6 @@
 import { APIResponseError, APIErrorCode } from '@notionhq/client';
 import { PythonExitError } from '../../lib/anki/buildPythonExitError';
+import { ClaudeLargeSectionError } from '../../lib/claude/ClaudeService';
 import { EmptyDeckError } from './EmptyDeckError';
 import { inferColumnMapping } from '../../lib/notionDatabase/inferColumnMapping';
 import { isNotionDatabaseNotPageError } from '../../services/NotionService/helpers/isNotionDatabaseNotPageError';
@@ -72,6 +73,7 @@ export type JobFailureReasonCode =
   | 'zip_invalid'
   | 'pdf_password'
   | 'pdf_unreadable'
+  | 'claude_large_section'
   | 'unknown';
 
 export function jobFailureReasonCode(error: unknown): JobFailureReasonCode {
@@ -79,6 +81,9 @@ export function jobFailureReasonCode(error: unknown): JobFailureReasonCode {
     return error.sourceFormat === 'markdown'
       ? 'markdown_likely_lossy'
       : 'empty_deck';
+  }
+  if (error instanceof ClaudeLargeSectionError) {
+    return 'claude_large_section';
   }
   if (error instanceof PythonExitError) {
     return 'python_crash';
@@ -137,6 +142,9 @@ export function jobFailureReasonFromError(
       return MARKDOWN_LIKELY_LOSSY_REASON;
     }
     return EMPTY_DECK_FAILURE_REASON;
+  }
+  if (error instanceof ClaudeLargeSectionError) {
+    return error.message;
   }
   if (error instanceof PythonExitError) {
     return error.message;
