@@ -20,6 +20,11 @@ vi.mock('../../lib/analytics/track', () => ({
   track: (...args: unknown[]) => trackMock(...args),
 }));
 
+const scheduleSyncMock = vi.fn();
+vi.mock('../../lib/data_layer/userPreferencesSync', () => ({
+  scheduleSync: (...args: unknown[]) => scheduleSyncMock(...args),
+}));
+
 type FakeUser = {
   id?: number;
   created_at?: string | null;
@@ -177,6 +182,7 @@ describe('UploadPage AI badge placement', () => {
 describe('UploadPage AI toggle', () => {
   beforeEach(() => {
     trackMock.mockClear();
+    scheduleSyncMock.mockClear();
     fakeUser = null;
     fakeLocals = undefined;
     globalThis.localStorage.clear();
@@ -187,6 +193,20 @@ describe('UploadPage AI toggle', () => {
     fakeUser = null;
     fakeLocals = undefined;
     globalThis.localStorage.clear();
+  });
+
+  it('syncs the AI preference to the server so it follows the user across devices', async () => {
+    fakeUser = { id: 42 };
+    fakeLocals = { patreon: true, subscriber: false };
+    renderPage();
+    const toggle = screen.getByRole('button', { name: /turn ai on/i });
+    toggle.click();
+    await waitFor(() => {
+      expect(globalThis.localStorage.getItem('claude-ai-flashcards')).toBe(
+        'true'
+      );
+    });
+    expect(scheduleSyncMock).toHaveBeenCalled();
   });
 
   it('shows an upgrade link and no toggle for a signed-in non-paying user', () => {

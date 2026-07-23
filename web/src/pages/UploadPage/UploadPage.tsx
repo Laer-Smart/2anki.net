@@ -7,6 +7,7 @@ import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessag
 import { PassLadderCard } from '../../components/PassLadderCard/PassLadderCard';
 import { track } from '../../lib/analytics/track';
 import { storePassToken } from '../../lib/anonymousPass';
+import { saveValueInLocalStorage } from '../../lib/data_layer/saveValueInLocalStorage';
 import useQuery from '../../lib/hooks/useQuery';
 import { useUserLocals } from '../../lib/hooks/useUserLocals';
 import styles from '../../styles/shared.module.css';
@@ -83,7 +84,7 @@ export function UploadPage({ setErrorMessage }: Readonly<Props>) {
 
   const toggleAi = () => {
     const next = !isAiOn;
-    globalThis.localStorage?.setItem(AI_FLAG_KEY, String(next));
+    saveValueInLocalStorage(AI_FLAG_KEY, String(next), null);
     setAiFlag(next);
     track(next ? 'upload_ai_turned_on' : 'upload_ai_turned_off');
   };
