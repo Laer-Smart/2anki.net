@@ -46,6 +46,10 @@
     "uploadMultiDeck_one": "{{count}} image couldn't be downloaded and isn't in your decks. Your file links to it on another site we couldn't reach. Save the image into the file itself, then upload again.",
     "uploadMultiDeck_other": "{{count}} images couldn't be downloaded and aren't in your decks. Your file links to them on other sites we couldn't reach. Save the images into the file itself, then upload again."
   },
+  "cardLimitPartial": {
+    "heldBack_one": "Your deck has {{delivered}} of your {{limit}} monthly cards. {{count}} more card is ready — <pricingLink>upgrade for unlimited cards</pricingLink>.",
+    "heldBack_other": "Your deck has {{delivered}} of your {{limit}} monthly cards. {{count}} more cards are ready — <pricingLink>upgrade for unlimited cards</pricingLink>."
+  },
   "truncation": {
     "converted": "Converted the first {{count}} blocks. The free plan stops there — <pricingLink>upgrade to convert the whole page</pricingLink>.",
     "subDeckSkipped": "Sub-deck rules from toggles, headings, and databases apply on paid plans — this deck converted without them."

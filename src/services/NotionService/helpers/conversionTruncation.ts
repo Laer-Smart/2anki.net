@@ -1,6 +1,26 @@
 export const NOTION_TRUNCATED_CODE = 'notion_truncated';
 export const NOTION_ASSETS_DROPPED_CODE = 'notion_assets_dropped';
 export const NOTION_COLUMNS_GUESSED_CODE = 'notion_columns_guessed';
+export const MONTHLY_LIMIT_PARTIAL_CODE = 'monthly_limit_partial';
+
+export interface MonthlyLimitPartial {
+  cardsDelivered: number;
+  cardsHeldBack: number;
+  limit: number;
+  resetOn: string;
+}
+
+export function buildMonthlyLimitPartialPayload(
+  partial: MonthlyLimitPartial
+): string {
+  return JSON.stringify({
+    code: MONTHLY_LIMIT_PARTIAL_CODE,
+    cards_delivered: partial.cardsDelivered,
+    cards_held_back: partial.cardsHeldBack,
+    limit: partial.limit,
+    reset_on: partial.resetOn,
+  });
+}
 
 export interface ConversionTruncation {
   blocksConverted: number;

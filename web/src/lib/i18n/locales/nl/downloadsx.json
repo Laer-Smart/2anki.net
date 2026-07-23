@@ -46,6 +46,10 @@
     "uploadMultiDeck_one": "{{count}} afbeelding kon niet worden gedownload en zit niet in je pakketten. Je bestand linkt ernaar op een andere site die we niet konden bereiken. Sla de afbeelding op in het bestand zelf en upload opnieuw.",
     "uploadMultiDeck_other": "{{count}} afbeeldingen konden niet worden gedownload en zitten niet in je pakketten. Je bestand linkt ernaar op andere sites die we niet konden bereiken. Sla de afbeeldingen op in het bestand zelf en upload opnieuw."
   },
+  "cardLimitPartial": {
+    "heldBack_one": "Je deck bevat {{delivered}} van je {{limit}} maandelijkse kaarten. Nog {{count}} kaart staat klaar — <pricingLink>upgrade voor onbeperkte kaarten</pricingLink>.",
+    "heldBack_other": "Je deck bevat {{delivered}} van je {{limit}} maandelijkse kaarten. Nog {{count}} kaarten staan klaar — <pricingLink>upgrade voor onbeperkte kaarten</pricingLink>."
+  },
   "truncation": {
     "converted": "De eerste {{count}} blokken zijn geconverteerd. Het gratis abonnement stopt daar — <pricingLink>upgrade om de hele pagina te converteren</pricingLink>.",
     "subDeckSkipped": "Subpakketregels uit schakelaars, koppen en databases gelden bij betaalde abonnementen — dit pakket is zonder deze geconverteerd."

@@ -46,6 +46,10 @@
     "uploadMultiDeck_one": "{{count}} image n'a pas pu être téléchargée et n'est pas dans vos paquets. Votre fichier renvoie vers celle-ci sur un autre site que nous n'avons pas pu atteindre. Enregistrez l'image dans le fichier, puis téléversez à nouveau.",
     "uploadMultiDeck_other": "{{count}} images n'ont pas pu être téléchargées et ne sont pas dans vos paquets. Votre fichier renvoie vers celles-ci sur d'autres sites que nous n'avons pas pu atteindre. Enregistrez les images dans le fichier, puis téléversez à nouveau."
   },
+  "cardLimitPartial": {
+    "heldBack_one": "Ton paquet contient {{delivered}} de tes {{limit}} cartes mensuelles. {{count}} carte de plus est prête — <pricingLink>passe à l'illimité</pricingLink>.",
+    "heldBack_other": "Ton paquet contient {{delivered}} de tes {{limit}} cartes mensuelles. {{count}} cartes de plus sont prêtes — <pricingLink>passe à l'illimité</pricingLink>."
+  },
   "truncation": {
     "converted": "Les {{count}} premiers blocs ont été convertis. Le forfait gratuit s'arrête là — <pricingLink>passez à un forfait supérieur pour convertir toute la page</pricingLink>.",
     "subDeckSkipped": "Les règles de sous-paquets issues des bascules, titres et bases de données s'appliquent aux forfaits payants — ce paquet a été converti sans elles."

@@ -46,6 +46,10 @@
     "uploadMultiDeck_one": "Não foi possível baixar {{count}} imagem e ela não está nos seus baralhos. Seu arquivo aponta para ela em outro site que não conseguimos acessar. Salve a imagem no próprio arquivo e envie novamente.",
     "uploadMultiDeck_other": "Não foi possível baixar {{count}} imagens e elas não estão nos seus baralhos. Seu arquivo aponta para elas em outros sites que não conseguimos acessar. Salve as imagens no próprio arquivo e envie novamente."
   },
+  "cardLimitPartial": {
+    "heldBack_one": "Seu baralho tem {{delivered}} das suas {{limit}} cartas mensais. Mais {{count}} carta está pronta — <pricingLink>faça upgrade para cartas ilimitadas</pricingLink>.",
+    "heldBack_other": "Seu baralho tem {{delivered}} das suas {{limit}} cartas mensais. Mais {{count}} cartas estão prontas — <pricingLink>faça upgrade para cartas ilimitadas</pricingLink>."
+  },
   "truncation": {
     "converted": "Os primeiros {{count}} blocos foram convertidos. O plano gratuito para por aí — <pricingLink>faça upgrade para converter a página inteira</pricingLink>.",
     "subDeckSkipped": "As regras de subbaralhos de alternadores, títulos e bancos de dados se aplicam nos planos pagos — este baralho foi convertido sem elas."

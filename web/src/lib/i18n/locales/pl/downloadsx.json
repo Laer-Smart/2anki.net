@@ -56,6 +56,12 @@
     "uploadMultiDeck_many": "{{count}} obrazów nie zostało pobranych i nie ma ich w Twoich taliach. Twój plik odwołuje się do nich w innych witrynach, do których nie mogliśmy dotrzeć. Zapisz obrazy w samym pliku, a następnie prześlij go ponownie.",
     "uploadMultiDeck_other": "{{count}} obrazów nie zostało pobranych i nie ma ich w Twoich taliach. Twój plik odwołuje się do nich w innych witrynach, do których nie mogliśmy dotrzeć. Zapisz obrazy w samym pliku, a następnie prześlij go ponownie."
   },
+  "cardLimitPartial": {
+    "heldBack_one": "Twoja talia ma {{delivered}} z {{limit}} miesięcznych kart. Gotowa jest jeszcze {{count}} karta — <pricingLink>przejdź na nieograniczone karty</pricingLink>.",
+    "heldBack_few": "Twoja talia ma {{delivered}} z {{limit}} miesięcznych kart. Gotowe są jeszcze {{count}} karty — <pricingLink>przejdź na nieograniczone karty</pricingLink>.",
+    "heldBack_many": "Twoja talia ma {{delivered}} z {{limit}} miesięcznych kart. Gotowych jest jeszcze {{count}} kart — <pricingLink>przejdź na nieograniczone karty</pricingLink>.",
+    "heldBack_other": "Twoja talia ma {{delivered}} z {{limit}} miesięcznych kart. Gotowych jest jeszcze {{count}} karty — <pricingLink>przejdź na nieograniczone karty</pricingLink>."
+  },
   "truncation": {
     "converted": "Przekonwertowano pierwsze {{count}} bloków. Darmowy plan kończy się tutaj — <pricingLink>przejdź na wyższy plan, aby przekonwertować całą stronę</pricingLink>.",
     "subDeckSkipped": "Reguły podtalii z przełączników, nagłówków i baz danych obowiązują w planach płatnych — ta talia została przekonwertowana bez nich."

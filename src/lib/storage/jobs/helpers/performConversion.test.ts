@@ -237,7 +237,78 @@ describe('performConversion — heavy pipeline', () => {
     expect(markTokenInvalidMock).not.toHaveBeenCalled();
   });
 
-  it('stores structured JSON with code monthly_limit when MonthlyLimitError is thrown', async () => {
+  it('delivers a truncated deck and records the held-back count when the monthly limit leaves room', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: {},
+        rules: {},
+      }),
+    }));
+    const decks = [{ cards: [1, 2, 3] }];
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(decks),
+    }));
+    const limitError = new MonthlyLimitError(
+      99,
+      100,
+      3,
+      '2026-07-01T00:00:00.000Z'
+    );
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockRejectedValue(limitError),
+    }));
+    (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest
+        .fn()
+        .mockResolvedValue({ size: 1, key: 'k', apkg: Buffer.from('') }),
+    }));
+    (NotifyUserUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    const completeJobExecute = jest.fn().mockResolvedValue(undefined);
+    (CompleteJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: completeJobExecute,
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(setJobFailedExecute).not.toHaveBeenCalled();
+    expect(decks[0].cards).toEqual([1]);
+    expect(completeJobExecute).toHaveBeenCalledWith(
+      baseRequest.id,
+      baseRequest.owner,
+      1,
+      undefined,
+      undefined,
+      undefined,
+      {
+        cardsDelivered: 1,
+        cardsHeldBack: 2,
+        limit: 100,
+        resetOn: '2026-07-01T00:00:00.000Z',
+      }
+    );
+    expect(track).toHaveBeenCalledWith(
+      'paywall_shown',
+      expect.objectContaining({
+        props: expect.objectContaining({ kind: 'card_count' }),
+      })
+    );
+    expect(track).toHaveBeenCalledWith(
+      'conversion_succeeded',
+      expect.objectContaining({
+        props: expect.objectContaining({
+          card_limit_partial: true,
+          cards_held_back: 2,
+        }),
+      })
+    );
+  });
+
+  it('fails the whole job with the monthly_limit reason when there is no allowance left', async () => {
     (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
       execute: jest.fn().mockResolvedValue({
         ws: {},
@@ -251,7 +322,7 @@ describe('performConversion — heavy pipeline', () => {
       execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
     }));
     const limitError = new MonthlyLimitError(
-      80,
+      100,
       100,
       3,
       '2026-07-01T00:00:00.000Z'
@@ -270,7 +341,7 @@ describe('performConversion — heavy pipeline', () => {
     const payload = JSON.parse(setJobFailedExecute.mock.calls[0][2] as string);
     expect(payload).toMatchObject({
       code: 'monthly_limit',
-      cards_used: 80,
+      cards_used: 100,
       limit: 100,
     });
     expect(track).toHaveBeenCalledWith(
@@ -278,7 +349,7 @@ describe('performConversion — heavy pipeline', () => {
       expect.objectContaining({
         props: expect.objectContaining({
           reason: 'monthly_limit',
-          cards_used: 80,
+          cards_used: 100,
           limit: 100,
         }),
       })
