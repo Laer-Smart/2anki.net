@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-23-ai-conversion-preference-sync",
+  "date": "2026-07-23",
+  "type": "fix",
+  "title": "AI conversion preference follows you across devices and browsers when signed in"
+}
