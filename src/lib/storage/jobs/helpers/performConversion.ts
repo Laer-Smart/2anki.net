@@ -299,7 +299,10 @@ export default async function performConversion(
       bl.droppedAssetCount,
       bl.guessedColumnMapping,
       cardLimitPartial,
-      bl.resolvedDatabasePath
+      bl.resolvedDatabasePath,
+      bl.unsupportedBlockTypeCounts
+        ? Object.fromEntries(bl.unsupportedBlockTypeCounts)
+        : undefined
     );
 
     void recordConversionTelemetry(database, {

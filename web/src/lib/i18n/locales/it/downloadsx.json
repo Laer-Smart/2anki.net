@@ -54,6 +54,10 @@
     "converted": "Convertiti i primi {{count}} blocchi. Il piano gratuito si ferma qui — <pricingLink>passa a un piano superiore per convertire l'intera pagina</pricingLink>.",
     "subDeckSkipped": "Le regole dei sottomazzi da interruttori, intestazioni e database si applicano ai piani a pagamento — questo mazzo è stato convertito senza di esse."
   },
+  "unsupportedBlocks": {
+    "text_one": "Non è stato possibile convertire {{count}} blocco di questa pagina ({{types}}).",
+    "text_other": "Non è stato possibile convertire {{count}} blocchi di questa pagina ({{types}})."
+  },
   "columnsGuessed": {
     "text": "Non siamo riusciti a capire quali colonne siano la domanda e la risposta, quindi questo mazzo usa <front>{{frontField}}</front> come fronte e <back>{{backField}}</back> come retro. Converti di nuovo il database per scegliere colonne diverse."
   },

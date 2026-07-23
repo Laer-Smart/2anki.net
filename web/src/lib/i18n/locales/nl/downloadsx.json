@@ -54,6 +54,10 @@
     "converted": "De eerste {{count}} blokken zijn geconverteerd. Het gratis abonnement stopt daar — <pricingLink>upgrade om de hele pagina te converteren</pricingLink>.",
     "subDeckSkipped": "Subpakketregels uit schakelaars, koppen en databases gelden bij betaalde abonnementen — dit pakket is zonder deze geconverteerd."
   },
+  "unsupportedBlocks": {
+    "text_one": "{{count}} blok op deze pagina kon niet worden geconverteerd ({{types}}).",
+    "text_other": "{{count}} blokken op deze pagina konden niet worden geconverteerd ({{types}})."
+  },
   "columnsGuessed": {
     "text": "We konden niet bepalen welke kolommen de vraag en het antwoord zijn, dus dit pakket gebruikt <front>{{frontField}}</front> als voorkant en <back>{{backField}}</back> als achterkant. Converteer de database opnieuw om andere kolommen te kiezen."
   },

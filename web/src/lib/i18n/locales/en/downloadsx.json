@@ -54,6 +54,10 @@
     "converted": "Converted the first {{count}} blocks. The free plan stops there — <pricingLink>upgrade to convert the whole page</pricingLink>.",
     "subDeckSkipped": "Sub-deck rules from toggles, headings, and databases apply on paid plans — this deck converted without them."
   },
+  "unsupportedBlocks": {
+    "text_one": "{{count}} block on this page couldn't be converted ({{types}}).",
+    "text_other": "{{count}} blocks on this page couldn't be converted ({{types}})."
+  },
   "columnsGuessed": {
     "text": "We couldn't tell which columns are the question and answer, so this deck uses <front>{{frontField}}</front> as the front and <back>{{backField}}</back> as the back. Convert the database again to pick different columns."
   },

@@ -66,6 +66,12 @@
     "converted": "Przekonwertowano pierwsze {{count}} bloków. Darmowy plan kończy się tutaj — <pricingLink>przejdź na wyższy plan, aby przekonwertować całą stronę</pricingLink>.",
     "subDeckSkipped": "Reguły podtalii z przełączników, nagłówków i baz danych obowiązują w planach płatnych — ta talia została przekonwertowana bez nich."
   },
+  "unsupportedBlocks": {
+    "text_one": "{{count}} blok na tej stronie nie mógł zostać przekonwertowany ({{types}}).",
+    "text_few": "{{count}} bloki na tej stronie nie mogły zostać przekonwertowane ({{types}}).",
+    "text_many": "{{count}} bloków na tej stronie nie mogło zostać przekonwertowanych ({{types}}).",
+    "text_other": "{{count}} bloków na tej stronie nie mogło zostać przekonwertowanych ({{types}})."
+  },
   "columnsGuessed": {
     "text": "Nie udało nam się ustalić, które kolumny to pytanie i odpowiedź, więc ta talia używa <front>{{frontField}}</front> jako przodu i <back>{{backField}}</back> jako tyłu. Przekonwertuj bazę danych ponownie, aby wybrać inne kolumny."
   },

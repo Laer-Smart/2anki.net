@@ -1,6 +1,7 @@
 export const NOTION_TRUNCATED_CODE = 'notion_truncated';
 export const NOTION_ASSETS_DROPPED_CODE = 'notion_assets_dropped';
 export const NOTION_COLUMNS_GUESSED_CODE = 'notion_columns_guessed';
+export const NOTION_UNSUPPORTED_BLOCKS_CODE = 'notion_unsupported_blocks';
 export const NOTION_DATABASE_RESOLVED_CODE = 'notion_database_resolved';
 export const MONTHLY_LIMIT_PARTIAL_CODE = 'monthly_limit_partial';
 
@@ -51,7 +52,8 @@ export function hasRuleBasedSubDecks(rules: { SUB_DECKS: string[] }): boolean {
 function pickSignalCode(
   truncation: ConversionTruncation | undefined,
   hasDroppedAssets: boolean,
-  guessedColumns: GuessedColumnMapping | undefined
+  guessedColumns: GuessedColumnMapping | undefined,
+  hasUnsupportedBlocks: boolean
 ): string {
   if (truncation != null) {
     return NOTION_TRUNCATED_CODE;
@@ -62,6 +64,9 @@ function pickSignalCode(
   if (guessedColumns != null) {
     return NOTION_COLUMNS_GUESSED_CODE;
   }
+  if (hasUnsupportedBlocks) {
+    return NOTION_UNSUPPORTED_BLOCKS_CODE;
+  }
   return NOTION_DATABASE_RESOLVED_CODE;
 }
 
@@ -69,14 +74,17 @@ export function buildNotionConversionSignalPayload(
   truncation: ConversionTruncation | undefined,
   droppedAssetCount: number,
   guessedColumns?: GuessedColumnMapping,
-  resolvedDatabasePath?: ResolvedDatabasePath
+  resolvedDatabasePath?: ResolvedDatabasePath,
+  unsupportedBlocks?: Record<string, number>
 ): string | undefined {
   const hasDroppedAssets = droppedAssetCount > 0;
+  const hasUnsupportedBlocks = Object.keys(unsupportedBlocks ?? {}).length > 0;
   if (
     truncation == null &&
     !hasDroppedAssets &&
     guessedColumns == null &&
-    resolvedDatabasePath == null
+    resolvedDatabasePath == null &&
+    !hasUnsupportedBlocks
   ) {
     return undefined;
   }
@@ -89,8 +97,14 @@ export function buildNotionConversionSignalPayload(
     front_field?: string;
     back_field?: string;
     via_page_link_selfheal?: boolean;
+    unsupported_blocks?: Record<string, number>;
   } = {
-    code: pickSignalCode(truncation, hasDroppedAssets, guessedColumns),
+    code: pickSignalCode(
+      truncation,
+      hasDroppedAssets,
+      guessedColumns,
+      hasUnsupportedBlocks
+    ),
   };
 
   if (truncation != null) {
@@ -109,6 +123,10 @@ export function buildNotionConversionSignalPayload(
 
   if (resolvedDatabasePath != null) {
     payload.via_page_link_selfheal = resolvedDatabasePath.viaPageLinkSelfHeal;
+  }
+
+  if (hasUnsupportedBlocks) {
+    payload.unsupported_blocks = unsupportedBlocks;
   }
 
   return JSON.stringify(payload);

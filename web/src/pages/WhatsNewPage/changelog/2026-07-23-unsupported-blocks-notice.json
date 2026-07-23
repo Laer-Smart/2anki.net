@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-23-unsupported-blocks-notice",
+  "date": "2026-07-23",
+  "type": "feature",
+  "title": "Downloads now flags Notion blocks that couldn't be converted, with the block type and count"
+}

@@ -54,6 +54,10 @@
     "converted": "Se convirtieron los primeros {{count}} bloques. El plan gratuito se detiene ahí — <pricingLink>mejora tu plan para convertir toda la página</pricingLink>.",
     "subDeckSkipped": "Las reglas de submazos de alternadores, encabezados y bases de datos se aplican en los planes de pago — este mazo se convirtió sin ellas."
   },
+  "unsupportedBlocks": {
+    "text_one": "No se pudo convertir {{count}} bloque de esta página ({{types}}).",
+    "text_other": "No se pudieron convertir {{count}} bloques de esta página ({{types}})."
+  },
   "columnsGuessed": {
     "text": "No pudimos saber qué columnas son la pregunta y la respuesta, así que este mazo usa <front>{{frontField}}</front> como anverso y <back>{{backField}}</back> como reverso. Convierte la base de datos de nuevo para elegir otras columnas."
   },

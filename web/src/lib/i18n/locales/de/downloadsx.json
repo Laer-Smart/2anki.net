@@ -54,6 +54,10 @@
     "converted": "Die ersten {{count}} Blöcke konvertiert. Der kostenlose Tarif endet dort — <pricingLink>upgrade, um die ganze Seite zu konvertieren</pricingLink>.",
     "subDeckSkipped": "Unterstapel-Regeln aus Umschaltern, Überschriften und Datenbanken gelten in kostenpflichtigen Tarifen — dieser Stapel wurde ohne sie konvertiert."
   },
+  "unsupportedBlocks": {
+    "text_one": "{{count}} Block auf dieser Seite konnte nicht konvertiert werden ({{types}}).",
+    "text_other": "{{count}} Blöcke auf dieser Seite konnten nicht konvertiert werden ({{types}})."
+  },
   "columnsGuessed": {
     "text": "Wir konnten nicht erkennen, welche Spalten Frage und Antwort sind, daher verwendet dieser Stapel <front>{{frontField}}</front> als Vorderseite und <back>{{backField}}</back> als Rückseite. Konvertiere die Datenbank erneut, um andere Spalten zu wählen."
   },

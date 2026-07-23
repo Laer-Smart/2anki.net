@@ -52,6 +52,8 @@ import { ProducerPrompt } from './components/ProducerPrompt';
 import { parseDroppedAssetsPayload } from './helpers/parseDroppedAssetsPayload';
 import { ColumnsGuessedNotice } from './components/ColumnsGuessedNotice';
 import { parseColumnsGuessedPayload } from './helpers/parseColumnsGuessedPayload';
+import { UnsupportedBlocksNotice } from './components/UnsupportedBlocksNotice';
+import { parseUnsupportedBlocksPayload } from './helpers/parseUnsupportedBlocksPayload';
 import { parseMonthlyLimitPayload } from './components/ConversionResult/parseMonthlyLimitPayload';
 import { MonthlyLimitPartialNotice } from './components/MonthlyLimitPartialNotice';
 import { parseMonthlyLimitPartialPayload } from './helpers/parseMonthlyLimitPartialPayload';
@@ -591,6 +593,8 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                           const guessedColumns = parseColumnsGuessedPayload(
                             row.job
                           );
+                          const unsupportedBlocks =
+                            parseUnsupportedBlocksPayload(row.job);
                           const cardLimitPartial =
                             parseMonthlyLimitPartialPayload(row.job);
                           const isMonthlyLimitRow =
@@ -885,6 +889,22 @@ export function DownloadsPage({ setError }: Readonly<DownloadsPageProps>) {
                                       <ColumnsGuessedNotice
                                         frontField={guessedColumns.frontField}
                                         backField={guessedColumns.backField}
+                                      />
+                                    </td>
+                                  </tr>
+                                )}
+                              {!isFailed &&
+                                isExpanded &&
+                                unsupportedBlocks != null && (
+                                  <tr
+                                    key={`job-${row.job.id}-unsupportedblocks`}
+                                  >
+                                    <td
+                                      colSpan={4}
+                                      className={styles.failurePanel}
+                                    >
+                                      <UnsupportedBlocksNotice
+                                        counts={unsupportedBlocks}
                                       />
                                     </td>
                                   </tr>
