@@ -51,3 +51,39 @@ test('converts a Notion inline equation in a card summary to Anki inline math', 
   expect(front).toContain('\\(E = mc^2\\)');
   expect(front).not.toContain('katex');
 });
+
+// Real Notion HTML export (2026-07-23): no katex-mathml/annotation at all,
+// just katex-html plus data-notion-equation(-inline)? carrying the raw LaTeX,
+// and a <style>@import…katex-swap.min.css</style> inside figure.equation.
+test('converts a real Notion export block equation without leaking the katex-swap CSS import', () => {
+  const html = `<html><head><title>Math equations</title></head>
+<body><article class="page"><h1 class="page-title">Math equations</h1><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>This is a math equation (block equation)</summary>
+<div class="indented"><figure class="equation" data-notion-equation="E = mc^2" dir="auto"><style>@import url('https://cdn.jsdelivr.net/npm/katex@0.16.25/dist/katex-swap.min.css')</style><div class="equation-container"><span class="katex-display"><span class="katex"><span class="katex-html" aria-hidden="true">E=mc2</span></span></span></div></figure></div>
+</details></li></ul>
+</div></article></body></html>`;
+
+  const parser = parse(html);
+  const back = parser.payload[0].cards[0].back;
+
+  expect(back).toContain('\\[E = mc^2\\]');
+  expect(back).not.toContain('@import');
+  expect(back).not.toContain('katex');
+});
+
+test('converts a real Notion export inline equation (no annotation present)', () => {
+  const html = `<html><head><title>Math equations</title></head>
+<body><article class="page"><h1 class="page-title">Math equations</h1><div class="page-body">
+<ul class="toggle"><li><details open=""><summary>This a math inline equation</summary>
+<div class="indented"><p><span data-notion-inline-equation=" \\Delta D_P = \\sqrt{(\\Delta x)^2 + (\\Delta y)^2}" class="notion-text-equation-token" contenteditable="false"><span class="katex"><span class="katex-html" aria-hidden="true">&#916;DP=(&#916;x)2+(&#916;y)2</span></span></span></p></div>
+</details></li></ul>
+</div></article></body></html>`;
+
+  const parser = parse(html);
+  const back = parser.payload[0].cards[0].back;
+
+  expect(back).toContain(
+    '\\(\\Delta D_P = \\sqrt{(\\Delta x)^2 + (\\Delta y)^2}\\)'
+  );
+  expect(back).not.toContain('notion-text-equation-token');
+});
