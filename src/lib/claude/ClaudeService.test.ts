@@ -1,4 +1,5 @@
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {
   looksLikeEmptyContentExplanation,
@@ -26,6 +27,7 @@ const FAKE_DECK_JSON = JSON.stringify([
 ]);
 
 const mockStreamFn = jest.fn();
+const mockCreateFn = jest.fn();
 const mockStream = {
   on: jest.fn().mockReturnThis(),
   finalMessage: jest.fn(),
@@ -34,7 +36,7 @@ const mockStream = {
 jest.mock('@anthropic-ai/sdk', () => ({
   __esModule: true,
   default: jest.fn().mockImplementation(() => ({
-    messages: { stream: mockStreamFn },
+    messages: { stream: mockStreamFn, create: mockCreateFn },
   })),
 }));
 
@@ -662,6 +664,55 @@ describe('generateDeckInfo — image-only input', () => {
     const result = await generateDeckInfo(textHtml, []);
     expect(result.length).toBeGreaterThan(0);
     expect(mockStreamFn).toHaveBeenCalled();
+  });
+});
+
+describe('generateDeckInfo — PDF image fallback', () => {
+  let baseDir: string;
+  const fallbackHtml =
+    '<html><body><details><summary><img src="page-1.png"/></summary></details></body></html>';
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockStreamFn.mockReturnValue(mockStream);
+    mockStream.on.mockReturnThis();
+    mockStream.finalMessage.mockResolvedValue(fakeResponse());
+    baseDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gdi-pdfimg-'));
+    fs.writeFileSync(path.join(baseDir, 'page-1.png'), Buffer.from('pngbytes'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(baseDir, { recursive: true, force: true });
+  });
+
+  it('routes page images to Claude vision instead of throwing ImageOnlyContentError', async () => {
+    mockCreateFn.mockResolvedValue({
+      content: [{ type: 'text', text: FAKE_DECK_JSON }],
+      stop_reason: 'end_turn',
+      usage: { input_tokens: 1, output_tokens: 1 },
+    });
+
+    const result = await generateDeckInfo(
+      fallbackHtml,
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      { pdfImageFallback: { mediaBaseDir: baseDir } }
+    );
+
+    expect(result.length).toBeGreaterThan(0);
+    expect(mockCreateFn).toHaveBeenCalled();
+    expect(mockStreamFn).not.toHaveBeenCalled();
+  });
+
+  it('still rejects a genuine image-only upload when no fallback flag is set', async () => {
+    await expect(generateDeckInfo(fallbackHtml, [])).rejects.toBeInstanceOf(
+      ImageOnlyContentError
+    );
+    expect(mockCreateFn).not.toHaveBeenCalled();
   });
 });
 

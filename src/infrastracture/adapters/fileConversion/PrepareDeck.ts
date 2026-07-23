@@ -82,7 +82,7 @@ interface PrepareDeckResult {
 async function convertFile(
   file: DeckParserInput['files'][number],
   input: DeckParserInput
-) {
+): Promise<ConvertedFile | null> {
   if (!file.contents) return null;
 
   console.info('[PrepareDeck] convertFile start', {
@@ -172,7 +172,7 @@ async function convertFile(
       file.contents as Buffer,
       input.workspace
     );
-    const result = {
+    const result: ConvertedFile = {
       name: `${file.name}.html`,
       contents: Buffer.from(
         await convertPDFToImages({
@@ -183,6 +183,7 @@ async function convertFile(
           settings: input.settings,
         })
       ),
+      imageFallback: true,
     };
     console.log('[PrepareDeck] convertFile ppt→pdf→images', {
       file: file.name,
@@ -204,10 +205,16 @@ async function convertFile(
   return null;
 }
 
+interface ConvertedFile {
+  name: string;
+  contents: Buffer | string;
+  imageFallback?: boolean;
+}
+
 async function convertPdfPagesToImagesFile(
   file: DeckParserInput['files'][number],
   input: DeckParserInput
-) {
+): Promise<ConvertedFile> {
   return {
     name: `${file.name}.html`,
     contents: Buffer.from(
@@ -219,6 +226,7 @@ async function convertPdfPagesToImagesFile(
         settings: input.settings,
       })
     ),
+    imageFallback: true,
   };
 }
 
@@ -383,6 +391,10 @@ export async function PrepareDeck(
     durationMs: Date.now() - tConvert,
   });
 
+  const pdfImageFallbackNames = new Set(
+    convertedFiles.filter((f) => f.imageFallback).map((f) => f.name)
+  );
+
   const allFiles = [...files, ...convertedFiles];
 
   if (input.settings.claudeAIFlashcards && input.noLimits) {
@@ -421,7 +433,7 @@ export async function PrepareDeck(
       hasFieldMapping: fieldMapping != null,
     });
     const tClaude = Date.now();
-    const generateDeckInfoOptions = {
+    const baseGenerateDeckInfoOptions = {
       isPaying: input.noLimits,
       userId: input.userId ?? null,
       comprehensive: input.settings.aiComprehensive,
@@ -438,7 +450,12 @@ export async function PrepareDeck(
           cardStyle,
           input.settings.cardSize,
           fieldMapping,
-          generateDeckInfoOptions
+          pdfImageFallbackNames.has(f.name)
+            ? {
+                ...baseGenerateDeckInfoOptions,
+                pdfImageFallback: { mediaBaseDir: input.workspace.location },
+              }
+            : baseGenerateDeckInfoOptions
         )
     );
     const deckInfo = deckInfoArrays.flatMap((decks, i) => {
