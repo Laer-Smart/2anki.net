@@ -286,7 +286,7 @@ export function rewriteAudioAnchors(back: string): AudioRewriteResult {
   return { back: stripped + tokens, audioFilenames };
 }
 
-function expandCompactDeckInfo(
+export function expandCompactDeckInfo(
   compact: CompactDeck[],
   availableMediaFiles: string[],
   style: string | null
@@ -411,7 +411,7 @@ export function dedupeCardsByFront(decks: DeckInfo[]): DeckInfo[] {
   });
 }
 
-function mergeDeckInfoArrays(decks: DeckInfo[]): DeckInfo[] {
+export function mergeDeckInfoArrays(decks: DeckInfo[]): DeckInfo[] {
   const byName = new Map<string, DeckInfo>();
   for (const deck of decks) {
     const existing = byName.get(deck.name);
@@ -840,10 +840,15 @@ const FLOOR_V1_OUTPUT_TOKEN_PRICE_PER_MILLION = 15;
 const FLOOR_V1_CACHE_READ_DISCOUNT = 0.1;
 const FLOOR_V1_CACHE_WRITE_PREMIUM = 1.25;
 
+export interface PdfImageFallbackContext {
+  mediaBaseDir: string;
+}
+
 export interface GenerateDeckInfoOptions {
   isPaying?: boolean;
   userId?: number | null;
   comprehensive?: boolean;
+  pdfImageFallback?: PdfImageFallbackContext;
 }
 
 interface ChunkUsage {
@@ -1013,6 +1018,19 @@ export async function generateDeckInfo(
   options?: GenerateDeckInfoOptions
 ): Promise<DeckInfo[]> {
   const t0 = Date.now();
+
+  if (options?.pdfImageFallback) {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const {
+      generateDeckInfoFromPdfImages,
+    } = require('./generateDeckInfoFromPdfImages');
+    return generateDeckInfoFromPdfImages(
+      htmlContent,
+      options.pdfImageFallback,
+      userInstructions,
+      onProgress
+    );
+  }
 
   if (isImageOnlyContent(htmlContent)) {
     console.info('[Claude] Skipping conversion: image-only input', {

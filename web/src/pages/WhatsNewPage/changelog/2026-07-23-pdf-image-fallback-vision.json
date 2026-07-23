@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-23-pdf-image-fallback-vision",
+  "date": "2026-07-23",
+  "type": "fix",
+  "title": "Scanned PDFs whose text can't be extracted convert with Claude instead of being rejected as images only"
+}
