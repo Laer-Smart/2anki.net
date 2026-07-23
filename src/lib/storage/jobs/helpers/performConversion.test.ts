@@ -290,6 +290,7 @@ describe('performConversion — heavy pipeline', () => {
         limit: 100,
         resetOn: '2026-07-01T00:00:00.000Z',
       },
+      undefined,
       undefined
     );
     expect(track).toHaveBeenCalledWith(
@@ -732,6 +733,43 @@ describe('performConversion — workspace cleanup', () => {
         props: expect.objectContaining({ source: 'notion' }),
       })
     );
+  });
+
+  it('forwards the unsupported-block type counts to completeJob as a plain object', async () => {
+    (CreateJobWorkSpaceUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue({
+        ws: {},
+        exporter: {},
+        settings: {},
+        bl: {
+          unsupportedBlockTypes: ['child_database', 'child_database'],
+          unsupportedBlockTypeCounts: new Map([['child_database', 2]]),
+        },
+        rules: {},
+      }),
+    }));
+    (CreateFlashcardsForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue([{ cards: [1, 2, 3] }]),
+    }));
+    (CheckMonthlyCardLimitUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    (BuildDeckForJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest
+        .fn()
+        .mockResolvedValue({ size: 1, key: 'k', apkg: Buffer.from('') }),
+    }));
+    (NotifyUserUseCase as jest.Mock).mockImplementation(() => ({
+      execute: jest.fn().mockResolvedValue(undefined),
+    }));
+    const completeJobExecute = jest.fn().mockResolvedValue(undefined);
+    (CompleteJobUseCase as jest.Mock).mockImplementation(() => ({
+      execute: completeJobExecute,
+    }));
+
+    await performConversion(mockDatabase, baseRequest);
+
+    expect(completeJobExecute.mock.calls[0][8]).toEqual({ child_database: 2 });
   });
 
   it('waits for the unsupported-block write before starting the output-stats write', async () => {

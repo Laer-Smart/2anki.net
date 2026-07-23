@@ -128,6 +128,76 @@ describe('buildNotionConversionSignalPayload', () => {
     });
   });
 
+  it('serializes an unsupported-blocks-only payload', () => {
+    const payload = buildNotionConversionSignalPayload(
+      undefined,
+      0,
+      undefined,
+      undefined,
+      {
+        child_database: 2,
+        synced_block: 1,
+      }
+    );
+    expect(JSON.parse(payload as string)).toEqual({
+      code: 'notion_unsupported_blocks',
+      unsupported_blocks: { child_database: 2, synced_block: 1 },
+    });
+  });
+
+  it('returns undefined for an empty unsupported-blocks map', () => {
+    expect(
+      buildNotionConversionSignalPayload(undefined, 0, undefined, undefined, {})
+    ).toBeUndefined();
+  });
+
+  it('adds unsupported_blocks onto a truncation payload rather than competing with it', () => {
+    const payload = buildNotionConversionSignalPayload(
+      { blocksConverted: 100, subDeckRulesSkipped: false },
+      0,
+      undefined,
+      undefined,
+      { child_database: 1 }
+    );
+    expect(JSON.parse(payload as string)).toEqual({
+      code: 'notion_truncated',
+      blocks_converted: 100,
+      sub_deck_rules_skipped: false,
+      unsupported_blocks: { child_database: 1 },
+    });
+  });
+
+  it('adds unsupported_blocks onto a dropped-assets payload rather than competing with it', () => {
+    const payload = buildNotionConversionSignalPayload(
+      undefined,
+      3,
+      undefined,
+      undefined,
+      { synced_block: 2 }
+    );
+    expect(JSON.parse(payload as string)).toEqual({
+      code: 'notion_assets_dropped',
+      dropped_assets: 3,
+      unsupported_blocks: { synced_block: 2 },
+    });
+  });
+
+  it('adds unsupported_blocks onto a guessed-columns payload rather than competing with it', () => {
+    const payload = buildNotionConversionSignalPayload(
+      undefined,
+      0,
+      { frontField: 'Notes', backField: 'Tags' },
+      undefined,
+      { child_database: 1 }
+    );
+    expect(JSON.parse(payload as string)).toEqual({
+      code: 'notion_columns_guessed',
+      front_field: 'Notes',
+      back_field: 'Tags',
+      unsupported_blocks: { child_database: 1 },
+    });
+  });
+
   it('does not collide with the apkg_import done payload shape', () => {
     const parsed = JSON.parse(
       buildNotionConversionSignalPayload(

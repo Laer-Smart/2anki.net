@@ -54,6 +54,10 @@
     "converted": "Os primeiros {{count}} blocos foram convertidos. O plano gratuito para por aí — <pricingLink>faça upgrade para converter a página inteira</pricingLink>.",
     "subDeckSkipped": "As regras de subbaralhos de alternadores, títulos e bancos de dados se aplicam nos planos pagos — este baralho foi convertido sem elas."
   },
+  "unsupportedBlocks": {
+    "text_one": "Não foi possível converter {{count}} bloco desta página ({{types}}).",
+    "text_other": "Não foi possível converter {{count}} blocos desta página ({{types}})."
+  },
   "columnsGuessed": {
     "text": "Não conseguimos identificar quais colunas são a pergunta e a resposta, então este baralho usa <front>{{frontField}}</front> como frente e <back>{{backField}}</back> como verso. Converta o banco de dados novamente para escolher outras colunas."
   },

@@ -48,6 +48,9 @@
     "converted": "最初の {{count}} ブロックを変換しました。無料プランはここまでです — <pricingLink>アップグレードしてページ全体を変換</pricingLink>。",
     "subDeckSkipped": "トグル、見出し、データベースによるサブデッキのルールは有料プランで適用されます — このデッキはそれらなしで変換されました。"
   },
+  "unsupportedBlocks": {
+    "text_other": "このページの {{count}} 個のブロックを変換できませんでした（{{types}}）。"
+  },
   "columnsGuessed": {
     "text": "どの列が問題と解答かを判別できなかったため、このデッキは <front>{{frontField}}</front> を表、<back>{{backField}}</back> を裏として使用します。データベースを再度変換して別の列を選んでください。"
   },

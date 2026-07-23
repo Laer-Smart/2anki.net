@@ -288,6 +288,38 @@ describe('CompleteJobUseCase', () => {
     });
   });
 
+  it('persists an unsupported-blocks signal payload when block types were skipped', async () => {
+    const jobRepository = {
+      findJobById: jest.fn().mockResolvedValue({
+        id: 1,
+        object_id: 'page-1',
+        owner: 'user-a',
+        status: 'started',
+      }),
+      updateJobStatus: jest.fn().mockResolvedValue({ status: 'done' }),
+    } as unknown as JobRepository;
+
+    const useCase = new CompleteJobUseCase(jobRepository);
+    await useCase.execute(
+      'page-1',
+      'user-a',
+      12,
+      undefined,
+      0,
+      undefined,
+      undefined,
+      undefined,
+      { child_database: 2 }
+    );
+
+    const payload = (jobRepository.updateJobStatus as jest.Mock).mock
+      .calls[0][3];
+    expect(JSON.parse(payload)).toEqual({
+      code: 'notion_unsupported_blocks',
+      unsupported_blocks: { child_database: 2 },
+    });
+  });
+
   it('throws when the job does not exist', async () => {
     const jobRepository = {
       findJobById: jest.fn().mockResolvedValue(null),

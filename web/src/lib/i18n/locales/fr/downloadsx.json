@@ -54,6 +54,10 @@
     "converted": "Les {{count}} premiers blocs ont été convertis. Le forfait gratuit s'arrête là — <pricingLink>passez à un forfait supérieur pour convertir toute la page</pricingLink>.",
     "subDeckSkipped": "Les règles de sous-paquets issues des bascules, titres et bases de données s'appliquent aux forfaits payants — ce paquet a été converti sans elles."
   },
+  "unsupportedBlocks": {
+    "text_one": "{{count}} bloc de cette page n'a pas pu être converti ({{types}}).",
+    "text_other": "{{count}} blocs de cette page n'ont pas pu être convertis ({{types}})."
+  },
   "columnsGuessed": {
     "text": "Nous n'avons pas pu déterminer quelles colonnes sont la question et la réponse, donc ce paquet utilise <front>{{frontField}}</front> comme recto et <back>{{backField}}</back> comme verso. Convertissez à nouveau la base de données pour choisir d'autres colonnes."
   },
