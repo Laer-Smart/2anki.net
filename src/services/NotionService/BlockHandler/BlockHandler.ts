@@ -41,6 +41,7 @@ import {
   buildHeadingTagMap,
   HeadingContext,
 } from './helpers/buildHeadingTagMap';
+import { guessCardsFromBlocks } from './helpers/guessCardsFromBlocks';
 import {
   ConversionTruncation,
   hasRuleBasedSubDecks,
@@ -764,6 +765,9 @@ class BlockHandler {
         if (typeof card.notionId === 'string') globalSeenIds.add(card.notionId);
         return true;
       });
+      if (cards.length === 0) {
+        cards = this.guessTogglelessCards(blocks);
+      }
       const deck = new Deck(
         currentDeckName,
         Deck.CleanCards(cards),
@@ -854,6 +858,20 @@ class BlockHandler {
       }
     }
     return decks;
+  }
+
+  private guessTogglelessCards(blocks: GetBlockResponse[]): Note[] {
+    const guessed = guessCardsFromBlocks(blocks);
+    guessed.forEach((note, index) => {
+      note.number = index;
+    });
+    this.cardCount += guessed.length;
+    this.emptyBackCount += countEmptyBacks(
+      guessed,
+      (c) => c.back,
+      (c) => c.name
+    );
+    return guessed;
   }
 
   private async buildDeckFromBlockChildren(

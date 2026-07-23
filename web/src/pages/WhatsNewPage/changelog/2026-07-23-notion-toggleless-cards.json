@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-23-notion-toggleless-cards",
+  "date": "2026-07-23",
+  "type": "fix",
+  "title": "Notion pages without toggles convert into cards from your headings and Q&A instead of an empty deck"
+}
