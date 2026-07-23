@@ -87,6 +87,47 @@ describe('buildNotionConversionSignalPayload', () => {
     });
   });
 
+  it('serializes a resolved-database-path-only payload for a clean database conversion', () => {
+    const payload = buildNotionConversionSignalPayload(
+      undefined,
+      0,
+      undefined,
+      { viaPageLinkSelfHeal: false }
+    );
+    expect(JSON.parse(payload as string)).toEqual({
+      code: 'notion_database_resolved',
+      via_page_link_selfheal: false,
+    });
+  });
+
+  it('flags the self-heal entry point on a clean database conversion', () => {
+    const payload = buildNotionConversionSignalPayload(
+      undefined,
+      0,
+      undefined,
+      { viaPageLinkSelfHeal: true }
+    );
+    expect(JSON.parse(payload as string)).toEqual({
+      code: 'notion_database_resolved',
+      via_page_link_selfheal: true,
+    });
+  });
+
+  it('adds via_page_link_selfheal onto the guessed-columns payload rather than competing with it', () => {
+    const payload = buildNotionConversionSignalPayload(
+      undefined,
+      0,
+      { frontField: 'Notes', backField: 'Tags' },
+      { viaPageLinkSelfHeal: true }
+    );
+    expect(JSON.parse(payload as string)).toEqual({
+      code: 'notion_columns_guessed',
+      front_field: 'Notes',
+      back_field: 'Tags',
+      via_page_link_selfheal: true,
+    });
+  });
+
   it('does not collide with the apkg_import done payload shape', () => {
     const parsed = JSON.parse(
       buildNotionConversionSignalPayload(

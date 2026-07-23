@@ -265,4 +265,56 @@ describe('BlockHandler.findFlashcardsFromDatabaseRows', () => {
       })
     ).rejects.toThrow(/Front or back column not found/);
   });
+
+  it('records resolvedDatabasePath with viaPageLinkSelfHeal=false on the deliberate database-picker entry point', async () => {
+    const api = makeApi({
+      rows: [
+        {
+          properties: {
+            Term: titleProp('aller'),
+            Definition: richTextProp('to go'),
+          },
+        },
+      ],
+    });
+    const bl = makeHandler(api);
+
+    await bl.findFlashcards({
+      parentType: 'notion-database',
+      topLevelId: 'db-1',
+      rules: new ParserRules(),
+      decks: [],
+      parentName: '',
+    });
+
+    expect(bl.resolvedDatabasePath).toEqual({ viaPageLinkSelfHeal: false });
+  });
+
+  it('records resolvedDatabasePath with viaPageLinkSelfHeal=true when a page link self-heals into the database path', async () => {
+    const api = makeApi({
+      rows: [
+        {
+          properties: {
+            Term: titleProp('aller'),
+            Definition: richTextProp('to go'),
+          },
+        },
+      ],
+    });
+    const bl = makeHandler(api);
+    jest.spyOn(bl, 'findFlashcardsFromPage').mockRejectedValue({
+      code: 'validation_error',
+      message: 'db-1 is a database, not a page',
+    });
+
+    await bl.findFlashcards({
+      parentType: 'page',
+      topLevelId: 'db-1',
+      rules: new ParserRules(),
+      decks: [],
+      parentName: '',
+    });
+
+    expect(bl.resolvedDatabasePath).toEqual({ viaPageLinkSelfHeal: true });
+  });
 });

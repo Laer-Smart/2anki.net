@@ -257,6 +257,37 @@ describe('CompleteJobUseCase', () => {
     });
   });
 
+  it('persists a resolved-database-path signal payload when no other signal fires', async () => {
+    const jobRepository = {
+      findJobById: jest.fn().mockResolvedValue({
+        id: 1,
+        object_id: 'page-1',
+        owner: 'user-a',
+        status: 'started',
+      }),
+      updateJobStatus: jest.fn().mockResolvedValue({ status: 'done' }),
+    } as unknown as JobRepository;
+
+    const useCase = new CompleteJobUseCase(jobRepository);
+    await useCase.execute(
+      'page-1',
+      'user-a',
+      12,
+      undefined,
+      0,
+      undefined,
+      undefined,
+      { viaPageLinkSelfHeal: true }
+    );
+
+    const payload = (jobRepository.updateJobStatus as jest.Mock).mock
+      .calls[0][3];
+    expect(JSON.parse(payload)).toEqual({
+      code: 'notion_database_resolved',
+      via_page_link_selfheal: true,
+    });
+  });
+
   it('throws when the job does not exist', async () => {
     const jobRepository = {
       findJobById: jest.fn().mockResolvedValue(null),

@@ -298,7 +298,8 @@ export default async function performConversion(
       bl.truncation,
       bl.droppedAssetCount,
       bl.guessedColumnMapping,
-      cardLimitPartial
+      cardLimitPartial,
+      bl.resolvedDatabasePath
     );
 
     void recordConversionTelemetry(database, {
