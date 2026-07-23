@@ -13,6 +13,8 @@ import {
   describeRepairFailure,
   generateDeckInfo,
   ClaudeParseError,
+  ClaudeLargeSectionError,
+  LARGE_SECTION_USER_MESSAGE,
   ImageOnlyContentError,
   IMAGE_ONLY_USER_MESSAGE,
   isImageOnlyContent,
@@ -105,16 +107,16 @@ describe('parseDeckResponse', () => {
     expect(parseDeckResponse(cleaned, cleaned, 0)).toEqual([]);
   });
 
-  it('throws ClaudeParseError for truncated/invalid JSON', () => {
+  it('throws ClaudeLargeSectionError for truncated/invalid JSON', () => {
     const cleaned = '[{"deck":"Bio","cards":[{"q":"What is';
     expect(() => parseDeckResponse(cleaned, cleaned, 0)).toThrow(
-      ClaudeParseError
+      ClaudeLargeSectionError
     );
   });
 
-  it('throws ClaudeParseError when there is no ] at all', () => {
+  it('throws ClaudeLargeSectionError when there is no ] at all', () => {
     expect(() => parseDeckResponse('not json', 'not json', 0)).toThrow(
-      ClaudeParseError
+      ClaudeLargeSectionError
     );
   });
 
@@ -132,11 +134,32 @@ describe('parseDeckResponse', () => {
     expect(parsed[0].cards[0].a).toContain('kaputt macht');
   });
 
-  it('still throws ClaudeParseError when jsonrepair cannot recover the response', () => {
+  it('throws the actionable large-section error when a repaired chunk yields no usable card', () => {
     const unrepairable = '[{"deck":"X","cards":[{"q":"a","a"';
+    expect(describeRepairFailure(unrepairable)).toBe('no-usable-card');
     expect(() => parseDeckResponse(unrepairable, unrepairable, 0)).toThrow(
-      ClaudeParseError
+      ClaudeLargeSectionError
     );
+  });
+
+  it('gives a large multi-chunk response that jsonrepair throws on its own actionable message, not claude_parse_failed', () => {
+    const cards = Array.from(
+      { length: 60 },
+      (_, i) =>
+        `{"q":"Synthetic question number ${i}","a":"Synthetic answer number ${i}"}`
+    ).join(',');
+    const bigChunk = `[{"deck":"Chapter","cards":[${cards}]}] } } { ]`;
+    expect(describeRepairFailure(bigChunk)).toBe('jsonrepair-threw');
+    expect(looksLikeEmptyContentExplanation(bigChunk)).toBe(false);
+    let caught: unknown;
+    try {
+      parseDeckResponse(bigChunk, bigChunk, 2);
+    } catch (e) {
+      caught = e;
+    }
+    expect(caught).toBeInstanceOf(ClaudeLargeSectionError);
+    expect((caught as Error).message).toBe(LARGE_SECTION_USER_MESSAGE);
+    expect((caught as Error).message).not.toBe('claude_parse_failed');
   });
 
   it.each([
@@ -291,13 +314,31 @@ describe('parseDeckResponse', () => {
     expect(parsed[0].cards[0].a).toBe('Run `ls -la` to see all files');
   });
 
-  it('throws ClaudeParseError with message "claude_parse_failed" when unrecoverable', () => {
+  it('throws the actionable large-section error when a chunk cannot be parsed or repaired', () => {
     const errorSpy = jest
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
     try {
       expect(() =>
         parseDeckResponse('no json here at all', 'no json here at all', 0)
+      ).toThrow(
+        expect.objectContaining({
+          message: LARGE_SECTION_USER_MESSAGE,
+          name: 'ClaudeLargeSectionError',
+        })
+      );
+    } finally {
+      errorSpy.mockRestore();
+    }
+  });
+
+  it('throws ClaudeParseError with message "claude_parse_failed" for valid JSON that is not a deck array', () => {
+    const errorSpy = jest
+      .spyOn(console, 'error')
+      .mockImplementation(() => undefined);
+    try {
+      expect(() =>
+        parseDeckResponse('{"not":"an array"}', '{"not":"an array"}', 0)
       ).toThrow(
         expect.objectContaining({
           message: 'claude_parse_failed',
@@ -309,7 +350,7 @@ describe('parseDeckResponse', () => {
     }
   });
 
-  it('thrown ClaudeParseError message does not contain any substring of the input payload', () => {
+  it('thrown error message does not contain any substring of the input payload', () => {
     const payload =
       '[{"deck":"Secret","cards":[{"q":"sensitive question","a":"sensitive answer"}';
     const errorSpy = jest
@@ -539,6 +580,17 @@ describe('EMPTY_CONTENT_USER_MESSAGE', () => {
     expect(EMPTY_CONTENT_USER_MESSAGE.toLowerCase()).toMatch(
       /empty|layout element/
     );
+  });
+});
+
+describe('LARGE_SECTION_USER_MESSAGE', () => {
+  it('tells the user what happened and what to do next, without jargon', () => {
+    expect(LARGE_SECTION_USER_MESSAGE.toLowerCase()).toContain('smaller');
+    expect(LARGE_SECTION_USER_MESSAGE.toLowerCase()).toContain('split');
+    expect(LARGE_SECTION_USER_MESSAGE.toLowerCase()).not.toMatch(
+      /json|jsonrepair|parse|token|chunk/
+    );
+    expect(LARGE_SECTION_USER_MESSAGE).not.toBe('claude_parse_failed');
   });
 });
 
