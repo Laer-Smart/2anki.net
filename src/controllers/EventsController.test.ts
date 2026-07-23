@@ -273,6 +273,19 @@ describe('EventsController', () => {
       expect.objectContaining({ name: eventName, unknown: false })
     );
   });
+
+  it('accepts columns_guessed_notice_shown as known, not unknown', () => {
+    const { controller, req, res, executeSpy } = buildMocks({ userId: 1 });
+    req.body = { name: 'columns_guessed_notice_shown' };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+    expect(executeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'columns_guessed_notice_shown',
+        unknown: false,
+      })
+    );
+  });
 });
 
 describe('EventsController — regression: all client events return 202 (AC #5)', () => {
