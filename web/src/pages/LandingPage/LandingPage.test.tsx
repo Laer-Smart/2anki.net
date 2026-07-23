@@ -230,6 +230,28 @@ describe('LandingPage', () => {
     }
   });
 
+  it('links the Notion Integration Gallery badge to the public gallery listing', () => {
+    renderLandingPage(
+      <LandingPage copy={notionCopy} setErrorMessage={vi.fn()} />
+    );
+    const badgeLink = screen.getByRole('link', {
+      name: 'Notion Integration Gallery',
+    });
+    expect(badgeLink).toHaveAttribute(
+      'href',
+      'https://www.notion.com/connections/2anki'
+    );
+    expect(badgeLink).toHaveAttribute('target', '_blank');
+    expect(badgeLink).toHaveAttribute('rel', 'noopener noreferrer');
+  });
+
+  it('omits the gallery badge when the copy has no galleryBadge flag', () => {
+    renderLandingPage(<LandingPage copy={pdfCopy} setErrorMessage={vi.fn()} />);
+    expect(
+      screen.queryByRole('link', { name: 'Notion Integration Gallery' })
+    ).not.toBeInTheDocument();
+  });
+
   it('omits the Related nav when the copy has no relatedLinks', () => {
     const copyWithoutRelated = { ...notionCopy, relatedLinks: undefined };
     renderLandingPage(

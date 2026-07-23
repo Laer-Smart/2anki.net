@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from 'react';
 import { Helmet } from 'react-helmet-async';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
 import UploadForm from '../UploadPage/components/UploadForm/UploadForm';
 import { ErrorHandlerType } from '../../components/errors/helpers/getErrorMessage';
@@ -146,6 +146,24 @@ function LandingPage({
           <p className={styles.heroSubhead}>
             {t(`pages.${pageKey}.subhead`, { defaultValue: copy.subhead })}
           </p>
+          {copy.galleryBadge === true && (
+            <p className={styles.secondaryLink}>
+              <Trans
+                t={t}
+                i18nKey="badges.notionGallery"
+                defaults="Listed in the <galleryLink>Notion Integration Gallery</galleryLink>."
+                components={{
+                  galleryLink: (
+                    <a
+                      href="https://www.notion.com/connections/2anki"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    />
+                  ),
+                }}
+              />
+            </p>
+          )}
           {renderHeroAction({
             heroSlot,
             ctaHref: copy.ctaHref,

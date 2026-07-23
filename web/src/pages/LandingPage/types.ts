@@ -24,4 +24,5 @@ export interface LandingCopy {
   ctaHref?: string;
   whatComesAcross?: WhatComesAcrossItem[];
   relatedLinks?: ReadonlyArray<RelatedLink>;
+  galleryBadge?: boolean;
 }
