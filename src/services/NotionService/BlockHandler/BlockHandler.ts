@@ -152,6 +152,8 @@ class BlockHandler {
 
   guessedColumnMapping?: { frontField: string; backField: string };
 
+  resolvedDatabasePath?: { viaPageLinkSelfHeal: boolean };
+
   droppedAssetCount = 0;
 
   emptyBackCount = 0;
@@ -570,7 +572,7 @@ class BlockHandler {
         return await this.findFlashcardsFromPage(locator);
       } catch (error) {
         if (isNotionDatabaseNotPageError(error)) {
-          return this.findFlashcardsFromDatabaseRows(locator);
+          return this.findFlashcardsFromDatabaseRows(locator, true);
         }
         throw error;
       }
@@ -586,7 +588,11 @@ class BlockHandler {
     return [];
   }
 
-  async findFlashcardsFromDatabaseRows(locator: Finder): Promise<Deck[]> {
+  async findFlashcardsFromDatabaseRows(
+    locator: Finder,
+    viaPageLinkSelfHeal = false
+  ): Promise<Deck[]> {
+    this.resolvedDatabasePath = { viaPageLinkSelfHeal };
     const { topLevelId, decks } = locator;
     const dbResult = await this.api.queryDatabase(topLevelId, true);
     const database = await this.api.getDatabase(topLevelId);

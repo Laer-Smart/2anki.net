@@ -289,7 +289,8 @@ describe('performConversion — heavy pipeline', () => {
         cardsHeldBack: 2,
         limit: 100,
         resetOn: '2026-07-01T00:00:00.000Z',
-      }
+      },
+      undefined
     );
     expect(track).toHaveBeenCalledWith(
       'paywall_shown',

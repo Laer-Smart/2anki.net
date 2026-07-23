@@ -1,6 +1,7 @@
 export const NOTION_TRUNCATED_CODE = 'notion_truncated';
 export const NOTION_ASSETS_DROPPED_CODE = 'notion_assets_dropped';
 export const NOTION_COLUMNS_GUESSED_CODE = 'notion_columns_guessed';
+export const NOTION_DATABASE_RESOLVED_CODE = 'notion_database_resolved';
 export const MONTHLY_LIMIT_PARTIAL_CODE = 'monthly_limit_partial';
 
 export interface MonthlyLimitPartial {
@@ -32,6 +33,10 @@ export interface GuessedColumnMapping {
   backField: string;
 }
 
+export interface ResolvedDatabasePath {
+  viaPageLinkSelfHeal: boolean;
+}
+
 export function isTruncatedBlockFetch(
   all: boolean,
   response: { has_more: boolean }
@@ -45,7 +50,8 @@ export function hasRuleBasedSubDecks(rules: { SUB_DECKS: string[] }): boolean {
 
 function pickSignalCode(
   truncation: ConversionTruncation | undefined,
-  hasDroppedAssets: boolean
+  hasDroppedAssets: boolean,
+  guessedColumns: GuessedColumnMapping | undefined
 ): string {
   if (truncation != null) {
     return NOTION_TRUNCATED_CODE;
@@ -53,16 +59,25 @@ function pickSignalCode(
   if (hasDroppedAssets) {
     return NOTION_ASSETS_DROPPED_CODE;
   }
-  return NOTION_COLUMNS_GUESSED_CODE;
+  if (guessedColumns != null) {
+    return NOTION_COLUMNS_GUESSED_CODE;
+  }
+  return NOTION_DATABASE_RESOLVED_CODE;
 }
 
 export function buildNotionConversionSignalPayload(
   truncation: ConversionTruncation | undefined,
   droppedAssetCount: number,
-  guessedColumns?: GuessedColumnMapping
+  guessedColumns?: GuessedColumnMapping,
+  resolvedDatabasePath?: ResolvedDatabasePath
 ): string | undefined {
   const hasDroppedAssets = droppedAssetCount > 0;
-  if (truncation == null && !hasDroppedAssets && guessedColumns == null) {
+  if (
+    truncation == null &&
+    !hasDroppedAssets &&
+    guessedColumns == null &&
+    resolvedDatabasePath == null
+  ) {
     return undefined;
   }
 
@@ -73,8 +88,9 @@ export function buildNotionConversionSignalPayload(
     dropped_assets?: number;
     front_field?: string;
     back_field?: string;
+    via_page_link_selfheal?: boolean;
   } = {
-    code: pickSignalCode(truncation, hasDroppedAssets),
+    code: pickSignalCode(truncation, hasDroppedAssets, guessedColumns),
   };
 
   if (truncation != null) {
@@ -89,6 +105,10 @@ export function buildNotionConversionSignalPayload(
   if (guessedColumns != null) {
     payload.front_field = guessedColumns.frontField;
     payload.back_field = guessedColumns.backField;
+  }
+
+  if (resolvedDatabasePath != null) {
+    payload.via_page_link_selfheal = resolvedDatabasePath.viaPageLinkSelfHeal;
   }
 
   return JSON.stringify(payload);

@@ -7,6 +7,7 @@ import {
   ConversionTruncation,
   GuessedColumnMapping,
   MonthlyLimitPartial,
+  ResolvedDatabasePath,
 } from '../../services/NotionService/helpers/conversionTruncation';
 
 export class CompleteJobUseCase {
@@ -22,7 +23,8 @@ export class CompleteJobUseCase {
     truncation?: ConversionTruncation,
     droppedAssetCount = 0,
     guessedColumns?: GuessedColumnMapping,
-    monthlyLimitPartial?: MonthlyLimitPartial
+    monthlyLimitPartial?: MonthlyLimitPartial,
+    resolvedDatabasePath?: ResolvedDatabasePath
   ): Promise<Jobs> {
     const job = await this.jobRepository.findJobById(jobId, owner);
 
@@ -40,7 +42,8 @@ export class CompleteJobUseCase {
         : buildNotionConversionSignalPayload(
             truncation,
             droppedAssetCount,
-            guessedColumns
+            guessedColumns,
+            resolvedDatabasePath
           );
 
     const updated = await this.jobRepository.updateJobStatus(
