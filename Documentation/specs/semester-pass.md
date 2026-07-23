@@ -1,6 +1,6 @@
 # Semester Pass — a ~4-month one-time tier (#3573)
 
-Status: **DRAFT — pricing hard rail.** Ships no code. Requires the maintainer's gate, a Stripe price created dashboard-side, a `/security-review` on the wiring PR, and — critically — a pre-build cannibalization pull (below) before any implementation.
+Status: **DRAFT — pricing hard rail, waiting on gate 1.** Ships no code. Requires the maintainer's gate, a Stripe price created dashboard-side, a `/security-review` on the wiring PR, and — critically — a pre-build cannibalization pull (below) before any implementation. **2026-07-23: the cannibalization pull ran and came back inconclusive** (not "incremental," not "cannibalizing" — unmeasurable with current data). See below; recheck no earlier than 2026-09-24.
 
 ## Trio synthesis
 - **PM:** Build it. $14.99 one-time / 120 days / no auto-renew captures the semester-rhythm churn the monthly sub keeps losing. Gate on a cannibalization pull first.
@@ -19,6 +19,16 @@ Willingness-to-pay in this market is small and one-time: "$0.99 passed, $5 fair,
 - If they **re-buy passes on a semester cadence** → Semester Pass mostly discounts revenue we'd already get (weak — reconsider price or hold).
 - If they **take a sub and churn** (the "finished what I needed" pattern) → Semester Pass is genuinely incremental (build).
 Read from `user_passes` (repeat buyers by `user_id`, inter-purchase interval) cross-checked against the cancel-reason mix. **This spec does not graduate to implementation until that pull says incremental.**
+
+### Cannibalization pull — result (2026-07-23)
+
+Pulled prod `user_passes`/`subscriptions`. **Inconclusive — not a clean go.**
+
+- 196 total pass buyers. 21 (10.7%) ever subscribed — close to this spec's own ~8% baseline. Of those 21: 15 already churned, 6 still active — a 71% subscribe-then-churn rate among the minority who convert. Directionally *consistent* with the incremental thesis.
+- **The actual test can't be run yet.** `user_passes` data only goes back to 2026-05-24 (~2 months) — nobody has the 4 months of tenure the gate's own question requires ("do buyers return ~4 months later and re-buy"). The 26 users who bought a second pass did so days-to-weeks later, not months — frequent short-term crunch use, not the semester-cadence pattern this gate is trying to rule out.
+- Absence of a 4-month repeat-purchase cohort right now is because the feature is too young to have produced one, not because cannibalization is confirmed absent. Declaring this gate passed on the current data would be forcing a conclusion it doesn't support.
+
+**Decision: wait.** Earliest a real 4-month-tenure cohort exists is ~2026-09-24 (4 months after the first recorded pass purchase). Recheck then, or at the next quarterly retro, whichever comes first. Full pull discussion: PR #3621 comment thread.
 
 ## Scope
 **In:** one new pass kind sold as a one-time Checkout SKU with a ~4-month entitlement, surfaced on the pricing page + pass CTAs.
@@ -40,8 +50,8 @@ Read from `user_passes` (repeat buyers by `user_id`, inter-purchase interval) cr
 - **IAP (out of scope unless native app sells it):** `src/usecases/iap/products.ts` would need a `'semester.4mo'` product + the `Extract` widened.
 
 ## Hard rails / gates
-1. **Cannibalization pull passes** (above) — the go/no-go.
-2. `PASS_4MO_PRICE_ID` documented in `src/env.example` with the safe default (unset → 503 "not available"); the real Stripe price created dashboard-side before launch.
+1. **Cannibalization pull passes** (above) — the go/no-go. **Status: inconclusive, waiting — recheck no earlier than 2026-09-24.**
+2. ~~`PASS_4MO_PRICE_ID` documented in `src/env.example` with the safe default (unset → 503 "not available"); the real Stripe price created dashboard-side before launch.~~ **Done 2026-07-23.** An idempotent ops command (`POST /api/ops/commands/create-semester-pass`, #3820, button added in #3821) provisions the Stripe product + one-time $14.99 price; `PASS_4MO_PRICE_ID` is set in prod. Still needs adding to `src/env.example` with the safe-default note once gate 1 clears and the checkout route (which reads it) actually gets built.
 3. `WebhookRouter.*` + `StripeController.*` edited in a worktree (`EnterWorktree`).
 4. `/security-review` on the wiring PR; verify no charging/retry logic changes and the webhook signature path is untouched.
 
