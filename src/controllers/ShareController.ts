@@ -3,6 +3,8 @@ import { Request, Response } from 'express';
 import CreateShareUseCase from '../usecases/share/CreateShareUseCase';
 import ResolveShareUseCase from '../usecases/share/ResolveShareUseCase';
 import RevokeShareUseCase from '../usecases/share/RevokeShareUseCase';
+import PublishShareUseCase from '../usecases/share/PublishShareUseCase';
+import ListPublicSharesUseCase from '../usecases/share/ListPublicSharesUseCase';
 import ShareService from '../services/ShareService';
 import StorageHandler from '../lib/storage/StorageHandler';
 import ApkgPreviewService from '../services/ApkgPreviewService/ApkgPreviewService';
@@ -39,11 +41,15 @@ function guessContentType(name: string): string {
 
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 100;
+const LIBRARY_DEFAULT_PAGE_SIZE = 24;
 
-function clampPageSize(input: unknown): number {
+function clampPageSize(
+  input: unknown,
+  defaultSize = DEFAULT_PAGE_SIZE
+): number {
   const raw = typeof input === 'string' ? input : '';
   const parsed = Number.parseInt(raw, 10);
-  if (!Number.isFinite(parsed) || parsed <= 0) return DEFAULT_PAGE_SIZE;
+  if (!Number.isFinite(parsed) || parsed <= 0) return defaultSize;
   return Math.min(parsed, MAX_PAGE_SIZE);
 }
 
@@ -67,7 +73,9 @@ class ShareController {
     private readonly shareService: ShareService,
     private readonly storage: StorageHandler,
     private readonly previewService: ApkgPreviewService,
-    private readonly downloadService: DownloadService
+    private readonly downloadService: DownloadService,
+    private readonly publishUseCase: PublishShareUseCase,
+    private readonly listPublicUseCase: ListPublicSharesUseCase
   ) {}
 
   async createShare(req: Request, res: Response) {
@@ -111,6 +119,9 @@ class ShareController {
         url: this.shareService.buildShareUrl(s.token),
         created_at: s.created_at,
         view_count: s.view_count,
+        is_public: s.is_public,
+        title: s.title,
+        card_count: s.card_count,
       }));
       res.json(result);
     } catch (error) {
@@ -253,6 +264,67 @@ class ShareController {
       }
       console.error('[ShareController.download]', error);
       res.status(500).json({ message: 'Download failed.' });
+    }
+  }
+
+  async setVisibility(req: Request, res: Response) {
+    const { owner } = res.locals;
+    if (owner == null) {
+      res.status(401).json({ message: 'Authentication required' });
+      return;
+    }
+
+    const { token } = req.params;
+    const isPublic = req.body?.is_public;
+    if (typeof isPublic !== 'boolean') {
+      res.status(400).json({ message: 'is_public must be a boolean.' });
+      return;
+    }
+    const title =
+      typeof req.body?.title === 'string' ? req.body.title : undefined;
+
+    try {
+      const updated = await this.publishUseCase.execute(
+        token,
+        owner,
+        isPublic,
+        title
+      );
+      if (updated == null) {
+        res.status(404).json({ message: 'Share not found.' });
+        return;
+      }
+      res.json({
+        token: updated.token,
+        is_public: updated.is_public,
+        title: updated.title,
+        card_count: updated.card_count,
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'Title is required to publish a deck.'
+      ) {
+        res.status(400).json({ message: error.message });
+        return;
+      }
+      console.error('[ShareController.setVisibility]', error);
+      res.status(500).json({ message: 'Failed to update share visibility.' });
+    }
+  }
+
+  async getPublicListing(req: Request, res: Response) {
+    try {
+      const cursor = clampCursor(req.query.cursor);
+      const pageSize = clampPageSize(
+        req.query.page_size,
+        LIBRARY_DEFAULT_PAGE_SIZE
+      );
+      const page = await this.listPublicUseCase.execute(cursor, pageSize);
+      res.json(page);
+    } catch (error) {
+      console.error('[ShareController.getPublicListing]', error);
+      res.status(500).json({ message: 'Failed to load the shared library.' });
     }
   }
 

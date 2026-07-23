@@ -154,6 +154,9 @@ export default function SharedDeckPage() {
           <a href={downloadUrl} className={styles.downloadButton}>
             Download deck
           </a>
+          <a href="/upload" className={styles.remixButton}>
+            Make your own deck
+          </a>
         </div>
       )}
     </div>
