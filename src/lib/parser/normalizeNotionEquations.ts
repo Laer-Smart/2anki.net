@@ -9,6 +9,12 @@ const BLOCK_OPEN = '\\[';
 const BLOCK_CLOSE = '\\]';
 
 function extractLatex(equation: Cheerio<Element>): string | null {
+  const dataAttr =
+    equation.attr('data-notion-equation') ??
+    equation.attr('data-notion-inline-equation');
+  if (dataAttr != null && dataAttr.trim().length > 0) {
+    return dataAttr.trim();
+  }
   const annotation = equation
     .find('annotation[encoding="application/x-tex"]')
     .first();
@@ -27,6 +33,7 @@ function replaceEquation(
   const equation = dom(element);
   const latex = extractLatex(equation);
   if (latex == null) {
+    equation.find('style').remove();
     equation.replaceWith(escapeHtml(equation.text().trim()));
     return;
   }
