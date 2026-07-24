@@ -140,6 +140,58 @@ describe('create_deck handler', () => {
     await handler({ cards: [{ front: 'a', back: 'b' }] });
     expect(results).toEqual([{ subdeckCount: 1 }]);
   });
+
+  it('renders a markdown card table in the text block by default', async () => {
+    const createDeck = jest.fn(async () => ({
+      kind: 'deck' as const,
+      cardCount: 2,
+      filename: 'deck.apkg',
+      downloadUrl: 'https://2anki.net/api/mcp/decks/abc/download',
+      summary: '2 cards. Ready to download.',
+      sampleCards: [
+        { front: 'water', back: '水' },
+        { front: 'fire', back: '火' },
+      ],
+    }));
+    const handler = getHandler(
+      buildContext({
+        toolsService: { createDeck } as unknown as McpToolsService,
+      }),
+      'create_deck'
+    );
+    const result = await handler({ cards: [{ front: 'a', back: 'b' }] });
+
+    expect(result.content[0].text).toContain('2 cards. Ready to download.');
+    expect(result.content[0].text).toContain(
+      'Download: https://2anki.net/api/mcp/decks/abc/download'
+    );
+    expect(result.content[0].text).toContain('| # | Front | Back |');
+    expect(result.content[0].text).toContain('| 1 | water | 水 |');
+  });
+
+  it('omits the card table but keeps the summary when detail is summary', async () => {
+    const createDeck = jest.fn(async () => ({
+      kind: 'deck' as const,
+      cardCount: 2,
+      filename: 'deck.apkg',
+      downloadUrl: 'https://2anki.net/api/mcp/decks/abc/download',
+      summary: '2 cards. Ready to download.',
+      sampleCards: [{ front: 'water', back: '水' }],
+    }));
+    const handler = getHandler(
+      buildContext({
+        toolsService: { createDeck } as unknown as McpToolsService,
+      }),
+      'create_deck'
+    );
+    const result = await handler({
+      cards: [{ front: 'a', back: 'b' }],
+      detail: 'summary',
+    });
+
+    expect(result.content[0].text).toContain('2 cards. Ready to download.');
+    expect(result.content[0].text).not.toContain('| # | Front | Back |');
+  });
 });
 
 describe('get_deck_preview handler', () => {
@@ -160,6 +212,34 @@ describe('get_deck_preview handler', () => {
     const result = await handler({ jobId: 'job-1' });
     expect(getDeckPreview).toHaveBeenCalledWith('user-1', 'job-1', 0, 20);
     expect(result.isError).toBeUndefined();
+  });
+
+  it('renders the full page of cards as a markdown table, not truncated to a teaser', async () => {
+    const sampleCards = Array.from({ length: 20 }, (_, i) => ({
+      front: `f${i}`,
+      back: `b${i}`,
+    }));
+    const getDeckPreview = jest.fn(async () => ({
+      cardCount: 34,
+      deckCount: 1,
+      decks: [],
+      sampleCards,
+      note: 'Showing cards 1–20 of 34. Pass page (0-based) and pageSize for more.',
+    }));
+    const handler = getHandler(
+      buildContext({
+        owner: 'user-1',
+        toolsService: { getDeckPreview } as unknown as McpToolsService,
+      }),
+      'get_deck_preview'
+    );
+    const result = await handler({ jobId: 'job-1' });
+
+    expect(result.content[0].text).toContain('**34 cards**');
+    expect(result.content[0].text.match(/^\| \d+ \|/gm)).toHaveLength(20);
+    expect(result.content[0].text).toContain(
+      'Showing cards 1–20 of 34. Pass page (0-based) and pageSize for more.'
+    );
   });
 
   it('falls back to the key param when jobId is absent', async () => {
