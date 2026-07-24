@@ -18,6 +18,10 @@ import { Backend, ReviewCard } from '../../../lib/backend/Backend';
 import { AnkifyStatsDeck } from '../stats/types';
 import { buildDeckTree } from './buildDeckTree';
 import { track } from '../../../lib/analytics/track';
+import {
+  getStoredCollapsedDecks,
+  setStoredCollapsedDecks,
+} from '../lib/collapsedDecksStorage';
 
 interface Props {
   readonly backend?: Backend;
@@ -72,7 +76,9 @@ export function DeckPicker({
 }) {
   const { t } = useTranslation('ankify');
   const tree = buildDeckTree(decks);
-  const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [collapsed, setCollapsed] = useState<Set<string>>(() =>
+    getStoredCollapsedDecks()
+  );
 
   const toggle = (fullName: string) => {
     setCollapsed((prev) => {
@@ -82,6 +88,7 @@ export function DeckPicker({
       } else {
         next.add(fullName);
       }
+      setStoredCollapsedDecks(next);
       return next;
     });
   };

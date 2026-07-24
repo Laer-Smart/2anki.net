@@ -1,0 +1,6 @@
+{
+  "id": "2026-07-24-ankify-collapsed-decks-persist",
+  "date": "2026-07-24",
+  "type": "fix",
+  "title": "Collapsed decks in Ankify review stay collapsed after refreshing the page"
+}

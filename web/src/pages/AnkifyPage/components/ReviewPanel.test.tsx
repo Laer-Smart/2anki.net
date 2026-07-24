@@ -3,9 +3,9 @@ import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-import ReviewPanel from './ReviewPanel';
+import ReviewPanel, { DeckPicker } from './ReviewPanel';
 import { Backend, ReviewQueueCard } from '../../../lib/backend/Backend';
-import { AnkifyStats } from '../stats/types';
+import { AnkifyStats, AnkifyStatsDeck } from '../stats/types';
 
 const trackMock = vi.fn();
 vi.mock('../../../lib/analytics/track', () => ({
@@ -562,5 +562,54 @@ describe('ReviewPanel', () => {
 
     const reviewButton = await screen.findByRole('button', { name: 'Review' });
     expect(reviewButton).not.toBeDisabled();
+  });
+});
+
+describe('DeckPicker collapse persistence', () => {
+  const decksWithChild: AnkifyStatsDeck[] = [
+    {
+      fullName: 'MS3',
+      name: 'MS3',
+      depth: 0,
+      new: 0,
+      learning: 0,
+      review: 0,
+      total: 0,
+    },
+    {
+      fullName: 'MS3::Pharmacology',
+      name: 'Pharmacology',
+      depth: 1,
+      new: 2,
+      learning: 0,
+      review: 3,
+      total: 10,
+    },
+  ];
+
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  afterEach(() => {
+    localStorage.clear();
+  });
+
+  test('collapsing a deck persists across remounts', () => {
+    const { unmount } = render(
+      <DeckPicker decks={decksWithChild} onReview={vi.fn()} />
+    );
+
+    expect(screen.getByText('Pharmacology')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Collapse MS3' }));
+    expect(screen.queryByText('Pharmacology')).not.toBeInTheDocument();
+
+    unmount();
+    render(<DeckPicker decks={decksWithChild} onReview={vi.fn()} />);
+
+    expect(screen.queryByText('Pharmacology')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Expand MS3' })
+    ).toBeInTheDocument();
   });
 });
