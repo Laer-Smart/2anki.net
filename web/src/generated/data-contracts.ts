@@ -260,3 +260,85 @@ export interface Upload {
    */
   created_at?: string;
 }
+
+/** Basic two-sided flashcard. Front and back are both required strings. */
+export interface ChatBasicCard {
+  front: string;
+  back: string;
+  /**
+   * Optional subject tags. Each tag is normalised server-side to lower-case kebab-case.
+   * @maxItems 8
+   */
+  tags?: string[];
+}
+
+/** Multiple-choice flashcard. On `/api/chat/deck` requests, `back` may be omitted — the server derives it from `options[correctIndex]`. On `/api/chat/message` `done` frames, `back` is emitted as an empty string. */
+export interface ChatMcqCard {
+  front: string;
+  /** Always emitted as an empty string in `done` frames. Optional in `/api/chat/deck` requests. */
+  back?: string;
+  /**
+   * Exactly 4 non-empty option strings.
+   * @maxItems 4
+   * @minItems 4
+   */
+  options: string[];
+  /**
+   * Index into `options` of the correct answer.
+   * @min 0
+   * @max 3
+   */
+  correctIndex: number;
+  /** Optional short explanation of the correct answer. */
+  rationale?: string;
+  /** @maxItems 8 */
+  tags?: string[];
+}
+
+/** SSE frame emitted as `event: token`. `data` is a JSON string fragment of the assistant reply. */
+export interface ChatTokenFrame {
+  event: "token";
+  /** JSON-encoded string fragment. */
+  data: string;
+}
+
+/** SSE frame emitted as `event: done`. Terminal frame on success. */
+export interface ChatDoneFrame {
+  event: "done";
+  data: {
+    /** Full assistant reply, also reconstructable by concatenating `token` frames. */
+    content: string;
+    /** Conversation id the message was persisted under. Returned even for first-turn requests where the caller did not send one. */
+    conversationId: number;
+    /** Generated flashcards, when the assistant produced them. Each entry is either a basic card or an MCQ card — clients must handle both shapes. */
+    cards?: (ChatBasicCard | ChatMcqCard)[];
+    /** Prose that appeared before the cards block. */
+    contentBefore?: string;
+    /** Prose that appeared after the cards block. */
+    contentAfter?: string;
+  };
+}
+
+/** SSE frame emitted as `event: error`. Terminal frame on failure. HTTP status remains 200 — branch on `data.type`. */
+export interface ChatErrorFrame {
+  event: "error";
+  /** Monthly free-tier message budget reached. `resetDate` is when the budget refills. */
+  data:
+    | {
+        type: "rate_limit";
+        /** @format date-time */
+        resetDate: string;
+      }
+    | {
+        type: "consent_required";
+      }
+    | {
+        type: "conversation_not_found";
+      }
+    | {
+        type: "mcq_extraction_failed";
+      }
+    | {
+        type: "server_error";
+      };
+}

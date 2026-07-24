@@ -41,7 +41,8 @@
     "purge-js": "rm `find . -name '*.js'|grep -v node_modules`",
     "test:mock": "FORCE_BUILD=true ts-node lib/notion/_mock/build-mock-data.tsx",
     "dev-cleanup": "git clean -fd && find . -name '*.js.map' -type f -delete",
-    "kanel": "kanel -c ./.kanelrc.js"
+    "kanel": "kanel -c ./.kanelrc.js",
+    "generate:openapi-spec": "tsx scripts/generate-openapi-spec.ts"
   },
   "license": "MIT",
   "dependencies": {

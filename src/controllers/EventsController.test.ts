@@ -274,6 +274,21 @@ describe('EventsController', () => {
     );
   });
 
+  it.each([
+    'image_only_photo_deck_shown',
+    'image_only_photo_deck_clicked',
+    'ankify_decklist_sorted',
+    'empty_back_notice_shown',
+  ])('accepts client event %s as known, not unknown', (eventName) => {
+    const { controller, req, res, executeSpy } = buildMocks({ userId: 1 });
+    req.body = { name: eventName };
+    controller.track(req, res);
+    expect(res.status).toHaveBeenCalledWith(202);
+    expect(executeSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ name: eventName, unknown: false })
+    );
+  });
+
   it('accepts columns_guessed_notice_shown as known, not unknown', () => {
     const { controller, req, res, executeSpy } = buildMocks({ userId: 1 });
     req.body = { name: 'columns_guessed_notice_shown' };

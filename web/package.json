@@ -22,7 +22,7 @@
     "lint": "oxlint -c ../.oxlintrc.json src",
     "lint:fix": "oxfmt -c ../.oxfmtrc.json --write src",
     "schema:generate-types": "npx kanel -c .kanelrc.js",
-    "generate:api-types": "swagger-typescript-api generate -p http://localhost:2020/docs/swagger.json -o ./src/generated --modular",
+    "generate:api-types": "cd .. && pnpm run generate:openapi-spec && cd web && swagger-typescript-api generate -p ../openapi.json -o ./src/generated --modular",
     "mock-server": "node mock-server/server.js",
     "test:e2e": "playwright test",
     "test:golden-path": "playwright test golden-path.spec.ts",
