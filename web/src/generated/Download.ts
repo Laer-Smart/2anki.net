@@ -42,7 +42,7 @@ export class Download<
    * @secure
    */
   bulkList = (id: string, params: RequestParams = {}) =>
-    this.request<File, Error>({
+    this.request<Blob, Error>({
       path: `/download/${id}/bulk`,
       method: "GET",
       secure: true,
@@ -64,7 +64,7 @@ export class Download<
     filename: string,
     params: RequestParams = {},
   ) =>
-    this.request<File, Error>({
+    this.request<Blob, Error>({
       path: `/download/${id}/${filename}`,
       method: "GET",
       secure: true,
