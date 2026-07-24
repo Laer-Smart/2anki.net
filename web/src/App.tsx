@@ -289,6 +289,10 @@ const SharedDeckPage = lazyWithRetry(
   () => import('./pages/SharedDeckPage'),
   './pages/SharedDeckPage'
 );
+const SharedDecksPage = lazyWithRetry(
+  () => import('./pages/SharedDecksPage'),
+  './pages/SharedDecksPage'
+);
 const MindmapsPage = lazyWithRetry(
   () => import('./pages/MindmapsPage'),
   './pages/MindmapsPage'
@@ -681,6 +685,7 @@ function AppContent({
               element={<ConvertLandingPage setErrorMessage={setErrorMessage} />}
             />
             <Route path="/s/:token" element={<SharedDeckPage />} />
+            <Route path="/shared-decks" element={<SharedDecksPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </RouteRecoveryBoundary>

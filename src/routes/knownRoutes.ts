@@ -5,6 +5,7 @@ const STATIC_PUBLIC_ROUTES = new Set<string>([
   '/about',
   '/convert',
   '/notion-marketplace',
+  '/shared-decks',
 ]);
 
 const APP_ROUTES = new Set<string>([

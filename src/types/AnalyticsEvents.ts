@@ -106,6 +106,7 @@ export const KNOWN_EVENTS = new Set([
   'image_only_photo_deck_clicked',
   'ankify_decklist_sorted',
   'empty_back_notice_shown',
+  'shared_deck_published',
 ] as const);
 
 export type KnownEvent = typeof KNOWN_EVENTS extends Set<infer T> ? T : never;

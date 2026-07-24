@@ -9,6 +9,7 @@ interface Props {
 
 export function EmptyDownloadsSection({ isEmpty }: Readonly<Props>) {
   const { t } = useTranslation();
+  const { t: tPreviews } = useTranslation('previews');
   if (!isEmpty) {
     return null;
   }
@@ -43,6 +44,14 @@ export function EmptyDownloadsSection({ isEmpty }: Readonly<Props>) {
           style={{ color: 'var(--color-primary)', textDecoration: 'none' }}
         >
           {t('downloads.empty.uploadFile')}
+        </Link>
+      </p>
+      <p className={styles.emptyHint}>
+        <Link
+          to="/shared-decks"
+          style={{ color: 'var(--color-primary)', textDecoration: 'none' }}
+        >
+          {tPreviews('sharedLibrary.browseLibrary')}
         </Link>
       </p>
     </>

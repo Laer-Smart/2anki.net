@@ -21,6 +21,12 @@ export default interface DeckShares {
   revoked_at: Date | null;
 
   view_count: number;
+
+  is_public: boolean;
+
+  title: string | null;
+
+  card_count: number | null;
 }
 
 /** Represents the initializer for the table public.deck_shares */
@@ -41,6 +47,13 @@ export interface DeckSharesInitializer {
 
   /** Default value: 0 */
   view_count?: number;
+
+  /** Default value: false */
+  is_public?: boolean;
+
+  title?: string | null;
+
+  card_count?: number | null;
 }
 
 /** Represents the mutator for the table public.deck_shares */
@@ -58,4 +71,10 @@ export interface DeckSharesMutator {
   revoked_at?: Date | null;
 
   view_count?: number;
+
+  is_public?: boolean;
+
+  title?: string | null;
+
+  card_count?: number | null;
 }
