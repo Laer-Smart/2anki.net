@@ -130,6 +130,7 @@
     "loadMore": "Load more",
     "remixCta": "Make your own deck",
     "remixSubtext": "Make your own version on 2anki.",
-    "cardCount_other": "{{count}} cards"
+    "cardCount_other": "{{count}} cards",
+    "browseLibrary": "Browse the shared library"
   }
 }

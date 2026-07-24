@@ -124,7 +124,8 @@
     "loadFailed": "Couldn't load the shared library. Try again.",
     "loadMore": "Load more",
     "remixCta": "Make your own deck",
-    "remixSubtext": "Make your own version on 2anki."
+    "remixSubtext": "Make your own version on 2anki.",
+    "browseLibrary": "Browse the shared library"
   },
   "card": {
     "frameTitle": "{{deck}} / {{template}} ({{side}})",

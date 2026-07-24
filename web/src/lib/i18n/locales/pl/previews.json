@@ -163,6 +163,7 @@
     "cardCount_one": "{{count}} card",
     "cardCount_few": "{{count}} cards",
     "cardCount_many": "{{count}} cards",
-    "cardCount_other": "{{count}} cards"
+    "cardCount_other": "{{count}} cards",
+    "browseLibrary": "Browse the shared library"
   }
 }
